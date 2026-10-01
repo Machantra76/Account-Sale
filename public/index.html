@@ -573,7 +573,8 @@
 
     <!-- JavaScript -->
     <script>
-        const API_URL = 'https://my-accesses-api-1.onrender.com/api/accounting';
+        const API_BASE = window.location.origin;
+        const API_URL = `${API_BASE}/api/accounting`;
         let masterItemsList = [];
         let allTransactionsList = [];
         let currentCart = [];
@@ -632,14 +633,10 @@
                 let mainTablesColumn = document.getElementById('mainTablesColumn');
 
                 if (userObj.role === 'staff') {
-                    // កំណត់ឱ្យ appContainer កាន់កាប់កណ្តាលអេក្រង់សម្រាប់ Staff
                     appContainer.classList.add('staff-center-layout');
-                    
-                    // លាក់ Column ខាងឆ្វេងរបស់ Admin ចោលទាំងស្រុង ដើម្បីឱ្យ Column ស្ដាំមកនៅចំកណ្តាល
                     adminFormsColumn.style.display = 'none';
                     mainTablesColumn.className = "col-lg-12";
 
-                    // លាក់ផ្នែកផ្សេងៗ និងរក្សាទុកតែ POS Grid និង Current Cart ឱ្យ Staff ប្រើប្រាស់
                     document.getElementById('adminReportBtn').style.display = 'none';
                     document.getElementById('adminSummaryCards').style.display = 'none';
                     
@@ -651,8 +648,6 @@
                     document.getElementById('currentCartCard').style.display = 'block';
                 } else {
                     appContainer.classList.remove('staff-center-layout');
-                    
-                    // បង្ហាញ Column ខាងឆ្វេងរបស់ Admin វិញធម្មតា
                     adminFormsColumn.style.display = 'block';
                     mainTablesColumn.className = "col-lg-8";
 
@@ -1317,7 +1312,6 @@
                     let incomes = allTransactionsList.filter(tx => tx.type === 'INCOME');
                     let expenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
 
-                    // Group Incomes
                     let groupedIncomes = {};
                     incomes.forEach(tx => {
                         let key = tx.item_name + "_" + tx.category + "_" + tx.unit_price;
@@ -1371,7 +1365,6 @@
                         incomeTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការលក់នៅឡើយទេ</td></tr>`;
                     }
 
-                    // Group Expenses
                     let groupedExpenses = {};
                     expenses.forEach(tx => {
                         let key = tx.item_name + "_" + tx.category;
@@ -1494,7 +1487,6 @@
                 return true;
             });
 
-            // Sales Report
             let salesTbody = document.getElementById('reportSalesTableBody');
             salesTbody.innerHTML = '';
             let salesTxRaw = filteredTx.filter(tx => tx.type === 'INCOME');
@@ -1559,7 +1551,6 @@
                 salesTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-2">មិនមានទិន្នន័យលក់ក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
             }
 
-            // Restock Report
             let restockTbody = document.getElementById('reportRestockTableBody');
             restockTbody.innerHTML = '';
             let restockTxRaw = filteredTx.filter(tx => tx.type === 'EXPENSE');
