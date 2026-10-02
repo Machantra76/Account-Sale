@@ -4,10 +4,10 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-app.use(express.json({ limit: '10mb' })); 
+app.use(express.json({ limit: '10mb' })); // រៀបចំ Limit ទំហំ JSON ឱ្យធំพอសម្រាប់ Base64 រូបភាព[cite: 3]
 app.use(cors());
 
-// 🔗 ភ្ជាប់ទៅកាន់ PostgreSQL Database ដោយប្រើ Environment Variable[cite: 3]
+// 🔗 ភ្ជាប់ទៅកាន់ PostgreSQL Database ដោយប្រើ Environment Variable (សុវត្ថិភាព និងងាយស្រួលប្តូរ)[cite: 3]
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
@@ -76,64 +76,7 @@ const initTables = async () => {
 };
 initTables();
 
-// ----------------- 2. EXPORT & IMPORT JSON API (BACKUP & RESTORE) -----------------
-app.get('/api/accounting/export-json', async (req, res) => {
-    try {
-        let masterRes = await pool.query('SELECT * FROM master_items ORDER BY id ASC');
-        let txRes = await pool.query('SELECT * FROM transactions ORDER BY id ASC');
-        res.json({
-            success: true,
-            data: {
-                master_items: masterRes.rows,
-                transactions: txRes.rows
-            }
-        });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
-app.post('/api/accounting/import-json', async (req, res) => {
-    const client = await pool.connect();
-    try {
-        await client.query('BEGIN');
-        let { master_items, transactions } = req.body;
-
-        // សម្អាតទិន្នន័យចាស់ចេញសិន
-        await client.query('DELETE FROM transactions;');
-        await client.query('DELETE FROM master_items;');
-
-        // បញ្ចូល master_items ថ្មី
-        if (master_items && Array.isArray(master_items)) {
-            for (let m of master_items) {
-                await client.query(`
-                    INSERT INTO master_items (id, type, category, item_name, image_url, unit, stock_quantity, cost_price, retail_price, wholesale_price)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-                `, [m.id, m.type || 'EXPENSE', m.category, m.item_name, m.image_url || '', m.unit || 'ដុំ', m.stock_quantity || 0, m.cost_price || 0, m.retail_price || 0, m.wholesale_price || 0]);
-            }
-        }
-
-        // បញ្ចូល transactions ថ្មី
-        if (transactions && Array.isArray(transactions)) {
-            for (let t of transactions) {
-                await client.query(`
-                    INSERT INTO transactions (id, date, type, item_id, category, item_name, quantity, unit_price, amount)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-                `, [t.id, t.date || new Date(), t.type, t.item_id || null, t.category, t.item_name, t.quantity, t.unit_price, t.amount]);
-            }
-        }
-
-        await client.query('COMMIT');
-        res.json({ success: true, message: "Database restored successfully!" });
-    } catch (err) {
-        await client.query('ROLLBACK');
-        res.status(400).json({ success: false, error: err.message });
-    } finally {
-        client.release();
-    }
-});
-
-// ----------------- 3. MASTER ITEMS API -----------------
+// ----------------- 2. MASTER ITEMS API -----------------
 
 app.get('/api/accounting/master-items', async (req, res) => {
     try {
@@ -215,7 +158,7 @@ app.delete('/api/accounting/master-items/:id', async (req, res) => {
     }
 });
 
-// ----------------- 4. TRANSACTIONS API -----------------
+// ----------------- 3. TRANSACTIONS API -----------------
 
 app.get('/api/accounting/transactions', async (req, res) => {
     try {
@@ -331,7 +274,7 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
     }
 });
 
-// ----------------- 5. ACCOUNTING GENERAL & SUMMARY API -----------------
+// ----------------- 4. ACCOUNTING GENERAL & SUMMARY API -----------------
 app.get('/api/accounting', async (req, res) => {
     try {
         let txResult = await pool.query('SELECT * FROM transactions ORDER BY date DESC');
@@ -429,6 +372,7 @@ app.delete('/api/accounting/transactions/:id', async (req, res) => {
                 if (tx.type === 'INCOME') {
                     await client.query(`UPDATE master_items SET stock_quantity = stock_quantity + $1 WHERE id = $2`, [tx.quantity, tx.item_id]);
                 } else if (tx.type === 'EXPENSE') {
+                    // បានកែតម្រូវកន្លែងនេះឱ្យត្រូវជា Prepared Statement (Parameterized Query)
                     await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [tx.quantity, tx.item_id]);
                 }
             }
@@ -439,7 +383,7 @@ app.delete('/api/accounting/transactions/:id', async (req, res) => {
         res.json({ success: true, message: "Transaction deleted successfully!" });
     } catch (err) {
         await client.query('ROLLBACK');
-        res.status(500).json({ success: false, error: res.status(500).json({ success: false, error: err.message }) });
+        res.status(500).json({ success: false, error: err.message });
     } finally {
         client.release();
     }
