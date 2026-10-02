@@ -83,19 +83,11 @@
     <div id="appContainer" class="container-fluid px-4" style="max-width: 1450px;">
         <div class="d-flex align-items-center justify-content-between mb-4 bg-white p-3 px-4 rounded-4 shadow-sm border">
             <h2 class="text-primary fw-bold m-0 fs-4">📊 ប្រព័ន្ធគ្រប់គ្រងការលក់ និងស្តុក (POS)</h2>
-            <div class="d-flex align-items-center flex-wrap gap-2">
-                <!-- DATABASE BACKUP / RESTORE BUTTONS -->
-                <button onclick="backupDatabaseJSON()" class="btn btn-outline-success btn-sm px-3 shadow-sm fw-bold">
-                    📥 Download Backup (JSON)
+            <div class="d-flex align-items-center">
+                <button id="adminReportBtn" onclick="openReportModal()" class="btn btn-primary btn-sm px-4 me-3 shadow-sm fw-bold">
+                    📈 មើលរបាយការណ៍ (Report)
                 </button>
-                <label class="btn btn-outline-warning btn-sm px-3 shadow-sm fw-bold mb-0" style="cursor: pointer;">
-                    📤 Upload & Restore <input type="file" id="restoreFileJSON" accept=".json" style="display: none;" onchange="restoreDatabaseJSON(event)">
-                </label>
-
-                <button id="adminReportBtn" onclick="openReportModal()" class="btn btn-primary btn-sm px-3 shadow-sm fw-bold">
-                    📈 មើលរបាយការណ៍
-                </button>
-                <span id="welcomeUser" class="fw-semibold text-secondary"></span>
+                <span id="welcomeUser" class="me-3 fw-semibold text-secondary"></span>
                 <button onclick="logout()" class="btn btn-outline-danger btn-sm px-3">🚪 ចេញ</button>
             </div>
         </div>
@@ -258,7 +250,7 @@
                         <h5 class="text-success fw-bold fs-6 m-0">🛍 វិក្កយបត្របច្ចុប្បន្ន (Current Cart)</h5>
                         <div>
                             <button class="btn btn-sm btn-outline-secondary me-2 px-3" onclick="clearCurrentCart()">សម្អាត (New)</button>
-                            <button class="btn btn-sm btn-success shadow-sm px-3 fw-bold" onclick="checkoutAndPrintInvoice()">🖨 បញ្ចប់ការលក់ និងព្រិន្ទ</button>
+                            <button class="btn btn-sm btn-success shadow-sm px-3 fw-bold" onclick="checkoutAndPrintInvoice()">🖨️️ បញ្ចប់ការលក់ និងព្រិន្ទ</button>
                         </div>
                     </div>
 
@@ -610,62 +602,6 @@
             reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
             checkLoginState();
         });
-
-        // ----------------- BACKUP / RESTORE FUNCTIONS -----------------
-        async function backupDatabaseJSON() {
-            try {
-                let res = await fetch(`${API_URL}/export-json`);
-                let result = await res.json();
-                if (result.success) {
-                    let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(result.data, null, 2));
-                    let downloadAnchor = document.createElement('a');
-                    downloadAnchor.setAttribute("href", dataStr);
-                    downloadAnchor.setAttribute("download", `neon_db_backup_${new Date().toISOString().split('T')[0]}.json`);
-                    document.body.appendChild(downloadAnchor);
-                    downloadAnchor.click();
-                    downloadAnchor.remove();
-                } else {
-                    alert("❌ កំហុសក្នុងការទាញយក Backup");
-                }
-            } catch (err) {
-                console.error(err);
-                alert("❌ មានបញ្ហាក្នុងការភ្ជាប់ទៅកាន់ Server");
-            }
-        }
-
-        async function restoreDatabaseJSON(event) {
-            let file = event.target.files[0];
-            if (!file) return;
-
-            if (!confirm("⚠ ការ Restore នឹងជំនួសទិន្នន័យចាស់ទាំងអស់ក្នុង Database! តើបងពិតជាចង់បន្តដែរឬទេ?")) {
-                event.target.value = "";
-                return;
-            }
-
-            let reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    let jsonData = JSON.parse(e.target.result);
-                    let res = await fetch(`${API_URL}/import-json`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(jsonData)
-                    });
-                    let result = await res.json();
-                    if (result.success) {
-                        alert("✅ បាន Restore ទិន្នន័យចូល Database ដោយជោគជ័យ!");
-                        loadAppData();
-                    } else {
-                        alert("❌ Error: " + result.error);
-                    }
-                } catch (err) {
-                    console.error(err);
-                    alert("❌ ឯកសារ JSON មិនត្រឹមត្រូវទេ!");
-                }
-                event.target.value = "";
-            };
-            reader.readAsText(file);
-        }
 
         function openReportModal() {
             let loggedUserStr = sessionStorage.getItem("loggedUserObj");
@@ -1297,6 +1233,7 @@
             }
         }
 
+        // --- មុខងារលុបទិន្នន័យប្រវត្តិលក់/ទិញ (បានកែសម្រួល Try-Catch ការពារ Error 500) ---
         async function deleteGroupedTransactions(type, itemName) {
             if (!confirm(`តើបងពិតជាចង់លុបប្រវត្តិទំនិញ "${itemName}" ទាំងស្រុងមែនទេ?`)) return;
 
@@ -1313,6 +1250,7 @@
             loadAppData();
         }
 
+        // --- មុខងារបង្ហាញ និង Group ប្រវត្តិការលក់/ទិញ នៅលើ Dashboard ដើម ---
         function renderTransactionsTables() {
             let incomeTbody = document.getElementById('incomeTableBody');
             let expenseTbody = document.getElementById('expenseTableBody');
@@ -1322,6 +1260,7 @@
             let incomes = allTransactionsList.filter(tx => tx.type === 'INCOME');
             let expenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
 
+            // Group Income transactions by item_name
             let groupedIncomes = {};
             incomes.forEach(tx => {
                 let key = tx.item_name;
@@ -1340,6 +1279,7 @@
                 groupedIncomes[key].totalAmount += txAmount;
             });
 
+            // Group Expense transactions by item_name
             let groupedExpenses = {};
             expenses.forEach(tx => {
                 let key = tx.item_name;
@@ -1358,6 +1298,7 @@
                 groupedExpenses[key].totalAmount += txAmount;
             });
 
+            // Render Grouped Incomes
             let incomeKeys = Object.keys(groupedIncomes);
             if (incomeKeys.length > 0) {
                 incomeKeys.forEach(key => {
@@ -1381,6 +1322,7 @@
                 incomeTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">គ្មានប្រវត្តិលក់ចេញទេ</td></tr>`;
             }
 
+            // Render Grouped Expenses
             let expenseKeys = Object.keys(groupedExpenses);
             if (expenseKeys.length > 0) {
                 expenseKeys.forEach(key => {
@@ -1405,6 +1347,7 @@
             }
         }
 
+        // --- ផ្នែកបំពេញ និងត្រងទិន្នន័យ Report (Grouped & Date Filtered) ---
         function renderReportsTables() {
             let stockTbody = document.getElementById('reportStockTableBody');
             let salesTbody = document.getElementById('reportSalesTableBody');
@@ -1427,6 +1370,7 @@
             }
             document.getElementById('reportDateRangeLabel').innerText = dateRangeText;
 
+            // 1. បង្ហាញស្តុកសល់តាមប្រភេទ
             if (masterItemsList.length > 0) {
                 masterItemsList.forEach(m => {
                     let tr = document.createElement('tr');
@@ -1492,6 +1436,7 @@
                 groupedReportExpenses[key].totalAmount += txAmount;
             });
 
+            // 2. របាយការណ៍លក់ចេញ (INCOME - Grouped) + Total Row
             let totalSalesQty = 0;
             let totalSalesAmount = 0;
             let incomeKeys = Object.keys(groupedReportIncomes);
@@ -1529,6 +1474,7 @@
                 salesTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">គ្មានប្រវត្តិលក់ចេញក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
             }
 
+            // 3. របាយការណ៍ទិញស្តុកចូល (EXPENSE - Grouped) + Total Row
             let totalRestockQty = 0;
             let totalRestockAmount = 0;
             let expenseKeys = Object.keys(groupedReportExpenses);
