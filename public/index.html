@@ -279,10 +279,7 @@
                         </table>
                     </div>
                     <div class="d-flex justify-content-end align-items-center mt-3 pt-2 border-top">
-                        <div class="text-end">
-                            <div class="text-success fw-bold fs-5" id="cartGrandTotalUSD">សរុប ($): $0.00</div>
-                            <div class="text-primary fw-bold fs-6" id="cartGrandTotalRiel">សរុប (រៀល): 0 រៀល</div>
-                        </div>
+                        <h4 class="text-success fw-bold m-0" id="cartGrandTotalLabel">សរុបទឹកប្រាក់វិក្កយបត្រនេះ: $0.00 / 0 រៀល</h4>
                     </div>
                 </div>
 
@@ -902,8 +899,8 @@
             let grandTotalRiel = grandTotal * exchangeRate;
             let formattedRiel = grandTotalRiel.toLocaleString();
 
-            document.getElementById('cartGrandTotalUSD').innerText = `សរុប ($): $${grandTotal.toFixed(2)}`;
-            document.getElementById('cartGrandTotalRiel').innerText = `សរុប (រៀល): ${formattedRiel} រៀល`;
+            document.getElementById('cartGrandTotalLabel').innerHTML = 
+                `សរុបទឹកប្រាក់វិក្កយបត្រនេះ: <span class="text-success">$${grandTotal.toFixed(2)}</span> / <span class="text-primary">${formattedRiel} រៀល</span>`;
         }
 
         function openEditCart(index) {
@@ -1044,6 +1041,7 @@
             loadAppData();
         }
 
+        // --- មុខងារព្រិន្ទវិក្កយបត្រស្ដង់ដារ 80mm ---
         function printCartInvoice(items) {
             let exchangeRate = parseFloat(document.getElementById('exchangeRateInput')?.value) || 4000;
             let invoiceNo = "INV-" + Math.floor(100000 + Math.random() * 900000);
@@ -1053,52 +1051,120 @@
             printWindow.document.write('<html><head><title>វិក្កយបត្រលក់ (Invoice)</title>');
             printWindow.document.write(`
                 <style>
-                    @page { size: 80mm auto; margin: 0; }
-                    body { font-family: 'Khmer OS Battambang', 'Kantumruy Pro', sans-serif; padding: 10px; font-size: 11px; color: #000; margin: 0; }
-                    .invoice-header { background: #f2f2f2; padding: 8px; text-align: center; border-bottom: 2px dashed #000; margin-bottom: 8px; }
-                    .invoice-header h3 { margin: 0 0 5px 0; font-size: 14px; font-weight: bold; }
-                    .invoice-info { margin-bottom: 8px; font-size: 10px; }
-                    table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
-                    th, td { padding: 4px 2px; border-bottom: 1px dashed #ccc; text-align: left; font-size: 10px; }
-                    th { font-weight: bold; border-bottom: 1px solid #000; }
-                    .text-right { text-align: right; }
-                    .totals-section { border-top: 2px solid #000; padding-top: 6px; margin-top: 5px; text-align: right; }
-                    .totals-section div { font-weight: bold; margin-bottom: 3px; }
-                    .footer-note { text-align: center; margin-top: 15px; font-size: 9px; }
+                    @page { 
+                        size: 80mm auto; 
+                        margin: 2mm; 
+                    }
+                    body { 
+                        font-family: 'Khmer OS Battambang', 'Kantumruy Pro', sans-serif; 
+                        padding: 5px; 
+                        font-size: 11px; 
+                        color: #000; 
+                        margin: 0; 
+                        width: 72mm;
+                    }
+                    .invoice-header { 
+                        text-align: center; 
+                        border-bottom: 1.5px dashed #000; 
+                        padding-bottom: 5px; 
+                        margin-bottom: 5px; 
+                    }
+                    .invoice-header h3 { 
+                        margin: 0; 
+                        font-size: 13px; 
+                        font-weight: bold; 
+                    }
+                    .invoice-info { 
+                        margin-bottom: 5px; 
+                        font-size: 10px; 
+                    }
+                    table { 
+                        width: 100%; 
+                        border-collapse: collapse; 
+                        margin-bottom: 5px; 
+                    }
+                    th, td { 
+                        padding: 3px 2px; 
+                        border-bottom: 1px dashed #ddd; 
+                        text-align: left; 
+                        font-size: 10px; 
+                    }
+                    th { 
+                        font-weight: bold; 
+                        border-bottom: 1px solid #000; 
+                    }
+                    .text-center { 
+                        text-align: center; 
+                    }
+                    .text-right { 
+                        text-align: right; 
+                    }
+                    .totals-section { 
+                        border-top: 1.5px solid #000; 
+                        padding-top: 4px; 
+                        margin-top: 2px; 
+                        text-align: right; 
+                    }
+                    .totals-section div { 
+                        font-weight: bold; 
+                        margin-bottom: 2px; 
+                    }
+                    .footer-note { 
+                        text-align: center; 
+                        margin-top: 10px; 
+                        font-size: 9px; 
+                        border-top: 1px dashed #ccc;
+                        padding-top: 5px;
+                    }
                 </style>
             `);
             printWindow.document.write('</head><body>');
             
-            // Header Highlighted & Details
+            // Header វិក្កយបត្រ
             printWindow.document.write(`
                 <div class="invoice-header">
                     <h3>វិក្កយបត្រលក់ទំនិញ (INVOICE)</h3>
                 </div>
                 <div class="invoice-info">
-                    <div><b>លេខ Invoice:</b> ${invoiceNo}</div>
+                    <div><b>លេខ:</b> ${invoiceNo}</div>
                     <div><b>កាលបរិច្ឆេទ:</b> ${currentDate}</div>
                 </div>
             `);
 
+            // តារាងបង្ហាញ ល.រ, មុខទំនិញ, ចំនួន, ទឹកប្រាក់
             printWindow.document.write('<table>');
-            printWindow.document.write(`<tr><th>មុខទំនិញ (Cat)</th><th>ចំនួន</th><th class="text-right">តម្លៃ</th></tr>`);
+            printWindow.document.write(`
+                <tr>
+                    <th style="width: 10%;" class="text-center">ល.រ</th>
+                    <th style="width: 45%;">មុខទំនិញ</th>
+                    <th style="width: 20%;" class="text-center">ចំនួន</th>
+                    <th style="width: 25%;" class="text-right">ទឹកប្រាក់</th>
+                </tr>
+            `);
             
             let grandTotal = 0;
-            items.forEach(item => {
+            items.forEach((item, index) => {
                 let total = item.quantity * item.unit_price;
                 grandTotal += total;
-                printWindow.document.write(`<tr><td><b>${item.item_name}</b><br><small style="color:#555;">[${item.category}]</small></td><td>${item.quantity} ${item.unit}</td><td class="text-right">$${total.toFixed(2)}</td></tr>`);
+                printWindow.document.write(`
+                    <tr>
+                        <td class="text-center">${index + 1}</td>
+                        <td><b>${item.item_name}</b></td>
+                        <td class="text-center">${item.quantity} ${item.unit}</td>
+                        <td class="text-right">$${total.toFixed(2)}</td>
+                    </tr>
+                `);
             });
             
             printWindow.document.write('</table>');
 
             let grandTotalRiel = grandTotal * exchangeRate;
 
-            // Total section (USD and Riel on separate lines)
+            // ទឹកប្រាក់សរុបនៅជាប់ពីក្រោមតារាង
             printWindow.document.write(`
                 <div class="totals-section">
-                    <div style="font-size: 13px; color: #d9534f;">សរុបទឹកប្រាក់ ($): $${grandTotal.toFixed(2)}</div>
-                    <div style="font-size: 12px; color: #0275d8;">សរុបទឹកប្រាក់ (រៀល): ${grandTotalRiel.toLocaleString()} រៀល</div>
+                    <div style="font-size: 12px; color: #000;">សរុបទឹកប្រាក់ ($): $${grandTotal.toFixed(2)}</div>
+                    <div style="font-size: 11px; color: #000;">សរុបទឹកប្រាក់ (រៀល): ${grandTotalRiel.toLocaleString()} ៛</div>
                 </div>
                 <div class="footer-note">
                     អរគុណច្រើនសម្រាប់ការគាំទ្រ!<br>Thank You!
