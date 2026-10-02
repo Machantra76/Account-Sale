@@ -1041,136 +1041,30 @@
             loadAppData();
         }
 
-        // --- មុខងារព្រិន្ទវិក្កយបត្រស្ដង់ដារ 80mm ---
         function printCartInvoice(items) {
             let exchangeRate = parseFloat(document.getElementById('exchangeRateInput')?.value) || 4000;
-            let invoiceNo = "INV-" + Math.floor(100000 + Math.random() * 900000);
-            let currentDate = new Date().toLocaleString();
-
-            let printWindow = window.open('', '_blank', 'height=600,width=350');
-            printWindow.document.write('<html><head><title>វិក្កយបត្រលក់ (Invoice)</title>');
-            printWindow.document.write(`
-                <style>
-                    @page { 
-                        size: 80mm auto; 
-                        margin: 2mm; 
-                    }
-                    body { 
-                        font-family: 'Khmer OS Battambang', 'Kantumruy Pro', sans-serif; 
-                        padding: 5px; 
-                        font-size: 11px; 
-                        color: #000; 
-                        margin: 0; 
-                        width: 72mm;
-                    }
-                    .invoice-header { 
-                        text-align: center; 
-                        border-bottom: 1.5px dashed #000; 
-                        padding-bottom: 5px; 
-                        margin-bottom: 5px; 
-                    }
-                    .invoice-header h3 { 
-                        margin: 0; 
-                        font-size: 13px; 
-                        font-weight: bold; 
-                    }
-                    .invoice-info { 
-                        margin-bottom: 5px; 
-                        font-size: 10px; 
-                    }
-                    table { 
-                        width: 100%; 
-                        border-collapse: collapse; 
-                        margin-bottom: 5px; 
-                    }
-                    th, td { 
-                        padding: 3px 2px; 
-                        border-bottom: 1px dashed #ddd; 
-                        text-align: left; 
-                        font-size: 10px; 
-                    }
-                    th { 
-                        font-weight: bold; 
-                        border-bottom: 1px solid #000; 
-                    }
-                    .text-center { 
-                        text-align: center; 
-                    }
-                    .text-right { 
-                        text-align: right; 
-                    }
-                    .totals-section { 
-                        border-top: 1.5px solid #000; 
-                        padding-top: 4px; 
-                        margin-top: 2px; 
-                        text-align: right; 
-                    }
-                    .totals-section div { 
-                        font-weight: bold; 
-                        margin-bottom: 2px; 
-                    }
-                    .footer-note { 
-                        text-align: center; 
-                        margin-top: 10px; 
-                        font-size: 9px; 
-                        border-top: 1px dashed #ccc;
-                        padding-top: 5px;
-                    }
-                </style>
-            `);
+            let printWindow = window.open('', '_blank', 'height=700,width=450');
+            printWindow.document.write('<html><head><title>វិក្កយបត្រលក់</title>');
+            printWindow.document.write('<style>body { font-family: sans-serif; padding: 10px; font-size: 12px; } table { width: 100%; border-collapse: collapse; } th, td { padding: 5px; border-bottom: 1px dashed #888; text-align: left; }</style>');
             printWindow.document.write('</head><body>');
-            
-            // Header វិក្កយបត្រ
-            printWindow.document.write(`
-                <div class="invoice-header">
-                    <h3>វិក្កយបត្រលក់ទំនិញ (INVOICE)</h3>
-                </div>
-                <div class="invoice-info">
-                    <div><b>លេខ:</b> ${invoiceNo}</div>
-                    <div><b>កាលបរិច្ឆេទ:</b> ${currentDate}</div>
-                </div>
-            `);
-
-            // តារាងបង្ហាញ ល.រ, មុខទំនិញ, ចំនួន, ទឹកប្រាក់
+            printWindow.document.write('<h3 style="text-align: center;">វិក្កយបត្រលក់ទំនិញ (INVOICE)</h3>');
+            printWindow.document.write('<hr style="border-top: 1px dashed #888;">');
+            printWindow.document.write(`<p><small>កាលបរិច្ឆេទ: ${new Date().toLocaleString()}</small></p>`);
             printWindow.document.write('<table>');
-            printWindow.document.write(`
-                <tr>
-                    <th style="width: 10%;" class="text-center">ល.រ</th>
-                    <th style="width: 45%;">មុខទំនិញ</th>
-                    <th style="width: 20%;" class="text-center">ចំនួន</th>
-                    <th style="width: 25%;" class="text-right">ទឹកប្រាក់</th>
-                </tr>
-            `);
+            printWindow.document.write(`<tr><th>Category</th><th>មុខទំនិញ</th><th>ចំនួន</th><th>តម្លៃ</th></tr>`);
             
             let grandTotal = 0;
-            items.forEach((item, index) => {
+            items.forEach(item => {
                 let total = item.quantity * item.unit_price;
                 grandTotal += total;
-                printWindow.document.write(`
-                    <tr>
-                        <td class="text-center">${index + 1}</td>
-                        <td><b>${item.item_name}</b></td>
-                        <td class="text-center">${item.quantity} ${item.unit}</td>
-                        <td class="text-right">$${total.toFixed(2)}</td>
-                    </tr>
-                `);
+                printWindow.document.write(`<tr><td>${item.category}</td><td><b>${item.item_name}</b></td><td>${item.quantity} ${item.unit}</td><td>$${total.toFixed(2)}</td></tr>`);
             });
             
-            printWindow.document.write('</table>');
-
-            let grandTotalRiel = grandTotal * exchangeRate;
-
-            // ទឹកប្រាក់សរុបនៅជាប់ពីក្រោមតារាង
-            printWindow.document.write(`
-                <div class="totals-section">
-                    <div style="font-size: 12px; color: #000;">សរុបទឹកប្រាក់ ($): $${grandTotal.toFixed(2)}</div>
-                    <div style="font-size: 11px; color: #000;">សរុបទឹកប្រាក់ (រៀល): ${grandTotalRiel.toLocaleString()} ៛</div>
-                </div>
-                <div class="footer-note">
-                    អរគុណច្រើនសម្រាប់ការគាំទ្រ!<br>Thank You!
-                </div>
-            `);
-
+            printWindow.document.write(`</table>`);
+            printWindow.document.write(`<hr style="border-top: 1px dashed #888;">`);
+            printWindow.document.write(`<h3 style="text-align: right; margin-top: 10px;">សរុបទឹកប្រាក់ ($): $${grandTotal.toFixed(2)}</h3>`);
+            printWindow.document.write(`<h3 style="text-align: right; margin-top: 5px;">សរុបទឹកប្រាក់ (រៀល): ${(grandTotal * exchangeRate).toLocaleString()} ៛</h3>`);
+            printWindow.document.write('<p style="text-align: center; margin-top: 20px;"><small>អរគុណសម្រាប់ការគាំទ្រ!<br>Thank You!</small></p>');
             printWindow.document.write('</body></html>');
             printWindow.document.close();
             printWindow.focus();
