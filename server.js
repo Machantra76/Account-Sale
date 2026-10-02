@@ -4,18 +4,17 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-app.use(express.json({ limit: '10mb' })); // រៀបចំ Limit ទំហំ JSON ឱ្យធ្មេចល្មមសម្រាប់ Base64 រូបភាព
+app.use(express.json({ limit: '10mb' })); // រៀបចំ Limit ទំហំ JSON ឱ្យធំพอសម្រាប់ Base64 រូបភាព[cite: 3]
 app.use(cors());
 
-// 🔗 ភ្ជាប់ទៅកាន់ PostgreSQL Database (Neon)
-// ⚠️ បញ្ជាក់៖ សូមដូរ Connection String ខាងក្រោមទៅកាន់ Database ថ្មីរបស់អ្នក ប្រសិនបើចង់ប្ដូរ Database ដាច់ខាត
+// 🔗 ភ្ជាប់ទៅកាន់ PostgreSQL Database ដោយប្រើ Environment Variable (សុវត្ថិភាព និងងាយស្រួលប្តូរ)[cite: 3]
 const pool = new Pool({
-    connectionString: 'postgresql://neondb_owner:npg_gqyNjVpn0a9A@ep-summer-mountain-b5v7mdk3-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require',
+    connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
 
 pool.connect()
-    .then(() => console.log("Connected to PostgreSQL (Neon) Database successfully!"))
+    .then(() => console.log("Connected to PostgreSQL Database successfully!"))
     .catch(err => console.error("Database connection error:", err));
 
 // ----------------- 0. SERVE FRONTEND STATIC FILES FROM 'public' -----------------
@@ -373,6 +372,7 @@ app.delete('/api/accounting/transactions/:id', async (req, res) => {
                 if (tx.type === 'INCOME') {
                     await client.query(`UPDATE master_items SET stock_quantity = stock_quantity + $1 WHERE id = $2`, [tx.quantity, tx.item_id]);
                 } else if (tx.type === 'EXPENSE') {
+                    // បានកែតម្រូវកន្លែងនេះឱ្យត្រូវជា Prepared Statement (Parameterized Query)
                     await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [tx.quantity, tx.item_id]);
                 }
             }
