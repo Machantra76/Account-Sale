@@ -1224,12 +1224,12 @@
             }
         }
 
-        // --- មុខងារលុបទិន្នន័យប្រវត្តិលក់/ទិញតាមឈ្មោះទំនិញសរុប ---
-        async function deleteGroupedTransactions(type, itemName) {
+        // --- មុខងារលុបទិន្នន័យប្រវត្តិលក់/ទិញតាម item_id និង type (កែសម្រួលថ្មី) ---
+        async function deleteGroupedTransactions(type, itemId, itemName) {
             if (!confirm(`តើបងពិតជាចង់លុបប្រវត្តិទំនិញ "${itemName}" ទាំងស្រុងមែនទេ?`)) return;
 
-            // រកមើលរាល់ Transactions ទាំងឡាយណាដែលមាន type និង item_name ដូចគ្នា
-            let targetTransactions = allTransactionsList.filter(tx => tx.type === type && tx.item_name === itemName);
+            // រកមើលរាល់ Transactions ទាំងឡាយណាដែលមាន type និង item_id ដូចគ្នា
+            let targetTransactions = allTransactionsList.filter(tx => tx.type === type && (tx.item_id == itemId || tx.item_name === itemName));
 
             for (let tx of targetTransactions) {
                 await fetch(`${API_URL}/transactions/${tx.id}`, { method: 'DELETE' });
@@ -1248,12 +1248,13 @@
             let incomes = allTransactionsList.filter(tx => tx.type === 'INCOME');
             let expenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
 
-            // Group Income transactions by item_name
+            // Group Income transactions by item_id / item_name
             let groupedIncomes = {};
             incomes.forEach(tx => {
-                let key = tx.item_name;
+                let key = tx.item_id || tx.item_name;
                 if (!groupedIncomes[key]) {
                     groupedIncomes[key] = {
+                        item_id: tx.item_id,
                         date: tx.date,
                         category: tx.category,
                         item_name: tx.item_name,
@@ -1266,12 +1267,13 @@
                 groupedIncomes[key].totalAmount += parseFloat(tx.amount || 0);
             });
 
-            // Group Expense transactions by item_name
+            // Group Expense transactions by item_id / item_name
             let groupedExpenses = {};
             expenses.forEach(tx => {
-                let key = tx.item_name;
+                let key = tx.item_id || tx.item_name;
                 if (!groupedExpenses[key]) {
                     groupedExpenses[key] = {
+                        item_id: tx.item_id,
                         date: tx.date,
                         category: tx.category,
                         item_name: tx.item_name,
@@ -1299,7 +1301,7 @@
                         <td>$${avgPrice.toFixed(2)}</td>
                         <td class="text-success fw-bold">$${item.totalAmount.toFixed(2)}</td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteGroupedTransactions('INCOME', '${item.item_name}')">លុប</button>
+                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteGroupedTransactions('INCOME', '${item.item_id}', '${item.item_name}')">លុប</button>
                         </td>
                     `;
                     incomeTbody.appendChild(tr);
@@ -1323,7 +1325,7 @@
                         <td>$${avgPrice.toFixed(2)}</td>
                         <td class="text-danger fw-bold">$${item.totalAmount.toFixed(2)}</td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteGroupedTransactions('EXPENSE', '${item.item_name}')">លុប</button>
+                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteGroupedTransactions('EXPENSE', '${item.item_id}', '${item.item_name}')">លុប</button>
                         </td>
                     `;
                     expenseTbody.appendChild(tr);
@@ -1388,7 +1390,7 @@
 
             let groupedReportIncomes = {};
             filteredIncomes.forEach(tx => {
-                let key = tx.item_name;
+                let key = tx.item_id || tx.item_name;
                 if (!groupedReportIncomes[key]) {
                     groupedReportIncomes[key] = {
                         date: tx.date,
@@ -1405,7 +1407,7 @@
 
             let groupedReportExpenses = {};
             filteredExpenses.forEach(tx => {
-                let key = tx.item_name;
+                let key = tx.item_id || tx.item_name;
                 if (!groupedReportExpenses[key]) {
                     groupedReportExpenses[key] = {
                         date: tx.date,
