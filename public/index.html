@@ -250,7 +250,7 @@
                         <h5 class="text-success fw-bold fs-6 m-0">🛍 វិក្កយបត្របច្ចុប្បន្ន (Current Cart)</h5>
                         <div>
                             <button class="btn btn-sm btn-outline-secondary me-2 px-3" onclick="clearCurrentCart()">សម្អាត (New)</button>
-                            <button class="btn btn-sm btn-success shadow-sm px-3 fw-bold" onclick="checkoutAndPrintInvoice()">🖨️️ បញ្ចប់ការលក់ និងព្រិន្ទ</button>
+                            <button class="btn btn-sm btn-success shadow-sm px-3 fw-bold" onclick="checkoutAndPrintInvoice()">🖨 បញ្ចប់ការលក់ និងព្រិន្ទ</button>
                         </div>
                     </div>
 
@@ -279,7 +279,10 @@
                         </table>
                     </div>
                     <div class="d-flex justify-content-end align-items-center mt-3 pt-2 border-top">
-                        <h4 class="text-success fw-bold m-0" id="cartGrandTotalLabel">សរុបទឹកប្រាក់វិក្កយបត្រនេះ: $0.00 / 0 រៀល</h4>
+                        <div class="text-end">
+                            <div class="text-success fw-bold fs-5" id="cartGrandTotalUSD">សរុប ($): $0.00</div>
+                            <div class="text-primary fw-bold fs-6" id="cartGrandTotalRiel">សរុប (រៀល): 0 រៀល</div>
+                        </div>
                     </div>
                 </div>
 
@@ -899,8 +902,8 @@
             let grandTotalRiel = grandTotal * exchangeRate;
             let formattedRiel = grandTotalRiel.toLocaleString();
 
-            document.getElementById('cartGrandTotalLabel').innerHTML = 
-                `សរុបទឹកប្រាក់វិក្កយបត្រនេះ: <span class="text-success">$${grandTotal.toFixed(2)}</span> / <span class="text-primary">${formattedRiel} រៀល</span>`;
+            document.getElementById('cartGrandTotalUSD').innerText = `សរុប ($): $${grandTotal.toFixed(2)}`;
+            document.getElementById('cartGrandTotalRiel').innerText = `សរុប (រៀល): ${formattedRiel} រៀល`;
         }
 
         function openEditCart(index) {
@@ -1043,22 +1046,65 @@
 
         function printCartInvoice(items) {
             let exchangeRate = parseFloat(document.getElementById('exchangeRateInput')?.value) || 4000;
-            let printWindow = window.open('', '_blank', 'height=700,width=450');
-            printWindow.document.write('<html><head><title>វិក្កយបត្រលក់</title>');
-            printWindow.document.write('<style>body { font-family: sans-serif; padding: 10px; font-size: 12px; } table { width: 100%; border-collapse: collapse; } th, td { padding: 5px; border-bottom: 1px dashed #888; text-align: left; }</style>');
+            let invoiceNo = "INV-" + Math.floor(100000 + Math.random() * 900000);
+            let currentDate = new Date().toLocaleString();
+
+            let printWindow = window.open('', '_blank', 'height=600,width=350');
+            printWindow.document.write('<html><head><title>វិក្កយបត្រលក់ (Invoice)</title>');
+            printWindow.document.write(`
+                <style>
+                    @page { size: 80mm auto; margin: 0; }
+                    body { font-family: 'Khmer OS Battambang', 'Kantumruy Pro', sans-serif; padding: 10px; font-size: 11px; color: #000; margin: 0; }
+                    .invoice-header { background: #f2f2f2; padding: 8px; text-align: center; border-bottom: 2px dashed #000; margin-bottom: 8px; }
+                    .invoice-header h3 { margin: 0 0 5px 0; font-size: 14px; font-weight: bold; }
+                    .invoice-info { margin-bottom: 8px; font-size: 10px; }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+                    th, td { padding: 4px 2px; border-bottom: 1px dashed #ccc; text-align: left; font-size: 10px; }
+                    th { font-weight: bold; border-bottom: 1px solid #000; }
+                    .text-right { text-align: right; }
+                    .totals-section { border-top: 2px solid #000; padding-top: 6px; margin-top: 5px; text-align: right; }
+                    .totals-section div { font-weight: bold; margin-bottom: 3px; }
+                    .footer-note { text-align: center; margin-top: 15px; font-size: 9px; }
+                </style>
+            `);
             printWindow.document.write('</head><body>');
-            printWindow.document.write('<h3>វិក្កយបត្រលក់ទំនិញ</h3>');
-            printWindow.document.write(`<p><small>កាលបរិច្ឆេទ: ${new Date().toLocaleString()}</small></p><hr><table>`);
-            printWindow.document.write(`<tr><th>មុខទំនិញ</th><th>ចំនួន</th><th>តម្លៃ</th></tr>`);
+            
+            // Header Highlighted & Details
+            printWindow.document.write(`
+                <div class="invoice-header">
+                    <h3>វិក្កយបត្រលក់ទំនិញ (INVOICE)</h3>
+                </div>
+                <div class="invoice-info">
+                    <div><b>លេខ Invoice:</b> ${invoiceNo}</div>
+                    <div><b>កាលបរិច្ឆេទ:</b> ${currentDate}</div>
+                </div>
+            `);
+
+            printWindow.document.write('<table>');
+            printWindow.document.write(`<tr><th>មុខទំនិញ (Cat)</th><th>ចំនួន</th><th class="text-right">តម្លៃ</th></tr>`);
             
             let grandTotal = 0;
             items.forEach(item => {
                 let total = item.quantity * item.unit_price;
                 grandTotal += total;
-                printWindow.document.write(`<tr><td><b>${item.item_name}</b></td><td>${item.quantity} ${item.unit}</td><td>$${total.toFixed(2)}</td></tr>`);
+                printWindow.document.write(`<tr><td><b>${item.item_name}</b><br><small style="color:#555;">[${item.category}]</small></td><td>${item.quantity} ${item.unit}</td><td class="text-right">$${total.toFixed(2)}</td></tr>`);
             });
             
-            printWindow.document.write(`</table><h3 style="margin-top: 15px;">សរុប: $${grandTotal.toFixed(2)} / ${(grandTotal * exchangeRate).toLocaleString()} រៀល</h3>`);
+            printWindow.document.write('</table>');
+
+            let grandTotalRiel = grandTotal * exchangeRate;
+
+            // Total section (USD and Riel on separate lines)
+            printWindow.document.write(`
+                <div class="totals-section">
+                    <div style="font-size: 13px; color: #d9534f;">សរុបទឹកប្រាក់ ($): $${grandTotal.toFixed(2)}</div>
+                    <div style="font-size: 12px; color: #0275d8;">សរុបទឹកប្រាក់ (រៀល): ${grandTotalRiel.toLocaleString()} រៀល</div>
+                </div>
+                <div class="footer-note">
+                    អរគុណច្រើនសម្រាប់ការគាំទ្រ!<br>Thank You!
+                </div>
+            `);
+
             printWindow.document.write('</body></html>');
             printWindow.document.close();
             printWindow.focus();
@@ -1233,7 +1279,6 @@
             }
         }
 
-        // --- មុខងារលុបទិន្នន័យប្រវត្តិលក់/ទិញ (បានកែសម្រួល Try-Catch ការពារ Error 500) ---
         async function deleteGroupedTransactions(type, itemName) {
             if (!confirm(`តើបងពិតជាចង់លុបប្រវត្តិទំនិញ "${itemName}" ទាំងស្រុងមែនទេ?`)) return;
 
@@ -1250,7 +1295,6 @@
             loadAppData();
         }
 
-        // --- មុខងារបង្ហាញ និង Group ប្រវត្តិការលក់/ទិញ នៅលើ Dashboard ដើម ---
         function renderTransactionsTables() {
             let incomeTbody = document.getElementById('incomeTableBody');
             let expenseTbody = document.getElementById('expenseTableBody');
@@ -1260,7 +1304,6 @@
             let incomes = allTransactionsList.filter(tx => tx.type === 'INCOME');
             let expenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
 
-            // Group Income transactions by item_name
             let groupedIncomes = {};
             incomes.forEach(tx => {
                 let key = tx.item_name;
@@ -1279,7 +1322,6 @@
                 groupedIncomes[key].totalAmount += txAmount;
             });
 
-            // Group Expense transactions by item_name
             let groupedExpenses = {};
             expenses.forEach(tx => {
                 let key = tx.item_name;
@@ -1298,7 +1340,6 @@
                 groupedExpenses[key].totalAmount += txAmount;
             });
 
-            // Render Grouped Incomes
             let incomeKeys = Object.keys(groupedIncomes);
             if (incomeKeys.length > 0) {
                 incomeKeys.forEach(key => {
@@ -1322,7 +1363,6 @@
                 incomeTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">គ្មានប្រវត្តិលក់ចេញទេ</td></tr>`;
             }
 
-            // Render Grouped Expenses
             let expenseKeys = Object.keys(groupedExpenses);
             if (expenseKeys.length > 0) {
                 expenseKeys.forEach(key => {
@@ -1347,7 +1387,6 @@
             }
         }
 
-        // --- ផ្នែកបំពេញ និងត្រងទិន្នន័យ Report (Grouped & Date Filtered) ---
         function renderReportsTables() {
             let stockTbody = document.getElementById('reportStockTableBody');
             let salesTbody = document.getElementById('reportSalesTableBody');
@@ -1370,7 +1409,6 @@
             }
             document.getElementById('reportDateRangeLabel').innerText = dateRangeText;
 
-            // 1. បង្ហាញស្តុកសល់តាមប្រភេទ
             if (masterItemsList.length > 0) {
                 masterItemsList.forEach(m => {
                     let tr = document.createElement('tr');
@@ -1436,7 +1474,6 @@
                 groupedReportExpenses[key].totalAmount += txAmount;
             });
 
-            // 2. របាយការណ៍លក់ចេញ (INCOME - Grouped) + Total Row
             let totalSalesQty = 0;
             let totalSalesAmount = 0;
             let incomeKeys = Object.keys(groupedReportIncomes);
@@ -1474,7 +1511,6 @@
                 salesTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">គ្មានប្រវត្តិលក់ចេញក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
             }
 
-            // 3. របាយការណ៍ទិញស្តុកចូល (EXPENSE - Grouped) + Total Row
             let totalRestockQty = 0;
             let totalRestockAmount = 0;
             let expenseKeys = Object.keys(groupedReportExpenses);
