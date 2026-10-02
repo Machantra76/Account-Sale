@@ -179,7 +179,7 @@
                         <div class="mb-2">
                             <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ</label>
                             <select class="form-select form-select-sm" id="restockSelectItem" required>
-                                <option value="">-- ရွေးរើស --</option>
+                                <option value="">-- រွေးរើស --</option>
                             </select>
                         </div>
                         <div class="row">
@@ -250,31 +250,31 @@
                         <div class="card p-4 shadow-sm h-100 bg-white border-success border-2 d-flex flex-column justify-content-between">
                             <div>
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 class="text-success fw-bold fs-6 m-0">🛍 វិក្កយបត្របច្ចុប្បន្ន</h5>
+                                    <h5 class="text-success fw-bold fs-5 m-0">🛍 វិក្កយបត្របច្ចុប្បន្ន</h5>
                                     <div>
-                                        <button class="btn btn-sm btn-outline-secondary px-2" onclick="clearCurrentCart()" style="font-size: 11px;">សម្អាត</button>
-                                        <button class="btn btn-sm btn-success shadow-sm px-2 fw-bold" onclick="checkoutAndPrintInvoice()" style="font-size: 11px;">🖨 ព្រិន្ទ</button>
+                                        <button class="btn btn-sm btn-outline-secondary px-2 py-1 fw-bold" onclick="clearCurrentCart()" style="font-size: 13px;">សម្អាត</button>
+                                        <button class="btn btn-sm btn-success shadow-sm px-3 py-1 fw-bold" onclick="checkoutAndPrintInvoice()" style="font-size: 13px;">🖨 ព្រិន្ទ</button>
                                     </div>
                                 </div>
 
                                 <div class="row g-2 align-items-center mb-3 bg-light p-2 rounded-3 border">
                                     <div class="col-7">
-                                        <label class="form-label small text-muted fw-bold mb-0" style="font-size: 11px;">💱 អត្រាប្តូរប្រាក់ (១$ = រៀល):</label>
+                                        <label class="form-label text-secondary fw-bold mb-0" style="font-size: 13px;">💱 អត្រាប្តូរប្រាក់ (១$ = រៀល):</label>
                                     </div>
                                     <div class="col-5">
-                                        <input type="number" class="form-control form-control-sm" id="exchangeRateInput" value="4000" oninput="renderCartTable()">
+                                        <input type="number" class="form-control form-control-sm fw-bold text-primary" id="exchangeRateInput" value="4000" oninput="renderCartTable()" style="font-size: 14px;">
                                     </div>
                                 </div>
 
-                                <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
-                                    <table class="table table-sm table-hover align-middle mb-0" style="font-size: 12px;">
+                                <div class="table-responsive" style="max-height: 340px; overflow-y: auto;">
+                                    <table class="table table-sm table-hover align-middle mb-0" style="font-size: 14px;">
                                         <thead class="table-light sticky-top">
                                             <tr>
-                                                <th>ទំនិញ</th>
-                                                <th class="text-center">ចំនួន</th>
-                                                <th class="text-end">តម្លៃ</th>
-                                                <th class="text-end">សរុប</th>
-                                                <th class="text-center">លុប</th>
+                                                <th class="py-2">ទំនិញ</th>
+                                                <th class="text-center py-2">ចំនួន</th>
+                                                <th class="text-end py-2">តម្លៃ</th>
+                                                <th class="text-end py-2">សរុប</th>
+                                                <th class="text-center py-2">កែ/លុប</th>
                                             </tr>
                                         </thead>
                                         <tbody id="cartTableBody"></tbody>
@@ -282,8 +282,8 @@
                                 </div>
                             </div>
 
-                            <div class="pt-3 border-top mt-3">
-                                <h6 class="text-success fw-bold m-0 text-center" id="cartGrandTotalLabel" style="font-size: 14px;">សរុប: $0.00 / 0 រៀល</h6>
+                            <div class="pt-3 border-top mt-3 bg-light p-2 rounded-3">
+                                <h5 class="text-success fw-bold m-0 text-center" id="cartGrandTotalLabel">សរុប: $0.00 / 0 រៀល</h5>
                             </div>
                         </div>
                     </div>
@@ -466,6 +466,34 @@
         </div>
     </div>
 
+    <!-- EDIT CART ITEM MODAL -->
+    <div class="modal fade" id="editCartModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-success text-white py-2">
+                    <h6 class="modal-title fw-bold">✏️ កែប្រែទំនិញក្នុង Cart</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-3">
+                    <input type="hidden" id="editCartIndex">
+                    <div class="mb-2">
+                        <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ</label>
+                        <input type="text" class="form-control form-control-sm bg-light" id="editCartItemName" readonly>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted fw-bold">ចំនួន (Quantity)</label>
+                        <input type="number" class="form-control form-control-sm" id="editCartQty" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted fw-bold">តម្លៃឯកតា ($)</label>
+                        <input type="number" step="0.01" class="form-control form-control-sm" id="editCartPrice" required>
+                    </div>
+                    <button type="button" class="btn btn-success btn-sm w-100 fw-bold shadow-sm" onclick="saveCartItemEdit()">រក្សាទុក</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- EDIT MASTER ITEM MODAL -->
     <div class="modal fade" id="editMasterModal" tabindex="-1">
         <div class="modal-dialog">
@@ -540,6 +568,7 @@
         let currentCart = [];
         let editMasterModal;
         let reportModal;
+        let editCartModal;
 
         let defaultUsers = [
             { username: "admin", password: "123", name: "អុចឃី (Admin)", role: "admin" },
@@ -559,6 +588,7 @@
         document.addEventListener("DOMContentLoaded", () => {
             editMasterModal = new bootstrap.Modal(document.getElementById('editMasterModal'));
             reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
+            editCartModal = new bootstrap.Modal(document.getElementById('editCartModal'));
             checkLoginState();
         });
 
@@ -836,18 +866,19 @@
 
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td><b>${item.item_name}</b></td>
-                        <td class="text-center">${item.quantity} ${item.unit}</td>
-                        <td class="text-end">$${item.unit_price.toFixed(2)}</td>
-                        <td class="text-end text-success fw-bold">$${total.toFixed(2)}</td>
+                        <td class="fw-bold text-dark" style="font-size: 13px;">${item.item_name}</td>
+                        <td class="text-center fw-bold" style="font-size: 13px;">${item.quantity} ${item.unit}</td>
+                        <td class="text-end" style="font-size: 13px;">$${item.unit_price.toFixed(2)}</td>
+                        <td class="text-end text-success fw-bold" style="font-size: 13px;">$${total.toFixed(2)}</td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="removeFromCart(${index})" style="font-size: 10px;">❌</button>
+                            <button class="btn btn-sm btn-outline-primary py-0 px-1 me-1" onclick="openEditCartModal(${index})" style="font-size: 11px;" title="កែប្រែ">✏️</button>
+                            <button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="removeFromCart(${index})" style="font-size: 11px;" title="លុប">❌</button>
                         </td>
                     `;
                     tbody.appendChild(tr);
                 });
             } else {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">គ្មានទំនិញក្នុងវិក្កយបត្រ</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4" style="font-size: 13px;">គ្មានទំនិញក្នុងវិក្កយបត្រ</td></tr>`;
             }
 
             let exchangeRate = parseFloat(document.getElementById('exchangeRateInput')?.value) || 4000;
@@ -856,6 +887,36 @@
 
             document.getElementById('cartGrandTotalLabel').innerHTML = 
                 `សរុប: <span class="text-success">$${grandTotal.toFixed(2)}</span> / <span class="text-primary">${formattedRiel} ៛</span>`;
+        }
+
+        function openEditCartModal(index) {
+            let item = currentCart[index];
+            document.getElementById('editCartIndex').value = index;
+            document.getElementById('editCartItemName').value = item.item_name;
+            document.getElementById('editCartQty').value = item.quantity;
+            document.getElementById('editCartPrice').value = item.unit_price;
+            editCartModal.show();
+        }
+
+        function saveCartItemEdit() {
+            let index = document.getElementById('editCartIndex').value;
+            let newQty = parseInt(document.getElementById('editCartQty').value);
+            let newPrice = parseFloat(document.getElementById('editCartPrice').value);
+
+            if (isNaN(newQty) || newQty <= 0) {
+                alert("⚠ សូមបញ្ចូលចំនួនឱ្យបានត្រឹមត្រូវ!");
+                return;
+            }
+            if (isNaN(newPrice) || newPrice < 0) {
+                alert("⚠ សូមបញ្ចូលតម្លៃឱ្យបានត្រឹមត្រូវ!");
+                return;
+            }
+
+            currentCart[index].quantity = newQty;
+            currentCart[index].unit_price = newPrice;
+
+            editCartModal.hide();
+            renderCartTable();
         }
 
         function removeFromCart(index) {
