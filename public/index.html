@@ -1266,14 +1266,103 @@
             }
         }
 
+        // --- ផ្នែកបំពេញទិន្នន័យ Report ទាំងអស់ ---
         function renderReportsTables() {
             let stockTbody = document.getElementById('reportStockTableBody');
+            let salesTbody = document.getElementById('reportSalesTableBody');
+            let restockTbody = document.getElementById('reportRestockTableBody');
+            
             stockTbody.innerHTML = '';
-            masterItemsList.forEach(m => {
-                let tr = document.createElement('tr');
-                tr.innerHTML = `<td>${m.category}</td><td><b>${m.item_name}</b></td><td>${m.unit}</td><td>${m.stock_quantity}</td><td>$${(m.stock_quantity * m.cost_price).toFixed(2)}</td>`;
-                stockTbody.appendChild(tr);
-            });
+            salesTbody.innerHTML = '';
+            restockTbody.innerHTML = '';
+
+            // 1. បង្ហាញស្តុកសល់តាមប្រភេទ
+            if (masterItemsList.length > 0) {
+                masterItemsList.forEach(m => {
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${m.category}</td><td><b>${m.item_name}</b></td><td>${m.unit || 'ដុំ'}</td><td>${m.stock_quantity}</td><td>$${(m.stock_quantity * (m.cost_price || 0)).toFixed(2)}</td>`;
+                    stockTbody.appendChild(tr);
+                });
+            } else {
+                stockTbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">គ្មានទិន្នន័យស្តុក</td></tr>`;
+            }
+
+            // 2. របាយការណ៍លក់ចេញ (INCOME)
+            let incomes = allTransactionsList.filter(tx => tx.type === 'INCOME');
+            if (incomes.length > 0) {
+                incomes.forEach(tx => {
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${new Date(tx.date).toLocaleDateString()}</td>
+                        <td>${tx.category}</td>
+                        <td><b>${tx.item_name}</b></td>
+                        <td>${tx.quantity}</td>
+                        <td>$${parseFloat(tx.unit_price).toFixed(2)}</td>
+                        <td class="text-success fw-bold">$${parseFloat(tx.amount).toFixed(2)}</td>
+                    `;
+                    salesTbody.appendChild(tr);
+                });
+            } else {
+                salesTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">គ្មានប្រវត្តិលក់ចេញទេ</td></tr>`;
+            }
+
+            // 3. របាយការណ៍ទិញស្តុកចូល (EXPENSE)
+            let expenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
+            if (expenses.length > 0) {
+                expenses.forEach(tx => {
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${new Date(tx.date).toLocaleDateString()}</td>
+                        <td>${tx.category}</td>
+                        <td><b>${tx.item_name}</b></td>
+                        <td>${tx.quantity}</td>
+                        <td>$${parseFloat(tx.unit_price).toFixed(2)}</td>
+                        <td class="text-danger fw-bold">$${parseFloat(tx.amount).toFixed(2)}</td>
+                    `;
+                    restockTbody.appendChild(tr);
+                });
+            } else {
+                restockTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">គ្មានប្រវត្តិទិញស្តុកចូលទេ</td></tr>`;
+            }
+
+            // សរុបទឹកប្រាក់ក្នុង Modal
+            let totalInc = incomes.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0);
+            let totalExp = expenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
+            
+            document.getElementById('reportLblTotalIncome').innerText = `$${totalInc.toFixed(2)}`;
+            document.getElementById('reportLblTotalExpense').innerText = `$${totalExp.toFixed(2)}`;
+            document.getElementById('reportLblNetProfit').innerText = `$${(totalInc - totalExp).toFixed(2)}`;
+        }
+
+        function filterReportsData() {
+            // អាចបន្ថែម Logic ច្រោះតាមកាលបរិច្ឆេទនៅទីនេះប្រសិនបើត្រូវការបន្ថែម
+        }
+
+        function resetReportFilter() {
+            document.getElementById('reportStartDate').value = '';
+            document.getElementById('reportEndDate').value = '';
+            renderReportsTables();
+        }
+
+        function printReportSection() {
+            let printContents = document.getElementById('printableReportArea').innerHTML;
+            let originalContents = document.body.innerHTML;
+            document.body.innerHTML = printContents;
+            window.print();
+            document.body.innerHTML = originalContents;
+            window.location.reload();
+        }
+
+        function downloadPDFReport() {
+            let element = document.getElementById('printableReportArea');
+            let opt = {
+                margin:       0.5,
+                filename:     'Business_Report.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().from(element).set(opt).save();
         }
 
         async function deleteTransaction(id) {
