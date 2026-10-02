@@ -1041,13 +1041,13 @@
             loadAppData();
         }
 
-        // --- មុខងារព្រិន្ទវិក្កយបត្រស្ដង់ដារ 80mm ---
+        // --- មុខងារព្រិន្ទវិក្កយបត្រស្ដង់ដារ 80mm (បានបន្ថែមតម្លៃឯកតា និង ហាយឡាយ Header) ---
         function printCartInvoice(items) {
             let exchangeRate = parseFloat(document.getElementById('exchangeRateInput')?.value) || 4000;
             let invoiceNo = "INV-" + Math.floor(100000 + Math.random() * 900000);
             let currentDate = new Date().toLocaleString();
 
-            let printWindow = window.open('', '_blank', 'height=600,width=350');
+            let printWindow = window.open('', '_blank', 'height=600,width=400');
             printWindow.document.write('<html><head><title>វិក្កយបត្រលក់ (Invoice)</title>');
             printWindow.document.write(`
                 <style>
@@ -1084,14 +1084,19 @@
                         margin-bottom: 5px; 
                     }
                     th, td { 
-                        padding: 3px 2px; 
+                        padding: 4px 2px; 
                         border-bottom: 1px dashed #ddd; 
                         text-align: left; 
                         font-size: 10px; 
                     }
+                    /* ហាយឡាយនៅលើ Header របស់តារាងវិក្កយបត្រ */
                     th { 
+                        background-color: #e2e8f0 !important;
+                        color: #000 !important;
                         font-weight: bold; 
-                        border-bottom: 1px solid #000; 
+                        border-top: 1px solid #000;
+                        border-bottom: 1.5px solid #000; 
+                        text-align: center;
                     }
                     .text-center { 
                         text-align: center; 
@@ -1131,14 +1136,15 @@
                 </div>
             `);
 
-            // តារាងបង្ហាញ ល.រ, មុខទំនិញ, ចំនួន, ទឹកប្រាក់
+            // តារាងបង្ហាញ ល.រ, មុខទំនិញ, ចំនួន, តម្លៃឯកតា, ទឹកប្រាក់សរុប
             printWindow.document.write('<table>');
             printWindow.document.write(`
                 <tr>
-                    <th style="width: 10%;" class="text-center">ល.រ</th>
-                    <th style="width: 45%;">មុខទំនិញ</th>
-                    <th style="width: 20%;" class="text-center">ចំនួន</th>
-                    <th style="width: 25%;" class="text-right">ទឹកប្រាក់</th>
+                    <th style="width: 8%;">ល.រ</th>
+                    <th style="width: 37%;">មុខទំនិញ</th>
+                    <th style="width: 18%;" class="text-center">ចំនួន</th>
+                    <th style="width: 18%;" class="text-right">តម្លៃ</th>
+                    <th style="width: 19%;" class="text-right">ទឹកប្រាក់</th>
                 </tr>
             `);
             
@@ -1151,6 +1157,7 @@
                         <td class="text-center">${index + 1}</td>
                         <td><b>${item.item_name}</b></td>
                         <td class="text-center">${item.quantity} ${item.unit}</td>
+                        <td class="text-right">$${item.unit_price.toFixed(2)}</td>
                         <td class="text-right">$${total.toFixed(2)}</td>
                     </tr>
                 `);
@@ -1665,3 +1672,4 @@
     </script>
 </body>
 </html>
+```[cite: 1, 2]
