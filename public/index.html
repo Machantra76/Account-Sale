@@ -240,7 +240,7 @@
                         </div>
                     </div>
                     <div id="posImageGrid" class="row g-3" style="max-height: 420px; overflow-y: auto;">
-                        <p class="text-muted text-center py-3">សូមជ្រើសរើស Category ដើម្បីបង្ហាញរូបភាពទំនិញ</p>
+                        <p class="text-muted text-center py-3">សូមជ្រើសរើស Category เพื่อបង្ហាញរូបភាពទំនិញ</p>
                     </div>
                 </div>
 
@@ -318,6 +318,7 @@
                                     <th>ចំនួនលក់សរុប</th>
                                     <th>តម្លៃលក់មធ្យម/ឯកតា</th>
                                     <th>សរុបទឹកប្រាក់ ($)</th>
+                                    <th class="text-center">សកម្មភាព</th>
                                 </tr>
                             </thead>
                             <tbody id="incomeTableBody"></tbody>
@@ -338,6 +339,7 @@
                                     <th>ចំនួនទិញសរុប</th>
                                     <th>តម្លៃទិញមធ្យម/ឯកតា</th>
                                     <th>ចំណាយសរុប ($)</th>
+                                    <th class="text-center">សកម្មភាព</th>
                                 </tr>
                             </thead>
                             <tbody id="expenseTableBody"></tbody>
@@ -1222,6 +1224,20 @@
             }
         }
 
+        // --- មុខងារលុបទិន្នន័យប្រវត្តិលក់/ទិញតាមឈ្មោះទំនិញសរុប ---
+        async function deleteGroupedTransactions(type, itemName) {
+            if (!confirm(`តើបងពិតជាចង់លុបប្រវត្តិទំនិញ "${itemName}" ទាំងស្រុងមែនទេ?`)) return;
+
+            // រកមើលរាល់ Transactions ទាំងឡាយណាដែលមាន type និង item_name ដូចគ្នា
+            let targetTransactions = allTransactionsList.filter(tx => tx.type === type && tx.item_name === itemName);
+
+            for (let tx of targetTransactions) {
+                await fetch(`${API_URL}/transactions/${tx.id}`, { method: 'DELETE' });
+            }
+
+            loadAppData();
+        }
+
         // --- មុខងារបង្ហាញ និង Group ប្រវត្តិការលក់/ទិញ នៅលើ Dashboard ដើម ---
         function renderTransactionsTables() {
             let incomeTbody = document.getElementById('incomeTableBody');
@@ -1245,7 +1261,7 @@
                         totalAmount: 0
                     };
                 }
-                groupedIncomes[key].date = tx.date > groupedIncomes[key].date ? tx.date : groupedIncomes[key].date; // យករួមបញ្ចូលកាលបរិច្ឆេទចុងក្រោយ
+                groupedIncomes[key].date = tx.date > groupedIncomes[key].date ? tx.date : groupedIncomes[key].date;
                 groupedIncomes[key].quantity += parseInt(tx.quantity || 0);
                 groupedIncomes[key].totalAmount += parseFloat(tx.amount || 0);
             });
@@ -1282,11 +1298,14 @@
                         <td>${item.quantity}</td>
                         <td>$${avgPrice.toFixed(2)}</td>
                         <td class="text-success fw-bold">$${item.totalAmount.toFixed(2)}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteGroupedTransactions('INCOME', '${item.item_name}')">លុប</button>
+                        </td>
                     `;
                     incomeTbody.appendChild(tr);
                 });
             } else {
-                incomeTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">គ្មានប្រវត្តិលក់ចេញទេ</td></tr>`;
+                incomeTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">គ្មានប្រវត្តិលក់ចេញទេ</td></tr>`;
             }
 
             // Render Grouped Expenses
@@ -1303,11 +1322,14 @@
                         <td>${item.quantity}</td>
                         <td>$${avgPrice.toFixed(2)}</td>
                         <td class="text-danger fw-bold">$${item.totalAmount.toFixed(2)}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteGroupedTransactions('EXPENSE', '${item.item_name}')">លុប</button>
+                        </td>
                     `;
                     expenseTbody.appendChild(tr);
                 });
             } else {
-                expenseTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">គ្មានប្រវត្តិទិញស្តុកចូលទេ</td></tr>`;
+                expenseTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">គ្មានប្រវត្តិទិញស្តុកចូលទេ</td></tr>`;
             }
         }
 
@@ -1345,7 +1367,6 @@
                 stockTbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">គ្មានទិន្នន័យស្តុក</td></tr>`;
             }
 
-            // តម្រងទិន្នន័យតាមកាលបរិច្ឆេទសម្រាប់ transactions
             let filteredIncomes = allTransactionsList.filter(tx => tx.type === 'INCOME');
             let filteredExpenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
 
@@ -1365,7 +1386,6 @@
                 });
             }
 
-            // Group Report Incomes by item_name
             let groupedReportIncomes = {};
             filteredIncomes.forEach(tx => {
                 let key = tx.item_name;
@@ -1383,7 +1403,6 @@
                 groupedReportIncomes[key].totalAmount += parseFloat(tx.amount || 0);
             });
 
-            // Group Report Expenses by item_name
             let groupedReportExpenses = {};
             filteredExpenses.forEach(tx => {
                 let key = tx.item_name;
@@ -1401,7 +1420,7 @@
                 groupedReportExpenses[key].totalAmount += parseFloat(tx.amount || 0);
             });
 
-            // 2. របាយការណ៍លក់ចេញ (INCOME - Grouped) + បន្ថែម Total Row
+            // 2. របាយការណ៍លក់ចេញ (INCOME - Grouped) + Total Row
             let totalSalesQty = 0;
             let totalSalesAmount = 0;
             let incomeKeys = Object.keys(groupedReportIncomes);
@@ -1439,7 +1458,7 @@
                 salesTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">គ្មានប្រវត្តិលក់ចេញក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
             }
 
-            // 3. របាយការណ៍ទិញស្តុកចូល (EXPENSE - Grouped) + បន្ថែម Total Row
+            // 3. របាយការណ៍ទិញស្តុកចូល (EXPENSE - Grouped) + Total Row
             let totalRestockQty = 0;
             let totalRestockAmount = 0;
             let expenseKeys = Object.keys(groupedReportExpenses);
@@ -1477,7 +1496,6 @@
                 restockTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">គ្មានប្រវត្តិទិញស្តុកចូលក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
             }
 
-            // បង្ហាញសរុបទឹកប្រាក់ក្នុង Summary Cards ខាងលើ Modal
             document.getElementById('reportLblTotalIncome').innerText = `$${totalSalesAmount.toFixed(2)}`;
             document.getElementById('reportLblTotalExpense').innerText = `$${totalRestockAmount.toFixed(2)}`;
             document.getElementById('reportLblNetProfit').innerText = `$${(totalSalesAmount - totalRestockAmount).toFixed(2)}`;
