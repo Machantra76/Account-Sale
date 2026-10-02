@@ -1266,7 +1266,7 @@
             }
         }
 
-        // --- ផ្នែកបំពេញទិន្នន័យ Report ទាំងអស់ ---
+        // --- ផ្នែកបំពេញ និងត្រងទិន្នន័យ Report (កែសម្រួល Date Filter និងបន្ថែម Total) ---
         function renderReportsTables() {
             let stockTbody = document.getElementById('reportStockTableBody');
             let salesTbody = document.getElementById('reportSalesTableBody');
@@ -1275,6 +1275,19 @@
             stockTbody.innerHTML = '';
             salesTbody.innerHTML = '';
             restockTbody.innerHTML = '';
+
+            let startDateVal = document.getElementById('reportStartDate').value;
+            let endDateVal = document.getElementById('reportEndDate').value;
+
+            let dateRangeText = "កាលបរិច្ឆេទ: ទូទាំងប្រវត្តិ";
+            if (startDateVal && endDateVal) {
+                dateRangeText = `កាលបរិច្ឆេទ: ${startDateVal} ដល់ ${endDateVal}`;
+            } else if (startDateVal) {
+                dateRangeText = `កាលបរិច្ឆេទ: ចាប់ពី ${startDateVal}`;
+            } else if (endDateVal) {
+                dateRangeText = `កាលបរិច្ឆេទ: ដល់ ${endDateVal}`;
+            }
+            document.getElementById('reportDateRangeLabel').innerText = dateRangeText;
 
             // 1. បង្ហាញស្តុកសល់តាមប្រភេទ
             if (masterItemsList.length > 0) {
@@ -1287,10 +1300,35 @@
                 stockTbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">គ្មានទិន្នន័យស្តុក</td></tr>`;
             }
 
-            // 2. របាយការណ៍លក់ចេញ (INCOME)
-            let incomes = allTransactionsList.filter(tx => tx.type === 'INCOME');
-            if (incomes.length > 0) {
-                incomes.forEach(tx => {
+            // តម្រងទិន្នន័យតាមកាលបរិច្ឆេទសម្រាប់ transactions
+            let filteredIncomes = allTransactionsList.filter(tx => tx.type === 'INCOME');
+            let filteredExpenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
+
+            if (startDateVal || endDateVal) {
+                filteredIncomes = filteredIncomes.filter(tx => {
+                    let txDateStr = new Date(tx.date).toISOString().split('T')[0];
+                    if (startDateVal && txDateStr < startDateVal) return false;
+                    if (endDateVal && txDateStr > endDateVal) return false;
+                    return true;
+                });
+
+                filteredExpenses = filteredExpenses.filter(tx => {
+                    let txDateStr = new Date(tx.date).toISOString().split('T')[0];
+                    if (startDateVal && txDateStr < startDateVal) return false;
+                    if (endDateVal && txDateStr > endDateVal) return false;
+                    return true;
+                });
+            }
+
+            // 2. របាយការណ៍លក់ចេញ (INCOME) + បន្ថែម Total Row
+            let totalSalesQty = 0;
+            let totalSalesAmount = 0;
+
+            if (filteredIncomes.length > 0) {
+                filteredIncomes.forEach(tx => {
+                    totalSalesQty += parseInt(tx.quantity || 0);
+                    totalSalesAmount += parseFloat(tx.amount || 0);
+
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${new Date(tx.date).toLocaleDateString()}</td>
@@ -1302,14 +1340,31 @@
                     `;
                     salesTbody.appendChild(tr);
                 });
+
+                // បន្ថែមជួរ Summary Total ខាងក្រោមតារាងលក់
+                let totalTr = document.createElement('tr');
+                totalTr.className = "table-success fw-bold";
+                totalTr.innerHTML = `
+                    <td colspan="3" class="text-end">សរុប (Total):</td>
+                    <td>${totalSalesQty}</td>
+                    <td>-</td>
+                    <td>$${totalSalesAmount.toFixed(2)}</td>
+                `;
+                salesTbody.appendChild(totalTr);
+
             } else {
-                salesTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">គ្មានប្រវត្តិលក់ចេញទេ</td></tr>`;
+                salesTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">គ្មានប្រវត្តិលក់ចេញក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
             }
 
-            // 3. របាយការណ៍ទិញស្តុកចូល (EXPENSE)
-            let expenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
-            if (expenses.length > 0) {
-                expenses.forEach(tx => {
+            // 3. របាយការណ៍ទិញស្តុកចូល (EXPENSE) + បន្ថែម Total Row
+            let totalRestockQty = 0;
+            let totalRestockAmount = 0;
+
+            if (filteredExpenses.length > 0) {
+                filteredExpenses.forEach(tx => {
+                    totalRestockQty += parseInt(tx.quantity || 0);
+                    totalRestockAmount += parseFloat(tx.amount || 0);
+
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${new Date(tx.date).toLocaleDateString()}</td>
@@ -1321,21 +1376,30 @@
                     `;
                     restockTbody.appendChild(tr);
                 });
+
+                // បន្ថែមជួរ Summary Total ខាងក្រោមតារាងទិញស្តុក
+                let totalRestockTr = document.createElement('tr');
+                totalRestockTr.className = "table-danger fw-bold";
+                totalRestockTr.innerHTML = `
+                    <td colspan="3" class="text-end">សរុប (Total):</td>
+                    <td>${totalRestockQty}</td>
+                    <td>-</td>
+                    <td>$${totalRestockAmount.toFixed(2)}</td>
+                `;
+                restockTbody.appendChild(totalRestockTr);
+
             } else {
-                restockTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">គ្មានប្រវត្តិទិញស្តុកចូលទេ</td></tr>`;
+                restockTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">គ្មានប្រវត្តិទិញស្តុកចូលក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
             }
 
-            // សរុបទឹកប្រាក់ក្នុង Modal
-            let totalInc = incomes.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0);
-            let totalExp = expenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
-            
-            document.getElementById('reportLblTotalIncome').innerText = `$${totalInc.toFixed(2)}`;
-            document.getElementById('reportLblTotalExpense').innerText = `$${totalExp.toFixed(2)}`;
-            document.getElementById('reportLblNetProfit').innerText = `$${(totalInc - totalExp).toFixed(2)}`;
+            // បង្ហាញសរុបទឹកប្រាក់ក្នុង Summary Cards ខាងលើ Modal
+            document.getElementById('reportLblTotalIncome').innerText = `$${totalSalesAmount.toFixed(2)}`;
+            document.getElementById('reportLblTotalExpense').innerText = `$${totalRestockAmount.toFixed(2)}`;
+            document.getElementById('reportLblNetProfit').innerText = `$${(totalSalesAmount - totalRestockAmount).toFixed(2)}`;
         }
 
         function filterReportsData() {
-            // អាចបន្ថែម Logic ច្រោះតាមកាលបរិច្ឆេទនៅទីនេះប្រសិនបើត្រូវការបន្ថែម
+            renderReportsTables();
         }
 
         function resetReportFilter() {
