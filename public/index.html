@@ -240,7 +240,7 @@
                         </div>
                     </div>
                     <div id="posImageGrid" class="row g-3" style="max-height: 420px; overflow-y: auto;">
-                        <p class="text-muted text-center py-3">សូមជ្រើសរើស Category เพื่อបង្ហាញរូបភាពទំនិញ</p>
+                        <p class="text-muted text-center py-3">សូមជ្រើសរើស Category ដើម្បីបង្ហាញរូបភាពទំនិញ</p>
                     </div>
                 </div>
 
@@ -1024,7 +1024,8 @@
                     category: item.category,
                     item_name: item.item_name,
                     quantity: item.quantity,
-                    unit_price: item.unit_price
+                    unit_price: item.unit_price,
+                    amount: item.quantity * item.unit_price
                 };
 
                 await fetch(`${API_URL}/transactions`, {
@@ -1070,13 +1071,17 @@
             let foundItem = masterItemsList.find(i => i.id == selectedId);
             if (!foundItem) return;
 
+            let qty = parseInt(document.getElementById('restockQty').value);
+            let price = parseFloat(document.getElementById('restockPrice').value);
+
             let data = {
                 type: 'EXPENSE',
                 item_id: foundItem.id,
                 category: foundItem.category,
                 item_name: foundItem.item_name,
-                quantity: parseInt(document.getElementById('restockQty').value),
-                unit_price: parseFloat(document.getElementById('restockPrice').value)
+                quantity: qty,
+                unit_price: price,
+                amount: qty * price
             };
 
             let res = await fetch(`${API_URL}/transactions`, {
@@ -1138,16 +1143,20 @@
             let imageFile = document.getElementById('masterImageFile').files[0];
             let imageUrl = imageFile ? await getBase64(imageFile) : '';
 
+            let stockQty = parseInt(document.getElementById('masterStock').value) || 0;
+            let costPrice = parseFloat(document.getElementById('masterCostPrice').value) || 0;
+
             let data = {
                 type: 'EXPENSE',
                 category: document.getElementById('masterCategory').value.trim(),
                 item_name: document.getElementById('masterItemName').value.trim(),
                 image_url: imageUrl,
                 unit: document.getElementById('masterUnit').value,
-                stock_quantity: parseInt(document.getElementById('masterStock').value) || 0,
-                cost_price: parseFloat(document.getElementById('masterCostPrice').value) || 0,
+                stock_quantity: stockQty,
+                cost_price: costPrice,
                 retail_price: parseFloat(document.getElementById('masterRetailPrice').value) || 0,
-                wholesale_price: parseFloat(document.getElementById('masterWholesalePrice').value) || 0
+                wholesale_price: parseFloat(document.getElementById('masterWholesalePrice').value) || 0,
+                amount: stockQty * costPrice
             };
 
             let res = await fetch(`${API_URL}/master-items`, {
@@ -1224,12 +1233,11 @@
             }
         }
 
-        // --- មុខងារលុបទិន្នន័យប្រវត្តិលក់/ទិញតាម item_id និង type (កែសម្រួលថ្មី) ---
-        async function deleteGroupedTransactions(type, itemId, itemName) {
+        // --- មុខងារលុបទិន្នន័យប្រវត្តិលក់/ទិញតាមឈ្មោះទំនិញសរុប ---
+        async function deleteGroupedTransactions(type, itemName) {
             if (!confirm(`តើបងពិតជាចង់លុបប្រវត្តិទំនិញ "${itemName}" ទាំងស្រុងមែនទេ?`)) return;
 
-            // រកមើលរាល់ Transactions ទាំងឡាយណាដែលមាន type និង item_id ដូចគ្នា
-            let targetTransactions = allTransactionsList.filter(tx => tx.type === type && (tx.item_id == itemId || tx.item_name === itemName));
+            let targetTransactions = allTransactionsList.filter(tx => tx.type === type && tx.item_name === itemName);
 
             for (let tx of targetTransactions) {
                 await fetch(`${API_URL}/transactions/${tx.id}`, { method: 'DELETE' });
@@ -1248,13 +1256,12 @@
             let incomes = allTransactionsList.filter(tx => tx.type === 'INCOME');
             let expenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
 
-            // Group Income transactions by item_id / item_name
+            // Group Income transactions by item_name
             let groupedIncomes = {};
             incomes.forEach(tx => {
-                let key = tx.item_id || tx.item_name;
+                let key = tx.item_name;
                 if (!groupedIncomes[key]) {
                     groupedIncomes[key] = {
-                        item_id: tx.item_id,
                         date: tx.date,
                         category: tx.category,
                         item_name: tx.item_name,
@@ -1262,18 +1269,18 @@
                         totalAmount: 0
                     };
                 }
+                let txAmount = tx.amount !== undefined ? parseFloat(tx.amount) : (parseFloat(tx.quantity || 0) * parseFloat(tx.unit_price || 0));
                 groupedIncomes[key].date = tx.date > groupedIncomes[key].date ? tx.date : groupedIncomes[key].date;
                 groupedIncomes[key].quantity += parseInt(tx.quantity || 0);
-                groupedIncomes[key].totalAmount += parseFloat(tx.amount || 0);
+                groupedIncomes[key].totalAmount += txAmount;
             });
 
-            // Group Expense transactions by item_id / item_name
+            // Group Expense transactions by item_name
             let groupedExpenses = {};
             expenses.forEach(tx => {
-                let key = tx.item_id || tx.item_name;
+                let key = tx.item_name;
                 if (!groupedExpenses[key]) {
                     groupedExpenses[key] = {
-                        item_id: tx.item_id,
                         date: tx.date,
                         category: tx.category,
                         item_name: tx.item_name,
@@ -1281,9 +1288,10 @@
                         totalAmount: 0
                     };
                 }
+                let txAmount = tx.amount !== undefined ? parseFloat(tx.amount) : (parseFloat(tx.quantity || 0) * parseFloat(tx.unit_price || 0));
                 groupedExpenses[key].date = tx.date > groupedExpenses[key].date ? tx.date : groupedExpenses[key].date;
                 groupedExpenses[key].quantity += parseInt(tx.quantity || 0);
-                groupedExpenses[key].totalAmount += parseFloat(tx.amount || 0);
+                groupedExpenses[key].totalAmount += txAmount;
             });
 
             // Render Grouped Incomes
@@ -1301,7 +1309,7 @@
                         <td>$${avgPrice.toFixed(2)}</td>
                         <td class="text-success fw-bold">$${item.totalAmount.toFixed(2)}</td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteGroupedTransactions('INCOME', '${item.item_id}', '${item.item_name}')">លុប</button>
+                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteGroupedTransactions('INCOME', '${item.item_name}')">លុប</button>
                         </td>
                     `;
                     incomeTbody.appendChild(tr);
@@ -1325,7 +1333,7 @@
                         <td>$${avgPrice.toFixed(2)}</td>
                         <td class="text-danger fw-bold">$${item.totalAmount.toFixed(2)}</td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteGroupedTransactions('EXPENSE', '${item.item_id}', '${item.item_name}')">លុប</button>
+                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteGroupedTransactions('EXPENSE', '${item.item_name}')">លុប</button>
                         </td>
                     `;
                     expenseTbody.appendChild(tr);
@@ -1390,7 +1398,7 @@
 
             let groupedReportIncomes = {};
             filteredIncomes.forEach(tx => {
-                let key = tx.item_id || tx.item_name;
+                let key = tx.item_name;
                 if (!groupedReportIncomes[key]) {
                     groupedReportIncomes[key] = {
                         date: tx.date,
@@ -1400,14 +1408,15 @@
                         totalAmount: 0
                     };
                 }
+                let txAmount = tx.amount !== undefined ? parseFloat(tx.amount) : (parseFloat(tx.quantity || 0) * parseFloat(tx.unit_price || 0));
                 groupedReportIncomes[key].date = tx.date > groupedReportIncomes[key].date ? tx.date : groupedReportIncomes[key].date;
                 groupedReportIncomes[key].quantity += parseInt(tx.quantity || 0);
-                groupedReportIncomes[key].totalAmount += parseFloat(tx.amount || 0);
+                groupedReportIncomes[key].totalAmount += txAmount;
             });
 
             let groupedReportExpenses = {};
             filteredExpenses.forEach(tx => {
-                let key = tx.item_id || tx.item_name;
+                let key = tx.item_name;
                 if (!groupedReportExpenses[key]) {
                     groupedReportExpenses[key] = {
                         date: tx.date,
@@ -1417,9 +1426,10 @@
                         totalAmount: 0
                     };
                 }
+                let txAmount = tx.amount !== undefined ? parseFloat(tx.amount) : (parseFloat(tx.quantity || 0) * parseFloat(tx.unit_price || 0));
                 groupedReportExpenses[key].date = tx.date > groupedReportExpenses[key].date ? tx.date : groupedReportExpenses[key].date;
                 groupedReportExpenses[key].quantity += parseInt(tx.quantity || 0);
-                groupedReportExpenses[key].totalAmount += parseFloat(tx.amount || 0);
+                groupedReportExpenses[key].totalAmount += txAmount;
             });
 
             // 2. របាយការណ៍លក់ចេញ (INCOME - Grouped) + Total Row
