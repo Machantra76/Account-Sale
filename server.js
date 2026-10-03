@@ -4,10 +4,10 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-app.use(express.json({ limit: '10mb' })); // រៀបចំ Limit ទំហំ JSON ឱ្យធំพอសម្រាប់ Base64 រូបភាព[cite: 3]
+app.use(express.json({ limit: '10mb' })); // រៀបចំ Limit ទំហំ JSON ឱ្យធំพอសម្រាប់ Base64 រូបភាព
 app.use(cors());
 
-// 🔗 ភ្ជាប់ទៅកាន់ PostgreSQL Database ដោយប្រើ Environment Variable (សុវត្ថិភាព និងងាយស្រួលប្តូរ)[cite: 3]
+// 🔗 ភ្ជាប់ទៅកាន់ PostgreSQL Database ដោយប្រើ Environment Variable (សុវត្ថិភាព និងងាយស្រួលប្តូរ)
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
@@ -372,7 +372,6 @@ app.delete('/api/accounting/transactions/:id', async (req, res) => {
                 if (tx.type === 'INCOME') {
                     await client.query(`UPDATE master_items SET stock_quantity = stock_quantity + $1 WHERE id = $2`, [tx.quantity, tx.item_id]);
                 } else if (tx.type === 'EXPENSE') {
-                    // បានកែតម្រូវកន្លែងនេះឱ្យត្រូវជា Prepared Statement (Parameterized Query)
                     await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [tx.quantity, tx.item_id]);
                 }
             }
