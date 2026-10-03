@@ -4,10 +4,9 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-app.use(express.json({ limit: '10mb' })); // រៀបចំ Limit ទំហំ JSON ឱ្យធំพอសម្រាប់ Base64 រូបភាព
+app.use(express.json({ limit: '10mb' }));
 app.use(cors());
 
-// 🔗 ភ្ជាប់ទៅកាន់ PostgreSQL Database ដោយប្រើ Environment Variable (សុវត្ថិភាព និងងាយស្រួលប្តូរ)
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
@@ -17,14 +16,12 @@ pool.connect()
     .then(() => console.log("Connected to PostgreSQL Database successfully!"))
     .catch(err => console.error("Database connection error:", err));
 
-// ----------------- 0. SERVE FRONTEND STATIC FILES FROM 'public' -----------------
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ----------------- 1. CREATE TABLES & MIGRATE COLUMNS -----------------
 const initTables = async () => {
     const queryMaster = `
         CREATE TABLE IF NOT EXISTS master_items (
@@ -58,9 +55,6 @@ const initTables = async () => {
         await pool.query(queryTransactions);
         
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'EXPENSE';`);
-        await pool.query(`ALTER TABLE master_items ALTER COLUMN type DROP NOT NULL;`);
-        await pool.query(`ALTER TABLE master_items ALTER COLUMN type SET DEFAULT 'EXPENSE';`);
-
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS image_url TEXT;`);
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS unit VARCHAR(50) DEFAULT 'ដុំ';`);
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS stock_quantity INT DEFAULT 0;`);
@@ -76,8 +70,7 @@ const initTables = async () => {
 };
 initTables();
 
-// ----------------- 2. MASTER ITEMS API -----------------
-
+// MASTER ITEMS API
 app.get('/api/accounting/master-items', async (req, res) => {
     try {
         let result = await pool.query('SELECT * FROM master_items ORDER BY category, item_name ASC');
@@ -158,8 +151,7 @@ app.delete('/api/accounting/master-items/:id', async (req, res) => {
     }
 });
 
-// ----------------- 3. TRANSACTIONS API -----------------
-
+// TRANSACTIONS API
 app.get('/api/accounting/transactions', async (req, res) => {
     try {
         let result = await pool.query('SELECT * FROM transactions ORDER BY date DESC');
@@ -227,13 +219,8 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
     try {
         await client.query('BEGIN');
         const { id } = req.params;
-        const { type, item_id, quantity, unit_price } = req.body;
+        const { category, item_name, quantity, unit_price } = req.body;
         
-        const qty = parseInt(quantity) || 1;
-        const price = parseFloat(unit_price) || 0;
-        const totalAmount = qty * price;
-        const formattedType = type ? type.toUpperCase() : 'INCOME';
-
         let oldTxData = await client.query('SELECT * FROM transactions WHERE id = $1', [id]);
         if (oldTxData.rows.length === 0) {
             await client.query('ROLLBACK');
@@ -241,6 +228,11 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
         }
         let oldTx = oldTxData.rows[0];
 
+        const qty = parseInt(quantity) || 1;
+        const price = parseFloat(unit_price) || 0;
+        const totalAmount = qty * price;
+
+        // Revert old stock impact
         if (oldTx.item_id) {
             if (oldTx.type === 'INCOME') {
                 await client.query(`UPDATE master_items SET stock_quantity = stock_quantity + $1 WHERE id = $2`, [oldTx.quantity, oldTx.item_id]);
@@ -249,20 +241,21 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
             }
         }
 
-        if (item_id) {
-            if (formattedType === 'INCOME') {
-                await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [qty, item_id]);
-            } else if (formattedType === 'EXPENSE') {
-                await client.query(`UPDATE master_items SET stock_quantity = stock_quantity + $1 WHERE id = $2`, [qty, item_id]);
+        // Apply new stock impact
+        if (oldTx.item_id) {
+            if (oldTx.type === 'INCOME') {
+                await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [qty, oldTx.item_id]);
+            } else if (oldTx.type === 'EXPENSE') {
+                await client.query(`UPDATE master_items SET stock_quantity = stock_quantity + $1 WHERE id = $2`, [qty, oldTx.item_id]);
             }
         }
 
         const updateQuery = `
             UPDATE transactions 
-            SET type = $1, item_id = $2, quantity = $3, unit_price = $4, amount = $5
+            SET category = $1, item_name = $2, quantity = $3, unit_price = $4, amount = $5
             WHERE id = $6 RETURNING *;
         `;
-        let result = await client.query(updateQuery, [formattedType, item_id, qty, price, totalAmount, id]);
+        let result = await client.query(updateQuery, [category, item_name, qty, price, totalAmount, id]);
 
         await client.query('COMMIT');
         res.json({ success: true, message: "Transaction updated successfully!", data: result.rows[0] });
@@ -274,21 +267,7 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
     }
 });
 
-// ----------------- 4. ACCOUNTING GENERAL & SUMMARY API -----------------
-app.get('/api/accounting', async (req, res) => {
-    try {
-        let txResult = await pool.query('SELECT * FROM transactions ORDER BY date DESC');
-        let masterResult = await pool.query('SELECT * FROM master_items ORDER BY category, item_name ASC');
-        res.json({ 
-            success: true, 
-            transactions: txResult.rows,
-            master_items: masterResult.rows 
-        });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
+// SUMMARY API
 app.get('/api/accounting/summary', async (req, res) => {
     try {
         let txResult = await pool.query("SELECT * FROM transactions WHERE type = 'INCOME'");
@@ -329,36 +308,6 @@ app.get('/api/accounting/summary', async (req, res) => {
     }
 });
 
-app.get('/api/accounting/category-summary', async (req, res) => {
-    try {
-        let masterResult = await pool.query("SELECT * FROM master_items");
-        let txResult = await pool.query("SELECT * FROM transactions WHERE type = 'INCOME'");
-
-        let categoryProfitMap = {};
-        masterResult.rows.forEach(m => {
-            if (!categoryProfitMap[m.category]) categoryProfitMap[m.category] = 0;
-        });
-
-        txResult.rows.forEach(tx => {
-            let masterItem = masterResult.rows.find(m => m.id === tx.item_id);
-            let costPrice = masterItem ? parseFloat(masterItem.cost_price) : 0;
-            let profit = (parseFloat(tx.unit_price) - costPrice) * tx.quantity;
-
-            if (!categoryProfitMap[tx.category]) categoryProfitMap[tx.category] = 0;
-            categoryProfitMap[tx.category] += profit;
-        });
-
-        let formattedData = Object.keys(categoryProfitMap).map(cat => ({
-            category: cat,
-            profit: categoryProfitMap[cat]
-        }));
-
-        res.json({ success: true, data: formattedData });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
 app.delete('/api/accounting/transactions/:id', async (req, res) => {
     const client = await pool.connect();
     try {
@@ -388,23 +337,6 @@ app.delete('/api/accounting/transactions/:id', async (req, res) => {
     }
 });
 
-app.post('/api/accounting/reset-all', async (req, res) => {
-    const client = await pool.connect();
-    try {
-        await client.query('BEGIN');
-        await client.query('DELETE FROM transactions;');
-        await client.query('DELETE FROM master_items;');
-        await client.query('COMMIT');
-        res.json({ success: true, message: "All data cleared successfully from database!" });
-    } catch (err) {
-        await client.query('ROLLBACK');
-        res.status(500).json({ success: false, error: err.message });
-    } finally {
-        client.release();
-    }
-});
-
-// រត់ Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Accounting API Server is running on port ${PORT}`);
