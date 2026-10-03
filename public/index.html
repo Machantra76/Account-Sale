@@ -28,7 +28,7 @@
             border: none; 
             box-shadow: var(--card-shadow);
         }
-   .card-summary { 
+        .card-summary { 
             border-radius: 14px; 
             color: white; 
             border: none; 
@@ -969,7 +969,6 @@
                 let wholesalePrice = parseFloat(item.wholesale_price || 0).toFixed(2);
                 
                 let col = document.createElement('div');
-                // កែពី col-md-6 មកជា col-md-4 ដើម្បីឱ្យបង្ហាញបាន ៣ រូបភាពក្នុងមួយជួរ
                 col.className = 'col-md-4 col-12';
                 col.innerHTML = `
                     <div class="card h-100 pos-item-card border p-2 text-center bg-white">
@@ -1305,7 +1304,6 @@
             if (allInvoicesList.length > 0) {
                 let sortedInv = [...allInvoicesList].reverse();
                 
-                // Filter invoices by category if selected
                 let filteredInvs = sortedInv.filter(inv => {
                     if (!selectedCategoryFilter) return true;
                     return inv.items.some(item => item.category === selectedCategoryFilter);
@@ -1343,11 +1341,23 @@
             }
         }
 
-        function deleteInvoiceRecord(invId) {
-            if (!confirm(`តើអ្នកពិតជាចង់លុបវិក្កយបត្រ ${invId} មែនទេ?`)) return;
+        async function deleteInvoiceRecord(invId) {
+            if (!confirm(`តើអ្នកពិតជាចង់លុបវិក្កយបត្រ ${invId} មែនទេ? (ស្តុកនឹងត្រូវបង្វិលសងចូលឃ្លាំងវិញ)`)) return;
+            let inv = allInvoicesList.find(i => i.id === invId);
+            if (inv) {
+                for (let item of inv.items) {
+                    if (!item.item_id) continue;
+                    let master = masterItemsList.find(m => m.id == item.item_id);
+                    if (master) {
+                        master.stock_quantity = (parseInt(master.stock_quantity) || 0) + parseInt(item.quantity);
+                        await updateMasterItemStockAPI(master.id, master.stock_quantity);
+                    }
+                }
+            }
             allInvoicesList = allInvoicesList.filter(i => i.id !== invId);
             saveInvoicesToLocalStorage();
             renderInvoiceHistoryTable();
+            loadAppData();
         }
 
         let currentEditingInvoice = null;
@@ -1364,21 +1374,40 @@
             editInvoiceModal.show();
         }
 
+        // មុខងារបង្ហាញตារាងកែប្រែវិក្កយបត្រ (មាន Dropdown Category និង Item)
         function renderEditInvoiceItemsTable() {
             let tbody = document.getElementById('editInvoiceItemsTableBody');
             tbody.innerHTML = '';
             let grandTotal = 0;
+            let uniqueCategories = [...new Set(masterItemsList.map(i => i.category))];
 
             if (currentEditingInvoice && currentEditingInvoice.items.length > 0) {
                 currentEditingInvoice.items.forEach((item, index) => {
                     let total = item.quantity * item.unit_price;
                     grandTotal += total;
 
+                    let catOptions = `<option value="">-- ជ្រើសរើស Category --</option>`;
+                    uniqueCategories.forEach(cat => {
+                        let selected = (cat === item.category) ? 'selected' : '';
+                        catOptions += `<option value="${cat}" ${selected}>${cat}</option>`;
+                    });
+
+                    let filteredItems = masterItemsList.filter(i => i.category === item.category);
+                    let itemOptions = `<option value="">-- ជ្រើសរើសទំនិញ --</option>`;
+                    filteredItems.forEach(i => {
+                        let selected = (i.id == item.item_id || i.item_name === item.item_name) ? 'selected' : '';
+                        itemOptions += `<option value="${i.id}" ${selected}>${i.item_name} (សល់ស្តុក: ${i.stock_quantity})</option>`;
+                    });
+
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>
-                            <input type="text" class="form-control form-control-sm mb-1" value="${item.category}" placeholder="Category" onchange="updateEditingInvoiceItem(${index}, 'category', this.value)">
-                            <input type="text" class="form-control form-control-sm fw-bold" value="${item.item_name}" placeholder="ឈ្មោះទំនិញ" onchange="updateEditingInvoiceItem(${index}, 'item_name', this.value)">
+                            <select class="form-select form-select-sm mb-1" onchange="onEditInvoiceCategoryChanged(${index}, this.value)">
+                                ${catOptions}
+                            </select>
+                            <select class="form-select form-select-sm fw-bold" onchange="onEditInvoiceItemChanged(${index}, this.value)">
+                                ${itemOptions}
+                            </select>
                         </td>
                         <td><input type="number" class="form-control form-control-sm" min="1" value="${item.quantity}" onchange="updateEditingInvoiceItem(${index}, 'quantity', this.value)" style="width: 80px;"></td>
                         <td><input type="number" step="0.01" class="form-control form-control-sm" value="${item.unit_price}" onchange="updateEditingInvoiceItem(${index}, 'unit_price', this.value)" style="width: 90px;"></td>
@@ -1394,6 +1423,33 @@
             }
 
             document.getElementById('editInvoiceGrandTotalLabel').innerText = `សរុប: $${grandTotal.toFixed(2)}`;
+        }
+
+        function onEditInvoiceCategoryChanged(index, category) {
+            currentEditingInvoice.items[index].category = category;
+            let filteredItems = masterItemsList.filter(i => i.category === category);
+            if (filteredItems.length > 0) {
+                currentEditingInvoice.items[index].item_id = filteredItems[0].id;
+                currentEditingInvoice.items[index].item_name = filteredItems[0].item_name;
+                currentEditingInvoice.items[index].unit_price = parseFloat(filteredItems[0].retail_price) || 0;
+                currentEditingInvoice.items[index].unit = filteredItems[0].unit || 'ដុំ';
+            } else {
+                currentEditingInvoice.items[index].item_id = '';
+                currentEditingInvoice.items[index].item_name = '';
+                currentEditingInvoice.items[index].unit_price = 0;
+            }
+            renderEditInvoiceItemsTable();
+        }
+
+        function onEditInvoiceItemChanged(index, itemId) {
+            let foundMaster = masterItemsList.find(i => i.id == itemId);
+            if (foundMaster) {
+                currentEditingInvoice.items[index].item_id = foundMaster.id;
+                currentEditingInvoice.items[index].item_name = foundMaster.item_name;
+                currentEditingInvoice.items[index].unit_price = parseFloat(foundMaster.retail_price) || 0;
+                currentEditingInvoice.items[index].unit = foundMaster.unit || 'ដុំ';
+                renderEditInvoiceItemsTable();
+            }
         }
 
         function updateEditingInvoiceItem(index, field, value) {
@@ -1413,26 +1469,84 @@
         }
 
         function addMoreItemToEditingInvoice() {
+            let firstMaster = masterItemsList[0];
             currentEditingInvoice.items.push({
-                item_id: "",
-                category: "ទំនិញទូទៅ",
-                item_name: "ទំនិញថ្មី",
-                unit: "ដុំ",
+                item_id: firstMaster ? firstMaster.id : "",
+                category: firstMaster ? firstMaster.category : "ទំនិញទូទៅ",
+                item_name: firstMaster ? firstMaster.item_name : "ទំនិញថ្មី",
+                unit: firstMaster ? (firstMaster.unit || 'ដុំ') : "ដុំ",
                 quantity: 1,
-                unit_price: 0
+                unit_price: firstMaster ? (parseFloat(firstMaster.retail_price) || 0) : 0
             });
             renderEditInvoiceItemsTable();
         }
 
+        // មុខងាររក្សាទុកការកែប្រែវិក្កយបត្រ ព្រមទាំងគណនាស្តុកចេញចូលស្វ័យប្រវត្តិ
         async function saveUpdatedInvoice() {
             let invId = document.getElementById('currentEditingInvoiceId').value;
-            let index = allInvoicesList.findIndex(i => i.id === invId);
-            if (index !== -1) {
-                allInvoicesList[index] = currentEditingInvoice;
-                saveInvoicesToLocalStorage();
-                alert(`✅ បានរក្សាទុកការកែប្រែវិក្កយបត្រ ${invId} ដោយជោគជ័យ!`);
-                editInvoiceModal.hide();
-                openInvoiceHistoryModal();
+            let oldInvoiceIndex = allInvoicesList.findIndex(i => i.id === invId);
+            if (oldInvoiceIndex === -1) return;
+
+            let oldInvoice = allInvoicesList[oldInvoiceIndex];
+
+            // ១. បង្វិលស្តុកចាស់សងចូលឃ្លាំងវិញជាបណ្តោះអាសន្ន
+            for (let oldItem of oldInvoice.items) {
+                if (!oldItem.item_id) continue;
+                let master = masterItemsList.find(m => m.id == oldItem.item_id);
+                if (master) {
+                    master.stock_quantity = (parseInt(master.stock_quantity) || 0) + parseInt(oldItem.quantity);
+                    await updateMasterItemStockAPI(master.id, master.stock_quantity);
+                }
+            }
+
+            // ២. ពិនិត្យ និងកាត់ស្តុកថ្មីតាមចំនួនដែលបានកែសម្រួល
+            for (let newItem of currentEditingInvoice.items) {
+                let master = masterItemsList.find(m => m.id == newItem.item_id || m.item_name === newItem.item_name);
+                if (master) {
+                    newItem.item_id = master.id;
+                    if (master.stock_quantity < newItem.quantity) {
+                        alert(`⚠ ទំនិញ "${master.item_name}" មានស្តុកក្នុងឃ្លាំងនៅសល់តែ ${master.stock_quantity} ប៉ុណ្ណោះ!`);
+                        loadAppData();
+                        return;
+                    }
+                    master.stock_quantity = parseInt(master.stock_quantity) - parseInt(newItem.quantity);
+                    await updateMasterItemStockAPI(master.id, master.stock_quantity);
+                }
+            }
+
+            // ៣. រក្សាទុកវិក្កយបត្រថ្មី
+            allInvoicesList[oldInvoiceIndex] = currentEditingInvoice;
+            saveInvoicesToLocalStorage();
+
+            alert(`✅ បានរក្សាទុកការកែប្រែវិក្កយបត្រ ${invId} និងគណនាស្តុកដោយជោគជ័យ!`);
+            editInvoiceModal.hide();
+            loadAppData();
+            openInvoiceHistoryModal();
+        }
+
+        async function updateMasterItemStockAPI(itemId, newStock) {
+            try {
+                let master = masterItemsList.find(m => m.id == itemId);
+                if (!master) return;
+
+                let data = {
+                    category: master.category,
+                    item_name: master.item_name,
+                    image_url: master.image_url || '',
+                    unit: master.unit || 'ដុំ',
+                    stock_quantity: newStock,
+                    cost_price: parseFloat(master.cost_price) || 0,
+                    retail_price: parseFloat(master.retail_price) || 0,
+                    wholesale_price: parseFloat(master.wholesale_price) || 0
+                };
+
+                await fetch(`${API_URL}/master-items/${itemId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } catch (err) {
+                console.error("Error updating stock API:", err);
             }
         }
 
@@ -1636,7 +1750,6 @@
                     let incomes = allTransactionsList.filter(tx => tx.type === 'INCOME');
                     let expenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
 
-                    // Group Incomes
                     let groupedIncomes = {};
                     incomes.forEach(tx => {
                         let key = tx.item_name + "_" + tx.category + "_" + tx.unit_price;
@@ -1693,7 +1806,6 @@
                         incomeTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការលក់នៅឡើយទេ</td></tr>`;
                     }
 
-                    // Group Expenses
                     let groupedExpenses = {};
                     expenses.forEach(tx => {
                         let key = tx.item_name + "_" + tx.category;
@@ -1857,7 +1969,6 @@
                 return true;
             });
 
-            // Sales Report
             let salesTbody = document.getElementById('reportSalesTableBody');
             salesTbody.innerHTML = '';
             let salesTxRaw = filteredTx.filter(tx => tx.type === 'INCOME');
@@ -1922,7 +2033,6 @@
                 salesTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-2">មិនមានទិន្នន័យលក់ក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
             }
 
-            // Restock Report
             let restockTbody = document.getElementById('reportRestockTableBody');
             restockTbody.innerHTML = '';
             let restockTxRaw = filteredTx.filter(tx => tx.type === 'EXPENSE');
@@ -2074,4 +2184,3 @@
     </script>
 </body>
 </html>
-```[cite: 1]
