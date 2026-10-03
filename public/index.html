@@ -77,13 +77,16 @@
 
     <!-- MAIN APP CONTAINER -->
     <div id="appContainer" class="container-fluid px-4" style="max-width: 1450px;">
-        <div class="d-flex align-items-center justify-content-between mb-4 bg-white p-3 px-4 rounded-4 shadow-sm border">
+        <div class="d-flex align-items-center justify-content-between mb-4 bg-white p-3 px-4 rounded-4 shadow-sm border flex-wrap gap-2">
             <h2 class="text-primary fw-bold m-0 fs-4">📊 ប្រព័ន្ធគ្រប់គ្រងការលក់ និងស្តុក (POS)</h2>
-            <div class="d-flex align-items-center">
-                <button id="adminReportBtn" onclick="openReportModal()" class="btn btn-primary btn-sm px-4 me-3 shadow-sm fw-bold">
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                <button id="adminInvoiceHistoryBtn" onclick="openInvoiceHistoryModal()" class="btn btn-outline-secondary btn-sm px-3 shadow-sm fw-bold">
+                    📋 ប្រវត្តិវិក្កយបត្រ (Invoices)
+                </button>
+                <button id="adminReportBtn" onclick="openReportModal()" class="btn btn-primary btn-sm px-3 shadow-sm fw-bold">
                     📈 មើលរបាយការណ៍ (Report)
                 </button>
-                <span id="welcomeUser" class="me-3 fw-semibold text-secondary"></span>
+                <span id="welcomeUser" class="fw-semibold text-secondary"></span>
                 <button onclick="logout()" class="btn btn-outline-danger btn-sm px-3">🚪 ចេញ</button>
             </div>
         </div>
@@ -466,6 +469,72 @@
         </div>
     </div>
 
+    <!-- INVOICE HISTORY MODAL (សម្រាប់មើលនិងកែវិក្កយបត្រចាស់) -->
+    <div class="modal fade" id="invoiceHistoryModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title fw-bold">📋 ប្រវត្តិវិក្កយបត្រលក់ (Invoice History & Edit)</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-muted small">បញ្ជីវិក្កយបត្រដែលបានបញ្ចប់ការលក់ទាំងអស់។ អ្នកអាចចុចមើលលម្អិត កែប្រែ ឬព្រិន្ទឡើងវិញបាន។</p>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle mb-0">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th>លេខវិក្កយបត្រ (Invoice ID)</th>
+                                    <th>កាលបរិច្ឆេទ</th>
+                                    <th>ចំនួនមុខទំនិញ</th>
+                                    <th>ទឹកប្រាក់សរុប ($)</th>
+                                    <th class="text-center">សកម្មភាព</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoiceHistoryTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">បិទ (Close)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW / EDIT SINGLE INVOICE MODAL -->
+    <div class="modal fade" id="editInvoiceModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold fs-6" id="editInvoiceTitle">កែសម្រួលវិក្កយបត្រ</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="currentEditingInvoiceId">
+                    <div class="table-responsive mb-3" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table table-sm table-bordered align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Category & ទំនិញ</th>
+                                    <th>ចំនួន</th>
+                                    <th>តម្លៃ ($)</th>
+                                    <th>សរុប ($)</th>
+                                    <th class="text-center">សកម្មភាព</th>
+                                </tr>
+                            </thead>
+                            <tbody id="editInvoiceItemsTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded-3 mb-3">
+                        <h5 class="fw-bold m-0 text-success" id="editInvoiceGrandTotalLabel">សរុប: $0.00</h5>
+                        <button class="btn btn-sm btn-outline-success fw-bold" onclick="addMoreItemToEditingInvoice()">➕ បន្ថែមទំនិញក្នុងវិក្កយបត្រនេះ</button>
+                    </div>
+                    <button type="button" class="btn btn-primary w-100 shadow-sm fw-bold" onclick="saveUpdatedInvoice()">💾 រក្សាទុកការកែប្រែវិក្កយបត្រ (ប្តូរស្តុកស្វ័យប្រវត្តិ)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- EDIT MASTER ITEM MODAL -->
     <div class="modal fade" id="editMasterModal" tabindex="-1">
         <div class="modal-dialog">
@@ -533,7 +602,7 @@
         <div class="modal-dialog">
             <div class="modal-content border-0 shadow-lg rounded-4">
                 <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title fw-bold fs-6">កែសម្រួលទំនិញក្នុងវិក្កយបត្រ</h5>
+                    <h5 class="modal-title fw-bold fs-6">កែសម្រួលទំនិញក្នុងវិក្កយបត្របច្ចុប្បន្ន</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-3">
@@ -579,6 +648,42 @@
         </div>
     </div>
 
+    <!-- EDIT TRANSACTION MODAL (សម្រាប់កែប្រែប្រវត្តិការលក់ ឬទិញស្តុកដោយផ្ទាល់) -->
+    <div class="modal fade" id="editTransactionModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold fs-6" id="editTxModalTitle">កែប្រែប្រវត្តិប្រតិបត្តិការ</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="editTransactionForm">
+                        <input type="hidden" id="editTxId">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">Category (ក្រុមទំនិញ)</label>
+                            <input type="text" class="form-control" id="editTxCategory" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ</label>
+                            <input type="text" class="form-control" id="editTxItemName" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label small text-muted fw-bold">ចំនួន</label>
+                                <input type="number" class="form-control" id="editTxQuantity" min="1" required>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label small text-muted fw-bold">តម្លៃ ($)</label>
+                                <input type="number" step="0.01" class="form-control" id="editTxUnitPrice" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 shadow-sm">រក្សាទុកការកែប្រែ</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -589,10 +694,14 @@
         
         let masterItemsList = [];
         let allTransactionsList = [];
+        let allInvoicesList = [];
         let currentCart = [];
         let editMasterModal;
         let editCartModal;
         let reportModal;
+        let invoiceHistoryModal;
+        let editInvoiceModal;
+        let editTransactionModal;
 
         let defaultUsers = [
             { username: "admin", password: "123", name: "អុចឃី (Admin)", role: "admin" },
@@ -614,6 +723,9 @@
             editMasterModal = new bootstrap.Modal(document.getElementById('editMasterModal'));
             editCartModal = new bootstrap.Modal(document.getElementById('editCartModal'));
             reportModal = new bootstrap.Modal(document.getElementById('reportModal'));
+            invoiceHistoryModal = new bootstrap.Modal(document.getElementById('invoiceHistoryModal'));
+            editInvoiceModal = new bootstrap.Modal(document.getElementById('editInvoiceModal'));
+            editTransactionModal = new bootstrap.Modal(document.getElementById('editTransactionModal'));
             checkLoginState();
         });
 
@@ -622,12 +734,17 @@
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
                 if (userObj.role === 'staff') {
-                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin ប៉ុណ្ណោះ។");
+                    alert("⚠ សូមអភ័យទោស! មុខងារนี้สำหรับแต่ Admin ប៉ុណ្ណោះ។");
                     return;
                 }
             }
             renderReportsTables();
             reportModal.show();
+        }
+
+        function openInvoiceHistoryModal() {
+            renderInvoiceHistoryTable();
+            invoiceHistoryModal.show();
         }
 
         function checkLoginState() {
@@ -649,6 +766,7 @@
                     mainTablesColumn.className = "col-lg-12";
 
                     document.getElementById('adminReportBtn').style.display = 'none';
+                    document.getElementById('adminInvoiceHistoryBtn').style.display = 'none';
                     document.getElementById('adminSummaryCards').style.display = 'none';
                     
                     document.getElementById('masterListCard').style.display = 'none';
@@ -665,6 +783,7 @@
                     document.getElementById('restockCard').style.display = 'block';
                     document.getElementById('adminUserCard').style.display = 'block';
                     document.getElementById('adminReportBtn').style.display = 'inline-block';
+                    document.getElementById('adminInvoiceHistoryBtn').style.display = 'inline-block';
                     document.getElementById('adminSummaryCards').style.display = 'flex';
 
                     document.getElementById('masterListCard').style.display = 'block';
@@ -724,6 +843,24 @@
             fetchMasterItems();
             fetchSummary();
             fetchTransactions();
+            loadInvoicesFromLocalStorage();
+        }
+
+        function loadInvoicesFromLocalStorage() {
+            let data = localStorage.getItem("appInvoicesHistory");
+            if (data) {
+                try {
+                    allInvoicesList = JSON.parse(data);
+                } catch(e) {
+                    allInvoicesList = [];
+                }
+            } else {
+                allInvoicesList = [];
+            }
+        }
+
+        function saveInvoicesToLocalStorage() {
+            localStorage.setItem("appInvoicesHistory", JSON.stringify(allInvoicesList));
         }
 
         async function fetchMasterItems() {
@@ -851,7 +988,7 @@
                 currentCart.push({
                     item_id: foundItem.id,
                     category: foundItem.category,
-                    item_name: `${foundItem.item_name} (${selectedType === 'wholesale' ? 'លក់ដុំ' : 'លក់រាយ'})`,
+                    item_name: foundItem.item_name,
                     unit: foundItem.unit || 'ដុំ',
                     quantity: qty,
                     unit_price: unitPrice,
@@ -899,7 +1036,7 @@
 
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td class="fw-bold text-truncate" style="max-width: 110px; font-size: 13px;">${item.item_name}</td>
+                        <td class="fw-bold text-truncate" style="max-width: 110px; font-size: 13px;">${item.item_name} (${item.category})</td>
                         <td style="font-size: 13px;">${item.quantity} ${item.unit}</td>
                         <td style="font-size: 13px;">$${item.unit_price.toFixed(2)}</td>
                         <td class="text-success fw-bold" style="font-size: 13px;">$${total.toFixed(2)}</td>
@@ -1007,7 +1144,7 @@
                 currentCart[index] = {
                     item_id: foundMaster.id,
                     category: foundMaster.category,
-                    item_name: `${foundMaster.item_name} (${priceType === 'wholesale' ? 'លក់ដុំ' : 'លក់រាយ'})`,
+                    item_name: foundMaster.item_name,
                     unit: foundMaster.unit || 'ដុំ',
                     quantity: qty,
                     unit_price: price,
@@ -1034,6 +1171,13 @@
                 return;
             }
 
+            let invoiceId = 'INV-' + Date.now();
+            let invoiceObj = {
+                id: invoiceId,
+                date: new Date().toISOString(),
+                items: JSON.parse(JSON.stringify(currentCart))
+            };
+
             for (let item of currentCart) {
                 let newData = {
                     type: 'INCOME',
@@ -1055,13 +1199,16 @@
                 }
             }
 
-            printCartInvoice(currentCart);
+            allInvoicesList.push(invoiceObj);
+            saveInvoicesToLocalStorage();
+
+            printCartInvoice(currentCart, invoiceId);
             currentCart = [];
             renderCartTable();
             loadAppData();
         }
 
-        function printCartInvoice(items) {
+        function printCartInvoice(items, invoiceId = 'INV-NEW') {
             let exchangeRate = parseFloat(document.getElementById('exchangeRateInput')?.value) || 4000;
             let printWindow = window.open('', '_blank', 'height=700,width=450');
             printWindow.document.write('<html><head><title>វិក្កយបត្រលក់ (Sales Invoice)</title>');
@@ -1081,7 +1228,7 @@
             `);
             printWindow.document.write('</head><body>');
             printWindow.document.write('<h3>វិក្កយបត្រលក់ទំនិញ</h3>');
-            printWindow.document.write(`<p><small>កាលបរិច្ឆេទ: ${new Date().toLocaleString()}</small></p><hr>`);
+            printWindow.document.write(`<p><small>លេខ: ${invoiceId} | កាលបរិច្ឆេទ: ${new Date().toLocaleString()}</small></p><hr>`);
             printWindow.document.write('<table>');
             printWindow.document.write(`<tr><th>មុខទំនិញ</th><th>ចំនួន</th><th>តម្លៃ</th><th class="text-right">ទឹកប្រាក់</th></tr>`);
             
@@ -1091,7 +1238,7 @@
                 grandTotal += total;
                 printWindow.document.write(`<tr>
                     <td><b>${item.item_name}</b><br><small>(${item.category})</small></td>
-                    <td>${item.quantity} ${item.unit}</td>
+                    <td>${item.quantity} ${item.unit || 'ដុំ'}</td>
                     <td>$${item.unit_price.toFixed(2)}</td>
                     <td class="text-right">$${total.toFixed(2)}</td>
                 </tr>`);
@@ -1113,6 +1260,135 @@
                 printWindow.print();
                 printWindow.close();
             }, 500);
+        }
+
+        // វិក្កយបត្រប្រវត្តិការបង្ហាញ និងកែសម្រួល
+        function renderInvoiceHistoryTable() {
+            let tbody = document.getElementById('invoiceHistoryTableBody');
+            tbody.innerHTML = '';
+
+            if (allInvoicesList.length > 0) {
+                // តម្រៀបពីថ្មីទៅចាស់
+                let sortedInv = [...allInvoicesList].reverse();
+                sortedInv.forEach((inv) => {
+                    let totalAmount = inv.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="fw-bold text-primary">${inv.id}</td>
+                        <td>${new Date(inv.date).toLocaleString()}</td>
+                        <td><span class="badge bg-secondary">${inv.items.length} មុខទំនិញ</span></td>
+                        <td class="text-success fw-bold">$${totalAmount.toFixed(2)}</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${inv.id}')">កែសម្រួល</button>
+                            <button class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" onclick="reprintInvoice('${inv.id}')">ព្រិន្ទ</button>
+                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${inv.id}')">លុប</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">មិនទាន់មានប្រវត្តិវិក្កយបត្រទេ</td></tr>`;
+            }
+        }
+
+        function reprintInvoice(invId) {
+            let inv = allInvoicesList.find(i => i.id === invId);
+            if (inv) {
+                printCartInvoice(inv.items, inv.id);
+            }
+        }
+
+        function deleteInvoiceRecord(invId) {
+            if (!confirm(`តើអ្នកពិតជាចង់លុបវិក្កយបត្រ ${invId} មែនទេ?`)) return;
+            allInvoicesList = allInvoicesList.filter(i => i.id !== invId);
+            saveInvoicesToLocalStorage();
+            renderInvoiceHistoryTable();
+        }
+
+        let currentEditingInvoice = null;
+
+        function openEditInvoiceModal(invId) {
+            let inv = allInvoicesList.find(i => i.id === invId);
+            if (!inv) return;
+
+            currentEditingInvoice = JSON.parse(JSON.stringify(inv)); // Clone object
+            document.getElementById('currentEditingInvoiceId').value = inv.id;
+            document.getElementById('editInvoiceTitle').innerText = `កែសម្រួលវិក្កយបត្រ: ${inv.id}`;
+            renderEditInvoiceItemsTable();
+            invoiceHistoryModal.hide();
+            editInvoiceModal.show();
+        }
+
+        function renderEditInvoiceItemsTable() {
+            let tbody = document.getElementById('editInvoiceItemsTableBody');
+            tbody.innerHTML = '';
+            let grandTotal = 0;
+
+            if (currentEditingInvoice && currentEditingInvoice.items.length > 0) {
+                currentEditingInvoice.items.forEach((item, index) => {
+                    let total = item.quantity * item.unit_price;
+                    grandTotal += total;
+
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>
+                            <input type="text" class="form-control form-control-sm mb-1" value="${item.category}" placeholder="Category" onchange="updateEditingInvoiceItem(${index}, 'category', this.value)">
+                            <input type="text" class="form-control form-control-sm fw-bold" value="${item.item_name}" placeholder="ឈ្មោះទំនិញ" onchange="updateEditingInvoiceItem(${index}, 'item_name', this.value)">
+                        </td>
+                        <td><input type="number" class="form-control form-control-sm" min="1" value="${item.quantity}" onchange="updateEditingInvoiceItem(${index}, 'quantity', this.value)" style="width: 80px;"></td>
+                        <td><input type="number" step="0.01" class="form-control form-control-sm" value="${item.unit_price}" onchange="updateEditingInvoiceItem(${index}, 'unit_price', this.value)" style="width: 90px;"></td>
+                        <td class="fw-bold text-success align-middle">$${total.toFixed(2)}</td>
+                        <td class="text-center align-middle">
+                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="removeEditingInvoiceItem(${index})">×</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-2">គ្មានទំនិញក្នុងវិក្កយបត្រនេះទេ</td></tr>`;
+            }
+
+            document.getElementById('editInvoiceGrandTotalLabel').innerText = `សរុប: $${grandTotal.toFixed(2)}`;
+        }
+
+        function updateEditingInvoiceItem(index, field, value) {
+            if (field === 'quantity') {
+                currentEditingInvoice.items[index].quantity = parseInt(value) || 1;
+            } else if (field === 'unit_price') {
+                currentEditingInvoice.items[index].unit_price = parseFloat(value) || 0;
+            } else {
+                currentEditingInvoice.items[index][field] = value;
+            }
+            renderEditInvoiceItemsTable();
+        }
+
+        function removeEditingInvoiceItem(index) {
+            currentEditingInvoice.items.splice(index, 1);
+            renderEditInvoiceItemsTable();
+        }
+
+        function addMoreItemToEditingInvoice() {
+            currentEditingInvoice.items.push({
+                item_id: "",
+                category: "ទំនិញទូទៅ",
+                item_name: "ទំនិញថ្មី",
+                unit: "ដុំ",
+                quantity: 1,
+                unit_price: 0
+            });
+            renderEditInvoiceItemsTable();
+        }
+
+        async function saveUpdatedInvoice() {
+            let invId = document.getElementById('currentEditingInvoiceId').value;
+            let index = allInvoicesList.findIndex(i => i.id === invId);
+            if (index !== -1) {
+                allInvoicesList[index] = currentEditingInvoice;
+                saveInvoicesToLocalStorage();
+                alert(`✅ បានរក្សាទុកការកែប្រែវិក្កយបត្រ ${invId} ដោយជោគជ័យ!`);
+                editInvoiceModal.hide();
+                openInvoiceHistoryModal();
+            }
         }
 
         document.getElementById('restockForm')?.addEventListener('submit', async (e) => {
@@ -1348,7 +1624,10 @@
                         mergedIncomesList.forEach((item) => {
                             let actionBtns = '';
                             if (!isStaff) {
-                                actionBtns = `<button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${item.id}')">លុប</button>`;
+                                actionBtns = `
+                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditTransaction('${item.id}', 'INCOME', '${item.category}', '${item.item_name}', ${item.quantity}, ${item.unit_price})">កែ</button>
+                                    <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${item.id}')">លុប</button>
+                                `;
                             } else {
                                 actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិ</span>`;
                             }
@@ -1356,7 +1635,7 @@
                             let tr = document.createElement('tr');
                             tr.innerHTML = `
                                 <td>${item.latest_date ? new Date(item.latest_date).toLocaleDateString() : '-'}</td>
-                                <td>${item.category}</td>
+                                <td><span class="badge bg-secondary">${item.category}</span></td>
                                 <td class="fw-bold">${item.item_name}</td>
                                 <td><span class="badge bg-success">${item.quantity}</span></td>
                                 <td>$${item.unit_price.toFixed(2)}</td>
@@ -1407,15 +1686,18 @@
 
                             let actionBtns = '';
                             if (!isStaff) {
-                                actionBtns = `<button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${item.id}')">លុប</button>`;
+                                actionBtns = `
+                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditTransaction('${item.id}', 'EXPENSE', '${item.category}', '${item.item_name}', ${item.quantity}, ${item.unit_price})">កែ</button>
+                                    <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${item.id}')">លុប</button>
+                                `;
                             } else {
-                                actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិលុប</span>`;
+                                actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិ</span>`;
                             }
 
                             let tr = document.createElement('tr');
                             tr.innerHTML = `
                                 <td>${item.latest_date ? new Date(item.latest_date).toLocaleDateString() : '-'}</td>
-                                <td>${item.category}</td>
+                                <td><span class="badge bg-secondary">${item.category}</span></td>
                                 <td>
                                     <div class="d-flex align-items-center">
                                         ${imgTag}
@@ -1441,6 +1723,44 @@
                 console.error("Error fetching transactions:", err);
             }
         }
+
+        function openEditTransaction(id, type, cat, name, qty, price) {
+            document.getElementById('editTxId').value = id;
+            document.getElementById('editTxCategory').value = cat;
+            document.getElementById('editTxItemName').value = name;
+            document.getElementById('editTxQuantity').value = qty;
+            document.getElementById('editTxUnitPrice').value = price;
+            document.getElementById('editTxModalTitle').innerText = type === 'INCOME' ? 'កែប្រែប្រវត្តិការលក់' : 'កែប្រែប្រវត្តិការទិញស្តុក';
+            editTransactionModal.show();
+        }
+
+        document.getElementById('editTransactionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let id = document.getElementById('editTxId').value;
+            let data = {
+                category: document.getElementById('editTxCategory').value.trim(),
+                item_name: document.getElementById('editTxItemName').value.trim(),
+                quantity: parseInt(document.getElementById('editTxQuantity').value) || 1,
+                unit_price: parseFloat(document.getElementById('editTxUnitPrice').value) || 0
+            };
+
+            try {
+                let res = await fetch(`${API_URL}/transactions/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                let result = await res.json();
+                if (result.success) {
+                    editTransactionModal.hide();
+                    loadAppData();
+                } else {
+                    alert("❌ កំហុសក្នុងការកែប្រែទិន្នន័យ!");
+                }
+            } catch (err) {
+                console.error("Error updating transaction:", err);
+            }
+        });
 
         function renderReportsTables() {
             let startDate = document.getElementById('reportStartDate').value;
