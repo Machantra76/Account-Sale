@@ -1295,7 +1295,6 @@
             }, 500);
         }
 
-        // វិក្កយបត្រប្រវត្តិការបង្ហាញ និងកែសម្រួល (មាន Filter តាម Category)
         function renderInvoiceHistoryTable() {
             let tbody = document.getElementById('invoiceHistoryTableBody');
             tbody.innerHTML = '';
@@ -1374,7 +1373,6 @@
             editInvoiceModal.show();
         }
 
-        // មុខងារបង្ហាញตារាងកែប្រែវិក្កយបត្រ (មាន Dropdown Category និង Item)
         function renderEditInvoiceItemsTable() {
             let tbody = document.getElementById('editInvoiceItemsTableBody');
             tbody.innerHTML = '';
@@ -1481,7 +1479,6 @@
             renderEditInvoiceItemsTable();
         }
 
-        // មុខងាររក្សាទុកការកែប្រែវិក្កយបត្រ ព្រមទាំងគណនាស្តុកចេញចូលស្វ័យប្រវត្តិ
         async function saveUpdatedInvoice() {
             let invId = document.getElementById('currentEditingInvoiceId').value;
             let oldInvoiceIndex = allInvoicesList.findIndex(i => i.id === invId);
@@ -1489,7 +1486,6 @@
 
             let oldInvoice = allInvoicesList[oldInvoiceIndex];
 
-            // ១. បង្វិលស្តុកចាស់សងចូលឃ្លាំងវិញជាបណ្តោះអាសន្ន
             for (let oldItem of oldInvoice.items) {
                 if (!oldItem.item_id) continue;
                 let master = masterItemsList.find(m => m.id == oldItem.item_id);
@@ -1499,7 +1495,6 @@
                 }
             }
 
-            // ២. ពិនិត្យ និងកាត់ស្តុកថ្មីតាមចំនួនដែលបានកែសម្រួល
             for (let newItem of currentEditingInvoice.items) {
                 let master = masterItemsList.find(m => m.id == newItem.item_id || m.item_name === newItem.item_name);
                 if (master) {
@@ -1514,7 +1509,6 @@
                 }
             }
 
-            // ៣. រក្សាទុកវិក្កយបត្រថ្មី
             allInvoicesList[oldInvoiceIndex] = currentEditingInvoice;
             saveInvoicesToLocalStorage();
 
@@ -1752,7 +1746,7 @@
 
                     let groupedIncomes = {};
                     incomes.forEach(tx => {
-                        let key = tx.item_name + "_" + tx.category + "_" + tx.unit_price;
+                        let key = tx.item_name + "_" + tx.category;
                         let txAmount = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
                         let txQty = parseInt(tx.quantity) || 0;
 
@@ -1769,6 +1763,7 @@
                         }
                         groupedIncomes[key].quantity += txQty;
                         groupedIncomes[key].total_amount += txAmount;
+                        groupedIncomes[key].unit_price = groupedIncomes[key].quantity > 0 ? (groupedIncomes[key].total_amount / groupedIncomes[key].quantity) : parseFloat(tx.unit_price);
 
                         if (tx.date && new Date(tx.date) > new Date(groupedIncomes[key].latest_date)) {
                             groupedIncomes[key].latest_date = tx.date;
@@ -1976,7 +1971,7 @@
 
             let groupedReportSales = {};
             salesTxRaw.forEach(tx => {
-                let key = tx.item_name + "_" + tx.category + "_" + tx.unit_price;
+                let key = tx.item_name + "_" + tx.category;
                 let txAmount = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
                 let txQty = parseInt(tx.quantity) || 0;
 
@@ -1992,6 +1987,7 @@
                 }
                 groupedReportSales[key].quantity += txQty;
                 groupedReportSales[key].total_amount += txAmount;
+                groupedReportSales[key].unit_price = groupedReportSales[key].quantity > 0 ? (groupedReportSales[key].total_amount / groupedReportSales[key].quantity) : parseFloat(tx.unit_price);
 
                 if (tx.date && new Date(tx.date) > new Date(groupedReportSales[key].latest_date)) {
                     groupedReportSales[key].latest_date = tx.date;
