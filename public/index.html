@@ -237,7 +237,7 @@
                     <div class="col-lg-6">
                         <div id="posGridCard" class="card p-3 shadow-sm h-100 bg-white border-success border-2">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="text-success fw-bold m-0 fs-6">🖼️ ជ្រើសរើសទំនិញតាម Category</h6>
+                                <h6 class="text-success fw-bold m-0 fs-6">🖼️️ ជ្រើសរើសទំនិញតាម Category</h6>
                             </div>
                             <div class="mb-2">
                                 <select class="form-select form-select-sm" id="posSelectCategory" onchange="onPosCategoryChanged()">
@@ -1218,7 +1218,8 @@
                     category: item.category,
                     item_name: item.item_name,
                     quantity: item.quantity,
-                    unit_price: item.unit_price
+                    unit_price: item.unit_price,
+                    amount: item.quantity * item.unit_price
                 };
 
                 try {
@@ -1556,7 +1557,8 @@
                 category: foundItem.category,
                 item_name: foundItem.item_name,
                 quantity: parseInt(document.getElementById('restockQty').value),
-                unit_price: parseFloat(document.getElementById('restockPrice').value)
+                unit_price: parseFloat(document.getElementById('restockPrice').value),
+                amount: parseInt(document.getElementById('restockQty').value) * parseFloat(document.getElementById('restockPrice').value)
             };
 
             try {
@@ -1638,7 +1640,8 @@
                 stock_quantity: parseInt(document.getElementById('masterStock').value) || 0,
                 cost_price: parseFloat(document.getElementById('masterCostPrice').value) || 0,
                 retail_price: parseFloat(document.getElementById('masterRetailPrice').value) || 0,
-                wholesale_price: parseFloat(document.getElementById('masterWholesalePrice').value) || 0
+                wholesale_price: parseFloat(document.getElementById('masterWholesalePrice').value) || 0,
+                amount: (parseInt(document.getElementById('masterStock').value) || 0) * (parseFloat(document.getElementById('masterCostPrice').value) || 0)
             };
 
             try {
@@ -1740,70 +1743,76 @@
                 incomeTbody.innerHTML = '';
                 expenseTbody.innerHTML = '';
 
-                if (result.success && allTransactionsList.length > 0) {
-                    let incomes = allTransactionsList.filter(tx => tx.type === 'INCOME');
-                    let expenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
+                // 🛠 គណនាសរុបទឹកប្រាក់និងបរិមាណចេញពី allInvoicesList ដោយផ្ទាល់ ដើម្បីភាពជាក់លាក់ និងការបូកសរុបត្រឹមត្រូវពេញលេញ
+                let groupedInvoicesSales = {};
+                if (allInvoicesList && allInvoicesList.length > 0) {
+                    allInvoicesList.forEach(inv => {
+                        if (inv.items && Array.isArray(inv.items)) {
+                            inv.items.forEach(item => {
+                                let key = (item.item_name || "").trim() + "_" + (item.category || "").trim();
+                                let qty = parseInt(item.quantity) || 0;
+                                let price = parseFloat(item.unit_price) || 0;
+                                let totalAmt = qty * price;
 
-                    let groupedIncomes = {};
-                    incomes.forEach(tx => {
-                        let key = tx.item_name + "_" + tx.category;
-                        let txAmount = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
-                        let txQty = parseInt(tx.quantity) || 0;
+                                if (!groupedInvoicesSales[key]) {
+                                    groupedInvoicesSales[key] = {
+                                        id: inv.id,
+                                        category: item.category || "ទំនិញទូទៅ",
+                                        item_name: item.item_name || "មិនស្គាល់ឈ្មោះ",
+                                        quantity: 0,
+                                        total_amount: 0,
+                                        unit_price: price,
+                                        latest_date: inv.date
+                                    };
+                                }
+                                groupedInvoicesSales[key].quantity += qty;
+                                groupedInvoicesSales[key].total_amount += totalAmt;
+                                groupedInvoicesSales[key].unit_price = groupedInvoicesSales[key].quantity > 0 ? (groupedInvoicesSales[key].total_amount / groupedInvoicesSales[key].quantity) : price;
 
-                        if (!groupedIncomes[key]) {
-                            groupedIncomes[key] = {
-                                id: tx.id,
-                                category: tx.category,
-                                item_name: tx.item_name,
-                                quantity: 0,
-                                total_amount: 0,
-                                unit_price: parseFloat(tx.unit_price) || 0,
-                                latest_date: tx.date
-                            };
-                        }
-                        groupedIncomes[key].quantity += txQty;
-                        groupedIncomes[key].total_amount += txAmount;
-                        groupedIncomes[key].unit_price = groupedIncomes[key].quantity > 0 ? (groupedIncomes[key].total_amount / groupedIncomes[key].quantity) : parseFloat(tx.unit_price);
-
-                        if (tx.date && new Date(tx.date) > new Date(groupedIncomes[key].latest_date)) {
-                            groupedIncomes[key].latest_date = tx.date;
-                            groupedIncomes[key].id = tx.id;
+                                if (inv.date && new Date(inv.date) > new Date(groupedInvoicesSales[key].latest_date)) {
+                                    groupedInvoicesSales[key].latest_date = inv.date;
+                                    groupedInvoicesSales[key].id = inv.id;
+                                }
+                            });
                         }
                     });
+                }
 
-                    let mergedIncomesList = Object.values(groupedIncomes);
+                let mergedIncomesList = Object.values(groupedInvoicesSales);
 
-                    if (mergedIncomesList.length > 0) {
-                        mergedIncomesList.forEach((item) => {
-                            let actionBtns = '';
-                            if (!isStaff) {
-                                actionBtns = `
-                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditTransaction('${item.id}', 'INCOME', '${item.category.replace(/'/g, "\\'")}', '${item.item_name.replace(/'/g, "\\'")}', ${item.quantity}, ${item.unit_price})">កែ</button>
-                                    <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${item.id}')">លុប</button>
-                                `;
-                            } else {
-                                actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិ</span>`;
-                            }
-
-                            let tr = document.createElement('tr');
-                            tr.innerHTML = `
-                                <td>${item.latest_date ? new Date(item.latest_date).toLocaleDateString() : '-'}</td>
-                                <td><span class="badge bg-secondary">${item.category}</span></td>
-                                <td class="fw-bold">${item.item_name}</td>
-                                <td><span class="badge bg-success">${item.quantity}</span></td>
-                                <td>$${item.unit_price.toFixed(2)}</td>
-                                <td class="text-success fw-bold">$${item.total_amount.toFixed(2)}</td>
-                                <td class="text-center">${actionBtns}</td>
+                if (mergedIncomesList.length > 0) {
+                    mergedIncomesList.forEach((item) => {
+                        let actionBtns = '';
+                        if (!isStaff) {
+                            actionBtns = `
+                                <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditTransaction('${item.id}', 'INCOME', '${item.category.replace(/'/g, "\\'")}', '${item.item_name.replace(/'/g, "\\'")}', ${item.quantity}, ${item.unit_price})">កែ</button>
                             `;
-                            incomeTbody.appendChild(tr);
-                        });
-                    } else {
-                        incomeTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការលក់នៅឡើយទេ</td></tr>`;
-                    }
+                        } else {
+                            actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិ</span>`;
+                        }
 
+                        let tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${item.latest_date ? new Date(item.latest_date).toLocaleDateString() : '-'}</td>
+                            <td><span class="badge bg-secondary">${item.category}</span></td>
+                            <td class="fw-bold">${item.item_name}</td>
+                            <td><span class="badge bg-success">${item.quantity}</span></td>
+                            <td>$${item.unit_price.toFixed(2)}</td>
+                            <td class="text-success fw-bold">$${item.total_amount.toFixed(2)}</td>
+                            <td class="text-center">${actionBtns}</td>
+                        `;
+                        incomeTbody.appendChild(tr);
+                    });
+                } else {
+                    incomeTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការលក់នៅឡើយទេ</td></tr>`;
+                }
+
+                // Group Expenses (ប្រវត្តិការទិញស្តុកចូល)
+                if (result.success && allTransactionsList.length > 0) {
+                    let expenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
                     let groupedExpenses = {};
                     expenses.forEach(tx => {
-                        let key = tx.item_name + "_" + tx.category;
+                        let key = (tx.item_name || "").trim() + "_" + (tx.category || "").trim();
                         let txAmount = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
                         let txQty = parseInt(tx.quantity) || 0;
 
@@ -1831,6 +1840,7 @@
                     let mergedExpensesList = Object.values(groupedExpenses);
 
                     if (mergedExpensesList.length > 0) {
+                        expenseTbody.innerHTML = '';
                         mergedExpensesList.forEach((item) => {
                             let matchedMaster = masterItemsList.find(m => m.id == item.item_id);
                             let imgUrl = matchedMaster && matchedMaster.image_url ? matchedMaster.image_url : '';
@@ -1866,11 +1876,10 @@
                     } else {
                         expenseTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការទិញស្តុកនៅឡើយទេ</td></tr>`;
                     }
-
                 } else {
-                    incomeTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យនៅឡើយទេ</td></tr>`;
                     expenseTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យនៅឡើយទេ</td></tr>`;
                 }
+
             } catch (err) {
                 console.error("Error fetching transactions:", err);
             }
@@ -1893,7 +1902,8 @@
                 category: document.getElementById('editTxCategory').value.trim(),
                 item_name: document.getElementById('editTxItemName').value.trim(),
                 quantity: parseInt(document.getElementById('editTxQuantity').value) || 1,
-                unit_price: parseFloat(document.getElementById('editTxUnitPrice').value) || 0
+                unit_price: parseFloat(document.getElementById('editTxUnitPrice').value) || 0,
+                amount: (parseInt(document.getElementById('editTxQuantity').value) || 1) * (parseFloat(document.getElementById('editTxUnitPrice').value) || 0)
             };
 
             try {
@@ -1971,7 +1981,7 @@
 
             let groupedReportSales = {};
             salesTxRaw.forEach(tx => {
-                let key = tx.item_name + "_" + tx.category;
+                let key = (tx.item_name || "").trim() + "_" + (tx.category || "").trim();
                 let txAmount = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
                 let txQty = parseInt(tx.quantity) || 0;
 
@@ -2035,7 +2045,7 @@
 
             let groupedReportRestock = {};
             restockTxRaw.forEach(tx => {
-                let key = tx.item_name + "_" + tx.category;
+                let key = (tx.item_name || "").trim() + "_" + (tx.category || "").trim();
                 let txAmount = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
                 let txQty = parseInt(tx.quantity) || 0;
 
