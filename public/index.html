@@ -963,21 +963,22 @@
                 let wholesalePrice = parseFloat(item.wholesale_price || 0).toFixed(2);
                 
                 let col = document.createElement('div');
-                col.className = 'col-md-6 col-12';
+                // កែពី col-md-6 មកជា col-md-4 ដើម្បីឱ្យបង្ហាញបាន ៣ រូបភាពក្នុងមួយជួរ
+                col.className = 'col-md-4 col-12';
                 col.innerHTML = `
                     <div class="card h-100 pos-item-card border p-2 text-center bg-white">
-                        <img src="${imgSource}" class="card-img-top rounded-3 mb-1 shadow-sm" style="height: 80px; width: 100%; object-fit: contain; background-color: #f8f9fa;" alt="${item.item_name}">
+                        <img src="${imgSource}" class="card-img-top rounded-3 mb-1 shadow-sm" style="height: 70px; width: 100%; object-fit: contain; background-color: #f8f9fa;" alt="${item.item_name}">
                         <div class="card-body p-0">
-                            <h6 class="card-title fw-bold text-dark mb-1 fs-6 text-truncate" style="font-size: 13px;">${item.item_name}</h6>
+                            <h6 class="card-title fw-bold text-dark mb-1 text-truncate" style="font-size: 12px;">${item.item_name}</h6>
                             <div class="mb-2">
-                                <select id="priceType_${item.id}" class="form-select form-select-sm text-center fw-bold text-primary border-primary p-1" style="font-size: 11px;">
+                                <select id="priceType_${item.id}" class="form-select form-select-sm text-center fw-bold text-primary border-primary p-1" style="font-size: 10px;">
                                     <option value="retail">លក់រាយ: $${retailPrice}</option>
                                     <option value="wholesale">លក់ដុំ: $${wholesalePrice}</option>
                                 </select>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="badge bg-light text-secondary border" style="font-size: 10px;">ស្តុក: ${item.stock_quantity} ${unitLabel}</span>
-                                <button class="btn btn-sm btn-success py-1 px-2 fw-bold" onclick="addGridItemToCart('${item.id}')" style="font-size: 11px;">🛒 ទិញ</button>
+                                <span class="badge bg-light text-secondary border" style="font-size: 9px;">ស្តុក: ${item.stock_quantity} ${unitLabel}</span>
+                                <button class="btn btn-sm btn-success py-1 px-2 fw-bold" onclick="addGridItemToCart('${item.id}')" style="font-size: 10px;">🛒 ទិញ</button>
                             </div>
                         </div>
                     </div>
@@ -2067,3 +2068,4 @@
     </script>
 </body>
 </html>
+```[cite: 1]
