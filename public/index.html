@@ -1342,20 +1342,12 @@
         }
 
         async function deleteInvoiceRecord(invId) {
-            if (!confirm(`តើអ្នកពិតជាចង់លុបវិក្កយបត្រ ${invId} មែនទេ? (ស្តុកនឹងត្រូវបង្វិលសងចូលឃ្លាំងវិញ)`)) return;
-            let inv = allInvoicesList.find(i => i.id === invId);
-            if (inv) {
-                for (let item of inv.items) {
-                    if (!item.item_id) continue;
-                    let master = masterItemsList.find(m => m.id == item.item_id);
-                    if (master) {
-                        master.stock_quantity = (parseInt(master.stock_quantity) || 0) + parseInt(item.quantity);
-                        await updateMasterItemStockAPI(master.id, master.stock_quantity);
-                    }
-                }
-            }
+            if (!confirm(`តើអ្នកពិតជាចង់លុបវិក្កយបត្រ ${invId} មែនទេ? (ស្តុកក្នុងឃ្លាំងនៅរក្សាទុកធម្មតា)`)) return;
+            
+            // 🛑 លុបវិក្កយបត្រចេញពីប្រវត្តិ ដោយមិនបង្វិលសង ឬកាត់ស្តុកចូលក្នុងឃ្លាំងវិញឡើយ
             allInvoicesList = allInvoicesList.filter(i => i.id !== invId);
             saveInvoicesToLocalStorage();
+            
             renderInvoiceHistoryTable();
             loadAppData();
         }
@@ -1485,35 +1477,10 @@
             let oldInvoiceIndex = allInvoicesList.findIndex(i => i.id === invId);
             if (oldInvoiceIndex === -1) return;
 
-            let oldInvoice = allInvoicesList[oldInvoiceIndex];
-
-            for (let oldItem of oldInvoice.items) {
-                if (!oldItem.item_id) continue;
-                let master = masterItemsList.find(m => m.id == oldItem.item_id);
-                if (master) {
-                    master.stock_quantity = (parseInt(master.stock_quantity) || 0) + parseInt(oldItem.quantity);
-                    await updateMasterItemStockAPI(master.id, master.stock_quantity);
-                }
-            }
-
-            for (let newItem of currentEditingInvoice.items) {
-                let master = masterItemsList.find(m => m.id == newItem.item_id || m.item_name === newItem.item_name);
-                if (master) {
-                    newItem.item_id = master.id;
-                    if (master.stock_quantity < newItem.quantity) {
-                        alert(`⚠ ទំនិញ "${master.item_name}" មានស្តុកក្នុងឃ្លាំងនៅសល់តែ ${master.stock_quantity} ប៉ុណ្ណោះ!`);
-                        loadAppData();
-                        return;
-                    }
-                    master.stock_quantity = parseInt(master.stock_quantity) - parseInt(newItem.quantity);
-                    await updateMasterItemStockAPI(master.id, master.stock_quantity);
-                }
-            }
-
             allInvoicesList[oldInvoiceIndex] = currentEditingInvoice;
             saveInvoicesToLocalStorage();
 
-            alert(`✅ បានរក្សាទុកការកែប្រែវិក្កយបត្រ ${invId} និងគណនាស្តុកដោយជោគជ័យ!`);
+            alert(`✅ បានរក្សាទុកការកែប្រែវិក្កយបត្រ ${invId} ដោយជោគជ័យ!`);
             editInvoiceModal.hide();
             loadAppData();
             openInvoiceHistoryModal();
@@ -1783,7 +1750,6 @@
                     mergedIncomesList.forEach((item) => {
                         let actionBtns = '';
                         if (!isStaff) {
-                            // 🛠 បន្ថែមប៊ូតុងលុប ដែលភ្ជាប់ទៅកាន់ function deleteInvoiceRecord ដើម្បីលុបវិក្កយបត្រនិងបង្វិលសងស្តុក
                             actionBtns = `
                                 <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${item.invoice_id}')">កែ</button>
                                 <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${item.invoice_id}')">លុប</button>
