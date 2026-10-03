@@ -799,7 +799,6 @@
                     mainTablesColumn.className = "col-lg-12";
 
                     document.getElementById('adminReportBtn').style.display = 'none';
-                    // 🟢 បើកសិទ្ធិឱ្យ Staff ឃើញប៊ូតុងប្រវត្តិវិក្កយបត្រ (Invoices)
                     document.getElementById('adminInvoiceHistoryBtn').style.display = 'inline-block';
                     document.getElementById('adminSummaryCards').style.display = 'none';
                     
@@ -1353,12 +1352,14 @@
         }
 
         let currentEditingInvoice = null;
+        let originalEditingInvoiceBackup = null; // ទុកផ្ទៀងផ្ទាត់ស្តុកពេលកែប្រែ
 
         function openEditInvoiceModal(invId) {
             let inv = allInvoicesList.find(i => i.id === invId);
             if (!inv) return;
 
             currentEditingInvoice = JSON.parse(JSON.stringify(inv));
+            originalEditingInvoiceBackup = JSON.parse(JSON.stringify(inv)); // រក្សាកំណត់ត្រាដើម
             document.getElementById('currentEditingInvoiceId').value = inv.id;
             document.getElementById('editInvoiceTitle').innerText = `កែសម្រួលវិក្កយបត្រ: ${inv.id}`;
             renderEditInvoiceItemsTable();
@@ -1477,10 +1478,43 @@
             let oldInvoiceIndex = allInvoicesList.findIndex(i => i.id === invId);
             if (oldInvoiceIndex === -1) return;
 
+            // 🔄 គណនាស្តុកប្តូរផ្ដាច់៖ យកស្តុកដើមមកបូកសងវិញសិន រួចค่อยដកស្តុកថ្មីចេញតាមការកែប្រែ
+            let stockChanges = {};
+
+            // 1. បូកស្តុកចាស់ចូលឃ្លាំងវិញ
+            if (originalEditingInvoiceBackup && originalEditingInvoiceBackup.items) {
+                originalEditingInvoiceBackup.items.forEach(oldItem => {
+                    let master = masterItemsList.find(m => m.id == oldItem.item_id || m.item_name === oldItem.item_name);
+                    if (master) {
+                        if (!stockChanges[master.id]) stockChanges[master.id] = parseInt(master.stock_quantity) || 0;
+                        stockChanges[master.id] += parseInt(oldItem.quantity) || 0;
+                    }
+                });
+            }
+
+            // 2. ដកស្តុកថ្មីចេញពីឃ្លាំង
+            for (let newItem of currentEditingInvoice.items) {
+                let master = masterItemsList.find(m => m.id == newItem.item_id || m.item_name === newItem.item_name);
+                if (master) {
+                    if (!stockChanges[master.id]) stockChanges[master.id] = parseInt(master.stock_quantity) || 0;
+                    stockChanges[master.id] -= parseInt(newItem.quantity) || 0;
+
+                    if (stockChanges[master.id] < 0) {
+                        alert(`⚠ ទំនិញ "${master.item_name}" មិនគ្រប់គ្រាន់ក្នុងស្តុកទេ (សល់ស្តុក: ${master.stock_quantity})!`);
+                        return;
+                    }
+                }
+            }
+
+            // 3. ធ្វើបច្ចុប្បន្នភាពស្តុកទៅកាន់ API ផ្ទាល់
+            for (let [masterId, updatedStock] of Object.entries(stockChanges)) {
+                await updateMasterItemStockAPI(masterId, updatedStock);
+            }
+
             allInvoicesList[oldInvoiceIndex] = currentEditingInvoice;
             saveInvoicesToLocalStorage();
 
-            alert(`✅ បានរក្សាទុកការកែប្រែវិក្កយបត្រ ${invId} ដោយជោគជ័យ!`);
+            alert(`✅ បានរក្សាទុកការកែប្រែវិក្កយបត្រ ${invId} និងបានធ្វើបច្ចុប្បន្នភាពស្តុកក្នុងឃ្លាំងដោយជោគជ័យ!`);
             editInvoiceModal.hide();
             loadAppData();
             openInvoiceHistoryModal();
@@ -1774,7 +1808,6 @@
                     incomeTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការលក់នៅឡើយទេ</td></tr>`;
                 }
 
-                // Group Expenses (ប្រវត្តិការទិញស្តុកចូល)
                 if (result.success && allTransactionsList.length > 0) {
                     let expenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
                     let groupedExpenses = {};
