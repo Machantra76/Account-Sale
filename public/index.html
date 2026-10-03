@@ -478,7 +478,17 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <p class="text-muted small">បញ្ជីវិក្កយបត្រដែលបានបញ្ចប់ការលក់ទាំងអស់។ អ្នកអាចចុចមើលលម្អិត កែប្រែ ឬព្រិន្ទឡើងវិញបាន។</p>
+                    <p class="text-muted small">បញ្ជីវិក្កយបត្រដែលបានបញ្ចប់ការលក់ទាំងអស់។ អ្នកអាចជ្រើសរើសតាម Category ចុចមើលលម្អិត កែប្រែ ឬព្រិន្ទឡើងវិញបាន។</p>
+                    
+                    <!-- 🔍 Filter by Category for Invoices -->
+                    <div class="row g-2 align-items-center mb-3">
+                        <div class="col-md-4">
+                            <select class="form-select form-select-sm" id="invoiceCategoryFilter" onchange="renderInvoiceHistoryTable()">
+                                <option value="">-- គ្រប់ Category ទាំងអស់ --</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
                         <table class="table table-striped table-hover align-middle mb-0">
                             <thead class="table-secondary">
@@ -648,7 +658,7 @@
         </div>
     </div>
 
-    <!-- EDIT TRANSACTION MODAL (សម្រាប់កែប្រែប្រវត្តិការលក់ ឬទិញស្តុកដោយផ្ទាល់) -->
+    <!-- EDIT TRANSACTION MODAL -->
     <div class="modal fade" id="editTransactionModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content border-0 shadow-lg rounded-4">
@@ -734,7 +744,7 @@
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
                 if (userObj.role === 'staff') {
-                    alert("⚠ សូមអភ័យទោស! មុខងារนี้สำหรับแต่ Admin ប៉ុណ្ណោះ។");
+                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin ប៉ុណ្ណោះ។");
                     return;
                 }
             }
@@ -743,8 +753,25 @@
         }
 
         function openInvoiceHistoryModal() {
+            populateInvoiceCategoryFilter();
             renderInvoiceHistoryTable();
             invoiceHistoryModal.show();
+        }
+
+        function populateInvoiceCategoryFilter() {
+            let filterSelect = document.getElementById('invoiceCategoryFilter');
+            if(!filterSelect) return;
+            let currentVal = filterSelect.value;
+            filterSelect.innerHTML = '<option value="">-- គ្រប់ Category ទាំងអស់ --</option>';
+            
+            let uniqueCategories = [...new Set(masterItemsList.map(item => item.category))];
+            uniqueCategories.forEach(cat => {
+                let opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                filterSelect.appendChild(opt);
+            });
+            filterSelect.value = currentVal;
         }
 
         function checkLoginState() {
@@ -1262,30 +1289,41 @@
             }, 500);
         }
 
-        // វិក្កយបត្រប្រវត្តិការបង្ហាញ និងកែសម្រួល
+        // វិក្កយបត្រប្រវត្តិការបង្ហាញ និងកែសម្រួល (មាន Filter តាម Category)
         function renderInvoiceHistoryTable() {
             let tbody = document.getElementById('invoiceHistoryTableBody');
             tbody.innerHTML = '';
+            let selectedCategoryFilter = document.getElementById('invoiceCategoryFilter')?.value || "";
 
             if (allInvoicesList.length > 0) {
-                // តម្រៀបពីថ្មីទៅចាស់
                 let sortedInv = [...allInvoicesList].reverse();
-                sortedInv.forEach((inv) => {
-                    let totalAmount = inv.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
-                    let tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="fw-bold text-primary">${inv.id}</td>
-                        <td>${new Date(inv.date).toLocaleString()}</td>
-                        <td><span class="badge bg-secondary">${inv.items.length} មុខទំនិញ</span></td>
-                        <td class="text-success fw-bold">$${totalAmount.toFixed(2)}</td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${inv.id}')">កែសម្រួល</button>
-                            <button class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" onclick="reprintInvoice('${inv.id}')">ព្រិន្ទ</button>
-                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${inv.id}')">លុប</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
+                
+                // Filter invoices by category if selected
+                let filteredInvs = sortedInv.filter(inv => {
+                    if (!selectedCategoryFilter) return true;
+                    return inv.items.some(item => item.category === selectedCategoryFilter);
                 });
+
+                if (filteredInvs.length > 0) {
+                    filteredInvs.forEach((inv) => {
+                        let totalAmount = inv.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
+                        let tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="fw-bold text-primary">${inv.id}</td>
+                            <td>${new Date(inv.date).toLocaleString()}</td>
+                            <td><span class="badge bg-secondary">${inv.items.length} មុខទំនិញ</span></td>
+                            <td class="text-success fw-bold">$${totalAmount.toFixed(2)}</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${inv.id}')">កែសម្រួល</button>
+                                <button class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" onclick="reprintInvoice('${inv.id}')">ព្រិន្ទ</button>
+                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${inv.id}')">លុប</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">មិនមានប្រវត្តិវិក្កយបត្រក្នុង Category នេះទេ</td></tr>`;
+                }
             } else {
                 tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">មិនទាន់មានប្រវត្តិវិក្កយបត្រទេ</td></tr>`;
             }
@@ -1311,7 +1349,7 @@
             let inv = allInvoicesList.find(i => i.id === invId);
             if (!inv) return;
 
-            currentEditingInvoice = JSON.parse(JSON.stringify(inv)); // Clone object
+            currentEditingInvoice = JSON.parse(JSON.stringify(inv));
             document.getElementById('currentEditingInvoiceId').value = inv.id;
             document.getElementById('editInvoiceTitle').innerText = `កែសម្រួលវិក្កយបត្រ: ${inv.id}`;
             renderEditInvoiceItemsTable();
@@ -1434,7 +1472,7 @@
                     let tr = document.createElement('tr');
                     let actionTd = isStaff ? '' : `
                         <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditMaster('${m.id}', '${m.category}', '${m.item_name}', '${m.unit || 'ដុំ'}', ${m.stock_quantity || 0}, ${m.cost_price || 0}, ${m.retail_price || 0}, ${m.wholesale_price || 0})">កែ</button>
+                            <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditMaster('${m.id}', '${m.category.replace(/'/g, "\\'")}', '${m.item_name.replace(/'/g, "\\'")}', '${m.unit || 'ដុំ'}', ${m.stock_quantity || 0}, ${m.cost_price || 0}, ${m.retail_price || 0}, ${m.wholesale_price || 0})">កែ</button>
                             <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteMasterItem('${m.id}')">លុប</button>
                         </td>`;
                     
@@ -1625,7 +1663,7 @@
                             let actionBtns = '';
                             if (!isStaff) {
                                 actionBtns = `
-                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditTransaction('${item.id}', 'INCOME', '${item.category}', '${item.item_name}', ${item.quantity}, ${item.unit_price})">កែ</button>
+                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditTransaction('${item.id}', 'INCOME', '${item.category.replace(/'/g, "\\'")}', '${item.item_name.replace(/'/g, "\\'")}', ${item.quantity}, ${item.unit_price})">កែ</button>
                                     <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${item.id}')">លុប</button>
                                 `;
                             } else {
@@ -1687,7 +1725,7 @@
                             let actionBtns = '';
                             if (!isStaff) {
                                 actionBtns = `
-                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditTransaction('${item.id}', 'EXPENSE', '${item.category}', '${item.item_name}', ${item.quantity}, ${item.unit_price})">កែ</button>
+                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditTransaction('${item.id}', 'EXPENSE', '${item.category.replace(/'/g, "\\'")}', '${item.item_name.replace(/'/g, "\\'")}', ${item.quantity}, ${item.unit_price})">កែ</button>
                                     <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${item.id}')">លុប</button>
                                 `;
                             } else {
