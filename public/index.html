@@ -237,7 +237,7 @@
                     <div class="col-lg-6">
                         <div id="posGridCard" class="card p-3 shadow-sm h-100 bg-white border-success border-2">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="text-success fw-bold m-0 fs-6">🖼️️ ជ្រើសរើសទំនិញតាម Category</h6>
+                                <h6 class="text-success fw-bold m-0 fs-6">🖼 ជ្រើសរើសទំនិញតាម Category</h6>
                             </div>
                             <div class="mb-2">
                                 <select class="form-select form-select-sm" id="posSelectCategory" onchange="onPosCategoryChanged()">
@@ -1743,7 +1743,6 @@
                 incomeTbody.innerHTML = '';
                 expenseTbody.innerHTML = '';
 
-                // 🛠 គណនាសរុបទឹកប្រាក់និងបរិមាណចេញពី allInvoicesList ដោយផ្ទាល់ ដើម្បីភាពជាក់លាក់ និងការបូកសរុបត្រឹមត្រូវពេញលេញ
                 let groupedInvoicesSales = {};
                 if (allInvoicesList && allInvoicesList.length > 0) {
                     allInvoicesList.forEach(inv => {
@@ -1756,7 +1755,7 @@
 
                                 if (!groupedInvoicesSales[key]) {
                                     groupedInvoicesSales[key] = {
-                                        id: inv.id,
+                                        invoice_id: inv.id,
                                         category: item.category || "ទំនិញទូទៅ",
                                         item_name: item.item_name || "មិនស្គាល់ឈ្មោះ",
                                         quantity: 0,
@@ -1771,7 +1770,7 @@
 
                                 if (inv.date && new Date(inv.date) > new Date(groupedInvoicesSales[key].latest_date)) {
                                     groupedInvoicesSales[key].latest_date = inv.date;
-                                    groupedInvoicesSales[key].id = inv.id;
+                                    groupedInvoicesSales[key].invoice_id = inv.id;
                                 }
                             });
                         }
@@ -1784,8 +1783,10 @@
                     mergedIncomesList.forEach((item) => {
                         let actionBtns = '';
                         if (!isStaff) {
+                            // 🛠 បន្ថែមប៊ូតុងលុប ដែលភ្ជាប់ទៅកាន់ function deleteInvoiceRecord ដើម្បីលុបវិក្កយបត្រនិងបង្វិលសងស្តុក
                             actionBtns = `
-                                <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditTransaction('${item.id}', 'INCOME', '${item.category.replace(/'/g, "\\'")}', '${item.item_name.replace(/'/g, "\\'")}', ${item.quantity}, ${item.unit_price})">កែ</button>
+                                <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${item.invoice_id}')">កែ</button>
+                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${item.invoice_id}')">លុប</button>
                             `;
                         } else {
                             actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិ</span>`;
