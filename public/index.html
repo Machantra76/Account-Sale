@@ -231,7 +231,7 @@
                             </div>
                         </div>
                         <button type="submit" class="btn btn-dark btn-sm w-100 shadow-sm py-2 mt-2">
-                            <i class="bi bi-plus-circle me-1"></i> រก្សាទុកទំនិញចូលបញ្ជី (Save Item)
+                            <i class="bi bi-plus-circle me-1"></i> រក្សាទុកទំនិញចូលបញ្ជី (Save Item)
                         </button>
                     </form>
                 </div>
@@ -1060,7 +1060,7 @@
                 let mainTablesColumn = document.getElementById('mainTablesColumn');
 
                 if (userObj.role === 'staff') {
-                    // Staff: បិទ Master Items, Restock, Staff Accounts, Master & Stock List ទាំងស្រុង
+                    // Staff: បិទទាំងស្រុងតាមសំណូមពរ (Master Items, Restock, Staff Accounts, Master & Stock List)
                     adminFormsColumn.style.display = 'none';
                     mainTablesColumn.className = "col-lg-12 d-flex flex-column gap-4";
 
@@ -1076,7 +1076,7 @@
                     document.getElementById('expenseCard').style.display = 'none';
 
                 } else if (userObj.role === 'stock') {
-                    // Stock: បិទ Staff Accounts ប៉ុន្តែបើក Master Items និង Restock
+                    // Stock: បិទ Staff Accounts ប៉ុន្តែរក្សាទុក Master Items និង Restock
                     adminFormsColumn.style.display = 'flex';
                     document.getElementById('adminMasterCard').style.display = 'flex';
                     document.getElementById('restockCard').style.display = 'flex';
@@ -1096,7 +1096,7 @@
                     document.getElementById('expenseCard').style.display = 'flex';
 
                 } else {
-                    // Admin: បើកទាំងអស់
+                    // Admin: បើកគ្រប់មុខងារទាំងអស់
                     adminFormsColumn.style.display = 'flex';
                     document.getElementById('adminMasterCard').style.display = 'flex';
                     document.getElementById('restockCard').style.display = 'flex';
@@ -1700,7 +1700,7 @@
                 return;
             }
 
-            if (!confirm(`តើអ្នកពិតជាចង់លុបវិក្កយបត្រ ${invId} មែនទេ? (ស្តុកក្នុងឃ្លាំងនៅរក្សាទុកធម្មតា)`)) return;
+            if (!confirm(`តើអ្នកពិតជាចង់លុបវិក្កយបត្រ ${invId} មែនទេ?`)) return;
             
             allInvoicesList = allInvoicesList.filter(i => i.id !== invId);
             saveInvoicesToLocalStorage();
@@ -1843,69 +1843,14 @@
             let oldInvoiceIndex = allInvoicesList.findIndex(i => i.id === invId);
             if (oldInvoiceIndex === -1) return;
 
-            let stockChanges = {};
-
-            if (originalEditingInvoiceBackup && originalEditingInvoiceBackup.items) {
-                originalEditingInvoiceBackup.items.forEach(oldItem => {
-                    let master = masterItemsList.find(m => m.id == oldItem.item_id || m.item_name === oldItem.item_name);
-                    if (master) {
-                        if (!stockChanges[master.id]) stockChanges[master.id] = parseInt(master.stock_quantity) || 0;
-                        stockChanges[master.id] += parseInt(oldItem.quantity) || 0;
-                    }
-                });
-            }
-
-            for (let newItem of currentEditingInvoice.items) {
-                let master = masterItemsList.find(m => m.id == newItem.item_id || m.item_name === newItem.item_name);
-                if (master) {
-                    if (!stockChanges[master.id]) stockChanges[master.id] = parseInt(master.stock_quantity) || 0;
-                    stockChanges[master.id] -= parseInt(newItem.quantity) || 0;
-
-                    if (stockChanges[master.id] < 0) {
-                        alert(`⚠ ទំនិញ "${master.item_name}" មិនគ្រប់គ្រាន់ក្នុងស្តុកទេ (សល់ស្តុក: ${master.stock_quantity})!`);
-                        return;
-                    }
-                }
-            }
-
-            for (let [masterId, updatedStock] of Object.entries(stockChanges)) {
-                await updateMasterItemStockAPI(masterId, updatedStock);
-            }
-
             allInvoicesList[oldInvoiceIndex] = currentEditingInvoice;
             saveInvoicesToLocalStorage();
 
             recordUserActivity(`បានកែសម្រួលវិក្កយបត្រលក់លេខ: ${invId}`);
-            alert(`✅ បានរក្សាទុកការកែប្រែវិក្កយបត្រ ${invId} និងបានធ្វើបច្ចុប្បន្នភាពស្តុកក្នុងឃ្លាំងដោយជោគជ័យ!`);
+            alert(`✅ បានរក្សាទុកការកែប្រែវិក្កយបត្រ ${invId} ដោយជោគជ័យ!`);
             editInvoiceModal.hide();
             loadAppData();
             openInvoiceHistoryModal();
-        }
-
-        async function updateMasterItemStockAPI(itemId, newStock) {
-            try {
-                let master = masterItemsList.find(m => m.id == itemId);
-                if (!master) return;
-
-                let data = {
-                    category: master.category,
-                    item_name: master.item_name,
-                    image_url: master.image_url || '',
-                    unit: master.unit || 'ដុំ',
-                    stock_quantity: newStock,
-                    cost_price: parseFloat(master.cost_price) || 0,
-                    retail_price: parseFloat(master.retail_price) || 0,
-                    wholesale_price: parseFloat(master.wholesale_price) || 0
-                };
-
-                await fetch(`${API_URL}/master-items/${itemId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-            } catch (err) {
-                console.error("Error updating stock API:", err);
-            }
         }
 
         document.getElementById('restockForm')?.addEventListener('submit', async (e) => {
@@ -1944,7 +1889,6 @@
 
         function renderMasterTable() {
             let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
-            let isStaffOrStock = loggedUser.role === 'staff' || loggedUser.role === 'stock';
 
             let actionHeader = document.getElementById('masterActionHeader');
             if(actionHeader) actionHeader.style.display = loggedUser.role === 'stock' ? 'none' : '';
@@ -2176,7 +2120,6 @@
                         if (isStock) {
                             actionBtns = '';
                         } else if (isStaff) {
-                            // Staff អាចបិទ/ប៊ូតុងកែ ឬលុបចេញទាំងស្រុងតាមសំណូមពរ (មានតែ Admin ដែលអាចកែ/លុបបាន)
                             actionBtns = `<span class="text-muted small">-</span>`;
                         } else {
                             actionBtns = `
