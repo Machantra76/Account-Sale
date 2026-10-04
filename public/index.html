@@ -167,7 +167,7 @@
         </div>
 
         <div class="row g-4">
-            <!-- FORMS SECTION (Admin Only): Master Items & Restock Only -->
+            <!-- FORMS SECTION (Admin Only) -->
             <div class="col-lg-4" id="adminFormsColumn">
                 <!-- Master Item Form -->
                 <div id="adminMasterCard" class="card p-4 shadow-sm mb-4 bg-white">
@@ -259,11 +259,40 @@
                         <button type="submit" class="btn btn-outline-danger btn-sm w-100 shadow-sm py-2">បញ្ជាក់ការទិញស្តុកចូល (Restock)</button>
                     </form>
                 </div>
+
+                <!-- Create User Role Form -->
+                <div id="adminUserCard" class="card p-4 shadow-sm bg-white border-top border-primary border-4">
+                    <h5 class="mb-3 text-primary fw-bold fs-6 d-flex align-items-center gap-2">
+                        <i class="bi bi-person-plus-fill"></i> បង្កើតគណនីបុគ្គលិក (Staff Accounts)
+                    </h5>
+                    <form id="createUserForm">
+                        <div class="mb-2">
+                            <label class="form-label small text-muted fw-bold">ឈ្មោះបង្ហាញ (Full Name)</label>
+                            <input type="text" class="form-control form-control-sm" id="newUserName" placeholder="ឧ. ហេង សុខា" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small text-muted fw-bold">Username (សម្រាប់ចូល)</label>
+                            <input type="text" class="form-control form-control-sm" id="newUserUsername" placeholder="ឧ. sokha" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small text-muted fw-bold">Password (ពាក្យសម្ងាត់)</label>
+                            <input type="password" class="form-control form-control-sm" id="newUserPassword" placeholder="ពាក្យសម្ងាត់..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">តួនាទី (Role)</label>
+                            <select class="form-select form-select-sm" id="newUserRole" required>
+                                <option value="staff">Staff (បុគ្គលិកលក់ - POS Only)</option>
+                                <option value="admin">Admin (អភិបាល - Full Access)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-outline-primary btn-sm w-100 shadow-sm py-2">បង្កើតគណនីថ្មី (Create User)</button>
+                    </form>
+                </div>
             </div>
 
-            <!-- TABLES SECTION (Expanded width to match full column layout) -->
+            <!-- TABLES SECTION -->
             <div class="col-lg-8" id="mainTablesColumn">
-                <!-- POS & CART SIDE-BY-SIDE CONTAINER -->
+                <!-- POS & CART SIDE-BY-SIDE CONTAINER FOR STAFF / USERS -->
                 <div class="row g-3 mb-4">
                     <!-- POS IMAGE GRID CONTAINER -->
                     <div class="col-lg-6">
@@ -381,7 +410,7 @@
                 </div>
 
                 <!-- EXPENSE TABLE SECTION -->
-                <div id="expenseCard" class="card p-4 shadow-sm mb-4 bg-white border-start border-danger border-4">
+                <div id="expenseCard" class="card p-4 shadow-sm bg-white border-start border-danger border-4">
                     <h5 class="mb-3 text-danger fw-bold fs-6 d-flex align-items-center gap-2">
                         <i class="bi bi-receipt-cutoff"></i> ប្រវត្តិការទិញស្តុកចូល (Purchase Transactions)
                     </h5>
@@ -401,37 +430,6 @@
                             <tbody id="expenseTableBody"></tbody>
                         </table>
                     </div>
-                </div>
-
-                <!-- Create User Role Form (Moved to stack at the bottom of right column) -->
-                <div id="adminUserCard" class="card p-4 shadow-sm bg-white border-top border-primary border-4">
-                    <h5 class="mb-3 text-primary fw-bold fs-6 d-flex align-items-center gap-2">
-                        <i class="bi bi-person-plus-fill"></i> បង្កើតគណនីបុគ្គលិក (Staff Accounts)
-                    </h5>
-                    <form id="createUserForm">
-                        <div class="row">
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label small text-muted fw-bold">ឈ្មោះបង្ហាញ (Full Name)</label>
-                                <input type="text" class="form-control form-control-sm" id="newUserName" placeholder="ឧ. ហេង សុខា" required>
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label small text-muted fw-bold">Username (សម្រាប់ចូល)</label>
-                                <input type="text" class="form-control form-control-sm" id="newUserUsername" placeholder="ឧ. sokha" required>
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label small text-muted fw-bold">Password (ពាក្យសម្ងាត់)</label>
-                                <input type="password" class="form-control form-control-sm" id="newUserPassword" placeholder="ពាក្យសម្ងាត់..." required>
-                            </div>
-                            <div class="col-md-3 mb-2">
-                                <label class="form-label small text-muted fw-bold">តួនាទី (Role)</label>
-                                <select class="form-select form-select-sm" id="newUserRole" required>
-                                    <option value="staff">Staff (បុគ្គលិកលក់ - POS Only)</option>
-                                    <option value="admin">Admin (អភិបាល - Full Access)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-outline-primary btn-sm w-100 shadow-sm py-2 mt-2">បង្កើតគណនីថ្មី (Create User)</button>
-                    </form>
                 </div>
             </div>
         </div>
@@ -879,7 +877,6 @@
                     document.getElementById('masterListCard').style.display = 'none';
                     document.getElementById('incomeCard').style.display = 'none';
                     document.getElementById('expenseCard').style.display = 'none';
-                    document.getElementById('adminUserCard').style.display = 'none';
 
                     document.getElementById('posGridCard').style.display = 'block';
                     document.getElementById('currentCartCard').style.display = 'block';
