@@ -175,7 +175,7 @@
         <div class="row g-4">
             <!-- LEFT COLUMN (Admin / Stock Staff Forms) -->
             <div class="col-lg-4 d-flex flex-column gap-4" id="adminFormsColumn">
-                <!-- Master Item Form (Height: 620px) -->
+                <!-- Master Item Form -->
                 <div id="adminMasterCard" class="card p-4 shadow-sm bg-white d-flex flex-column" style="height: 620px;">
                     <h5 class="mb-2 text-dark fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-gear-fill text-primary"></i> បង្កើតមុខទំនិញ និងកំណត់តម្លៃ (Master Items)
@@ -236,7 +236,7 @@
                     </form>
                 </div>
 
-                <!-- Restock Expense Form (Height: 335px) -->
+                <!-- Restock Expense Form -->
                 <div id="restockCard" class="card p-4 shadow-sm bg-white d-flex flex-column" style="height: 335px;">
                     <h5 class="mb-2 text-danger fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-box-arrow-in-down"></i> ទិញស្តុកចូលបន្ថែម (Restock Inventory)
@@ -270,7 +270,7 @@
                     </form>
                 </div>
 
-                <!-- Create User Role Form (Height: 560px) -->
+                <!-- Create User Role Form -->
                 <div id="adminUserCard" class="card p-4 shadow-sm bg-white border-top border-primary border-4 d-flex flex-column" style="height: 560px;">
                     <h5 class="mb-3 text-primary fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-person-plus-fill"></i> បង្កើតគណនីបុគ្គលិក (Staff Accounts)
@@ -305,7 +305,7 @@
 
             <!-- RIGHT COLUMN (Tables & POS Section) -->
             <div class="col-lg-8 d-flex flex-column gap-4" id="mainTablesColumn">
-                <!-- POS & CART SIDE-BY-SIDE CONTAINER (Height: 620px) -->
+                <!-- POS & CART SIDE-BY-SIDE CONTAINER -->
                 <div class="row g-3" id="posAndCartRow">
                     <!-- POS IMAGE GRID CONTAINER -->
                     <div class="col-lg-6 d-flex flex-column">
@@ -375,7 +375,7 @@
                     </div>
                 </div>
 
-                <!-- Master List Table (Height: 335px) -->
+                <!-- Master List Table -->
                 <div id="masterListCard" class="card p-4 shadow-sm bg-white d-flex flex-column" style="height: 335px;">
                     <h5 class="text-secondary fw-bold fs-6 mb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-archive-fill"></i> បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)
@@ -399,7 +399,7 @@
                     </div>
                 </div>
 
-                <!-- INCOME TABLE SECTION (Height: 270px) -->
+                <!-- INCOME TABLE SECTION -->
                 <div id="incomeCard" class="card p-4 shadow-sm bg-white border-start border-success border-4 d-flex flex-column" style="height: 270px;">
                     <h5 class="mb-2 text-success fw-bold fs-6 d-flex align-items-center gap-2">
                         <i class="bi bi-cash-coin"></i> ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History)
@@ -422,7 +422,7 @@
                     </div>
                 </div>
 
-                <!-- EXPENSE TABLE SECTION (Height: 270px) -->
+                <!-- EXPENSE TABLE SECTION -->
                 <div id="expenseCard" class="card p-4 shadow-sm bg-white border-start border-danger border-4 d-flex flex-column" style="height: 270px;">
                     <h5 class="mb-2 text-danger fw-bold fs-6 d-flex align-items-center gap-2">
                         <i class="bi bi-receipt-cutoff"></i> ប្រវត្តិការទិញស្តុកចូល (Purchase Transactions)
@@ -436,7 +436,7 @@
                                     <th>ឈ្មោះទំនិញ និងរូបភាព (Item & Image)</th>
                                     <th>ចំនួនទិញ (Qty)</th>
                                     <th>តម្លៃទិញ (Price)</th>
-                                    <th>ចំណាយសរុប ($ Total)</th>
+                                    <th>សរុប ($ Total)</th>
                                     <th class="text-center admin-action-col" id="expenseActionHeader">សកម្មភាព (Actions)</th>
                                 </tr>
                             </thead>
@@ -1060,7 +1060,6 @@
                 let mainTablesColumn = document.getElementById('mainTablesColumn');
 
                 if (userObj.role === 'staff') {
-                    // Staff: បិទ Master Items, Restock, Staff Accounts, Master & Stock List
                     adminFormsColumn.style.display = 'none';
                     mainTablesColumn.className = "col-lg-12 d-flex flex-column gap-4";
 
@@ -1076,11 +1075,10 @@
                     document.getElementById('expenseCard').style.display = 'none';
 
                 } else if (userObj.role === 'stock') {
-                    // Stock: បិទ Staff Accounts ប៉ុន្តែបើក Master Items និង Restock
                     adminFormsColumn.style.display = 'flex';
                     document.getElementById('adminMasterCard').style.display = 'flex';
                     document.getElementById('restockCard').style.display = 'flex';
-                    document.getElementById('adminUserCard').style.display = 'none'; // បិទ Staff Accounts
+                    document.getElementById('adminUserCard').style.display = 'none';
 
                     mainTablesColumn.className = "col-lg-8 d-flex flex-column gap-4";
                     document.getElementById('posAndCartRow').style.display = 'none';
@@ -1096,7 +1094,6 @@
                     document.getElementById('expenseCard').style.display = 'flex';
 
                 } else {
-                    // Admin: បើកទាំងអស់
                     adminFormsColumn.style.display = 'flex';
                     document.getElementById('adminMasterCard').style.display = 'flex';
                     document.getElementById('restockCard').style.display = 'flex';
@@ -1135,7 +1132,6 @@
                 sessionStorage.setItem("loggedUserObj", JSON.stringify(found));
                 sessionStorage.setItem("checkInTime", checkInTimeString);
 
-                // Record Activity Log
                 let logs = JSON.parse(localStorage.getItem("appActivityLogs") || "[]");
                 let logId = 'LOG-' + Date.now();
                 sessionStorage.setItem("currentActivityLogId", logId);
@@ -1944,8 +1940,6 @@
 
         function renderMasterTable() {
             let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
-            let isStaffOrStock = loggedUser.role === 'staff' || loggedUser.role === 'stock';
-
             let actionHeader = document.getElementById('masterActionHeader');
             if(actionHeader) actionHeader.style.display = loggedUser.role === 'stock' ? 'none' : '';
 
@@ -2176,7 +2170,6 @@
                         if (isStock || isStaff) {
                             actionBtns = '';
                         } else {
-                            // សម្រាប់ Admin អាចកែ/លុបបាន ប៉ុន្តែ Staff ត្រូវបានបិទទាំងស្រុង
                             actionBtns = `
                                 <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${item.invoice_id}')">កែ</button>
                                 <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${item.invoice_id}')">លុប</button>
@@ -2196,41 +2189,79 @@
                         incomeTbody.appendChild(tr);
                     });
                 } else {
-                    incomeTbody.innerHTML = `<tr><td colspan="${(isStock || isStaff) ? 6 : 7}" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យการលក់នៅឡើយទេ</td></tr>`;
+                    incomeTbody.innerHTML = `<tr><td colspan="${(isStock || isStaff) ? 6 : 7}" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការលក់នៅឡើយទេ</td></tr>`;
                 }
 
                 if (result.success && allTransactionsList.length > 0) {
                     let expenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
-                    if (expenses.length > 0) {
-                        expenses.forEach(tx => {
-                            let tr = document.createElement('tr');
-                            let masterMatch = masterItemsList.find(m => m.id == tx.item_id);
-                            let imgTag = masterMatch && masterMatch.image_url ? `<img src="${masterMatch.image_url}" width="35" height="35" class="rounded-circle me-2 object-fit-cover" style="background:#eee;">` : '';
-                            
-                            let actionTd = '';
-                            if (loggedUser.role === 'admin') {
-                                actionTd = `
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${tx.id}')">លុប</button>
-                                    </td>`;
+                    let groupedExpenses = {};
+                    expenses.forEach(tx => {
+                        let key = (tx.item_name || "").trim() + "_" + (tx.category || "").trim();
+                        let txAmount = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
+                        let txQty = parseInt(tx.quantity) || 0;
+
+                        if (!groupedExpenses[key]) {
+                            groupedExpenses[key] = {
+                                id: tx.id,
+                                item_id: tx.item_id,
+                                category: tx.category,
+                                item_name: tx.item_name,
+                                quantity: 0,
+                                total_amount: 0,
+                                unit_price: parseFloat(tx.unit_price) || 0,
+                                latest_date: tx.date
+                            };
+                        }
+                        groupedExpenses[key].quantity += txQty;
+                        groupedExpenses[key].total_amount += txAmount;
+
+                        if (tx.date && new Date(tx.date) > new Date(groupedExpenses[key].latest_date)) {
+                            groupedExpenses[key].latest_date = tx.date;
+                            groupedExpenses[key].id = tx.id;
+                        }
+                    });
+
+                    let mergedExpensesList = Object.values(groupedExpenses);
+
+                    if (mergedExpensesList.length > 0) {
+                        expenseTbody.innerHTML = '';
+                        mergedExpensesList.forEach((item) => {
+                            let matchedMaster = masterItemsList.find(m => m.id == item.item_id);
+                            let imgUrl = matchedMaster && matchedMaster.image_url ? matchedMaster.image_url : '';
+                            let imgTag = imgUrl ? `<img src="${imgUrl}" width="38" height="38" class="rounded object-fit-cover me-2 border">` : `<span class="badge bg-light text-muted border me-2 py-2 px-1">គ្មានរូប</span>`;
+
+                            let actionBtns = '';
+                            if (isStock || isStaff) {
+                                actionBtns = '';
+                            } else {
+                                actionBtns = `
+                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditTransaction('${item.id}', 'EXPENSE', '${item.category.replace(/'/g, "\\'")}', '${item.item_name.replace(/'/g, "\\'")}', ${item.quantity}, ${item.unit_price})">កែ</button>
+                                    <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${item.id}')">លុប</button>
+                                `;
                             }
 
+                            let tr = document.createElement('tr');
                             tr.innerHTML = `
-                                <td>${new Date(tx.date || Date.now()).toLocaleDateString()}</td>
-                                <td><span class="badge bg-secondary">${tx.category}</span></td>
-                                <td class="fw-bold d-flex align-items-center">${imgTag} ${tx.item_name}</td>
-                                <td><span class="badge bg-danger">${tx.quantity}</span></td>
-                                <td>$${parseFloat(tx.unit_price || 0).toFixed(2)}</td>
-                                <td class="text-danger fw-bold">$${parseFloat(tx.amount || (tx.quantity * tx.unit_price)).toFixed(2)}</td>
-                                ${isStock || isStaff ? '' : actionTd}
+                                <td>${item.latest_date ? new Date(item.latest_date).toLocaleDateString() : '-'}</td>
+                                <td><span class="badge bg-secondary">${item.category}</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        ${imgTag}
+                                        <span class="fw-bold">${item.item_name}</span>
+                                    </div>
+                                </td>
+                                <td>${item.quantity}</td>
+                                <td>$${item.unit_price.toFixed(2)}</td>
+                                <td class="text-danger fw-bold">$${item.total_amount.toFixed(2)}</td>
+                                ${(isStock || isStaff) ? '' : `<td class="text-center">${actionBtns}</td>`}
                             `;
                             expenseTbody.appendChild(tr);
                         });
                     } else {
-                        expenseTbody.innerHTML = `<tr><td colspan="${isStock || isStaff ? 6 : 7}" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យចំណាយស្តុកទេ</td></tr>`;
+                        expenseTbody.innerHTML = `<tr><td colspan="${(isStock || isStaff) ? 6 : 7}" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការទិញស្តុកនៅឡើយទេ</td></tr>`;
                     }
                 } else {
-                    expenseTbody.innerHTML = `<tr><td colspan="${isStock || isStaff ? 6 : 7}" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យចំណាយស្តុកទេ</td></tr>`;
+                    expenseTbody.innerHTML = `<tr><td colspan="${(isStock || isStaff) ? 6 : 7}" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យនៅឡើយទេ</td></tr>`;
                 }
 
             } catch (err) {
@@ -2238,22 +2269,59 @@
             }
         }
 
-        async function deleteTransaction(txId) {
+        function openEditTransaction(id, type, cat, name, qty, price) {
             let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
-            if (loggedUser.role !== 'admin') {
-                alert("⚠ មុខងារនេះសម្រាប់តែ Admin ប៉ុណ្ណោះ។");
+            if (loggedUser.role === 'stock' || loggedUser.role === 'staff') {
+                alert("⚠ អ្នកគ្មានសិទ្ធិកែប្រែទេ!");
                 return;
             }
 
-            if (!confirm("តើអ្នកពិតជាចង់លុបប្រវត្តិប្រតិបត្តិការនេះមែនទេ?")) return;
+            document.getElementById('editTxId').value = id;
+            document.getElementById('editTxCategory').value = cat;
+            document.getElementById('editTxItemName').value = name;
+            document.getElementById('editTxQuantity').value = qty;
+            document.getElementById('editTxUnitPrice').value = price;
+            document.getElementById('editTxModalTitle').innerText = type === 'INCOME' ? 'កែប្រែប្រវត្តិការលក់' : 'កែប្រែប្រវត្តិការទិញស្តុក';
+            editTransactionModal.show();
+        }
+
+        document.getElementById('editTransactionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let id = document.getElementById('editTxId').value;
+            let itemName = document.getElementById('editTxItemName').value.trim();
+            let data = {
+                category: document.getElementById('editTxCategory').value.trim(),
+                item_name: itemName,
+                quantity: parseInt(document.getElementById('editTxQuantity').value) || 1,
+                unit_price: parseFloat(document.getElementById('editTxUnitPrice').value) || 0,
+                amount: (parseInt(document.getElementById('editTxQuantity').value) || 1) * (parseFloat(document.getElementById('editTxUnitPrice').value) || 0)
+            };
+
             try {
-                let res = await fetch(`${API_URL}/transactions/${txId}`, { method: 'DELETE' });
+                let res = await fetch(`${API_URL}/transactions/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
                 let result = await res.json();
                 if (result.success) {
-                    recordUserActivity(`បានលុបប្រវត្តិប្រតិបត្តិការស្តុក ID: ${txId}`);
+                    recordUserActivity(`បានកែប្រែប្រវត្តិប្រតិបត្តិការទំនិញ: ${itemName}`);
+                    editTransactionModal.hide();
                     loadAppData();
+                } else {
+                    alert("❌ កំហុសក្នុងការកែប្រែទិន្នន័យ!");
                 }
             } catch (err) {
+                console.error("Error updating transaction:", err);
+            }
+        });
+
+        async function deleteTransaction(id) {
+            if (!confirm("តើអ្នកពិតជាចង់លុបទិន្នន័យនេះមែនទេ?")) return;
+            try {
+                await fetch(`${API_URL}/transactions/${id}`, { method: 'DELETE' });
+                loadAppData();
+            } catch(err) {
                 console.error("Error deleting transaction:", err);
             }
         }
@@ -2263,18 +2331,13 @@
                 let res = await fetch(`${API_URL}/summary`);
                 let result = await res.json();
                 if (result.success) {
-                    let data = result.data;
-                    let totalIncome = parseFloat(data.total_income || 0);
-                    let totalExpense = parseFloat(data.total_expense || 0);
+                    let totalIncome = parseFloat(result.data.total_income || 0);
+                    let totalExpense = parseFloat(result.data.total_expense || 0);
                     let netProfit = totalIncome - totalExpense;
 
                     document.getElementById('lblTotalIncome').innerText = `$${totalIncome.toFixed(2)}`;
                     document.getElementById('lblTotalExpense').innerText = `$${totalExpense.toFixed(2)}`;
                     document.getElementById('lblNetProfit').innerText = `$${netProfit.toFixed(2)}`;
-
-                    document.getElementById('reportLblTotalIncome').innerText = `$${totalIncome.toFixed(2)}`;
-                    document.getElementById('reportLblTotalExpense').innerText = `$${totalExpense.toFixed(2)}`;
-                    document.getElementById('reportLblNetProfit').innerText = `$${netProfit.toFixed(2)}`;
                 }
             } catch (err) {
                 console.error("Error fetching summary:", err);
@@ -2282,32 +2345,51 @@
         }
 
         function renderReportsTables() {
+            let startDate = document.getElementById('reportStartDate')?.value || "";
+            let endDate = document.getElementById('reportEndDate')?.value || "";
+
             let stockTbody = document.getElementById('reportStockTableBody');
-            if(!stockTbody) return;
-            stockTbody.innerHTML = '';
-            if (masterItemsList.length > 0) {
-                masterItemsList.forEach(m => {
-                    let totalStockVal = (m.stock_quantity || 0) * (parseFloat(m.cost_price) || 0);
+            let salesTbody = document.getElementById('reportSalesTableBody');
+            let restockTbody = document.getElementById('reportRestockTableBody');
+
+            if(stockTbody) {
+                stockTbody.innerHTML = '';
+                let totalStockValue = 0;
+                masterItemsList.forEach(item => {
+                    let stockQty = parseInt(item.stock_quantity) || 0;
+                    let costPrice = parseFloat(item.cost_price) || 0;
+                    let totalVal = stockQty * costPrice;
+                    totalStockValue += totalVal;
+
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>${m.category}</td>
-                        <td class="fw-bold">${m.item_name}</td>
-                        <td>${m.unit || 'ដុំ'}</td>
-                        <td><span class="badge bg-primary">${m.stock_quantity || 0}</span></td>
-                        <td class="fw-bold">$${totalStockVal.toFixed(2)}</td>
+                        <td><span class="badge bg-secondary">${item.category}</span></td>
+                        <td class="fw-bold">${item.item_name}</td>
+                        <td>${item.unit || 'ដុំ'}</td>
+                        <td><span class="badge bg-primary">${stockQty}</span></td>
+                        <td class="fw-bold">$${totalVal.toFixed(2)}</td>
                     `;
                     stockTbody.appendChild(tr);
                 });
-            } else {
-                stockTbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">ពុំមានទិន្នន័យស្តុកទេ</td></tr>`;
             }
 
-            let salesReportTbody = document.getElementById('reportSalesTableBody');
-            salesReportTbody.innerHTML = '';
-            if (allInvoicesList && allInvoicesList.length > 0) {
-                allInvoicesList.forEach(inv => {
+            let filteredInvoices = allInvoicesList;
+            if(startDate) {
+                filteredInvoices = filteredInvoices.filter(inv => new Date(inv.date) >= new Date(startDate));
+            }
+            if(endDate) {
+                let end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                filteredInvoices = filteredInvoices.filter(inv => new Date(inv.date) <= end);
+            }
+
+            if(salesTbody) {
+                salesTbody.innerHTML = '';
+                let totalSalesSum = 0;
+                filteredInvoices.forEach(inv => {
                     inv.items.forEach(item => {
                         let total = item.quantity * item.unit_price;
+                        totalSalesSum += total;
                         let tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td>${new Date(inv.date).toLocaleDateString()}</td>
@@ -2317,69 +2399,96 @@
                             <td>$${item.unit_price.toFixed(2)}</td>
                             <td class="text-success fw-bold">$${total.toFixed(2)}</td>
                         `;
-                        salesReportTbody.appendChild(tr);
+                        salesTbody.appendChild(tr);
                     });
                 });
-            } else {
-                salesReportTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">ពុំមានទិន្នន័យលក់ទេ</td></tr>`;
+                if(salesTbody.innerHTML === '') {
+                    salesTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-2">ពុំមានទិន្នន័យលក់ក្នុងកាលបរិច្ឆេទនេះទេ</td></tr>`;
+                }
             }
 
-            let restockReportTbody = document.getElementById('reportRestockTableBody');
-            restockReportTbody.innerHTML = '';
-            let expenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
-            if (expenses.length > 0) {
-                expenses.forEach(tx => {
-                    let total = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
+            let filteredTransactions = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
+            if(startDate) {
+                filteredTransactions = filteredTransactions.filter(tx => new Date(tx.date) >= new Date(startDate));
+            }
+            if(endDate) {
+                let end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                filteredTransactions = filteredTransactions.filter(tx => new Date(tx.date) <= end);
+            }
+
+            if(restockTbody) {
+                restockTbody.innerHTML = '';
+                let totalRestockSum = 0;
+                filteredTransactions.forEach(tx => {
+                    let total = tx.amount || (tx.quantity * tx.unit_price);
+                    totalRestockSum += total;
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>${new Date(tx.date || Date.now()).toLocaleDateString()}</td>
+                        <td>${new Date(tx.date).toLocaleDateString()}</td>
                         <td>${tx.category}</td>
                         <td class="fw-bold">${tx.item_name}</td>
                         <td>${tx.quantity}</td>
-                        <td>$${parseFloat(tx.unit_price || 0).toFixed(2)}</td>
+                        <td>$${parseFloat(tx.unit_price).toFixed(2)}</td>
                         <td class="text-danger fw-bold">$${total.toFixed(2)}</td>
                     `;
-                    restockReportTbody.appendChild(tr);
+                    restockTbody.appendChild(tr);
                 });
-            } else {
-                restockReportTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">ពុំមានទិន្នន័យទិញស្តុកទេ</td></tr>`;
+                if(restockTbody.innerHTML === '') {
+                    restockTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-2">ពុំមានទិន្នន័យទិញស្តុកក្នុងកាលបរិច្ឆេទនេះទេ</td></tr>`;
+                }
             }
+
+            let reportTotalIncome = document.getElementById('reportLblTotalIncome');
+            let reportTotalExpense = document.getElementById('reportLblTotalExpense');
+            let reportNetProfit = document.getElementById('reportLblNetProfit');
+
+            let calcIncome = 0;
+            filteredInvoices.forEach(inv => {
+                inv.items.forEach(item => {
+                    calcIncome += (item.quantity * item.unit_price);
+                });
+            });
+
+            let calcExpense = 0;
+            filteredTransactions.forEach(tx => {
+                calcExpense += (tx.amount || (tx.quantity * tx.unit_price));
+            });
+
+            if(reportTotalIncome) reportTotalIncome.innerText = `$${calcIncome.toFixed(2)}`;
+            if(reportTotalExpense) reportTotalExpense.innerText = `$${calcExpense.toFixed(2)}`;
+            if(reportNetProfit) reportNetProfit.innerText = `$${(calcIncome - calcExpense).toFixed(2)}`;
         }
 
         function filterReportsData() {
-            let startDate = document.getElementById('reportStartDate').value;
-            let endDate = document.getElementById('reportEndDate').value;
-            let label = document.getElementById('reportDateRangeLabel');
-            if (startDate && endDate) {
-                label.innerText = `កាលបរិច្ឆេទចាប់ពី: ${startDate} ដល់ ${endDate}`;
-            } else {
-                label.innerText = `កាលបរិច្ឆេទ: ទូទាំងប្រវត្តិ`;
-            }
+            renderReportsTables();
         }
 
         function resetReportFilter() {
-            document.getElementById('reportStartDate').value = '';
-            document.getElementById('reportEndDate').value = '';
-            document.getElementById('reportDateRangeLabel').innerText = `កាលបរិច្ឆេទ: ទូទាំងប្រវត្តិ`;
+            let start = document.getElementById('reportStartDate');
+            let end = document.getElementById('reportEndDate');
+            if(start) start.value = '';
+            if(end) end.value = '';
+            renderReportsTables();
         }
 
         function printReportSection() {
-            let printContents = document.getElementById('printableReportArea').innerHTML;
-            let originalContents = document.body.innerHTML;
-            document.body.innerHTML = printContents;
+            let printContent = document.getElementById('printableReportArea').innerHTML;
+            let originalContent = document.body.innerHTML;
+            document.body.innerHTML = printContent;
             window.print();
-            document.body.innerHTML = originalContents;
+            document.body.innerHTML = originalContent;
             location.reload();
         }
 
         function downloadPDFReport() {
             let element = document.getElementById('printableReportArea');
             let opt = {
-                margin:       0.5,
-                filename:     'Business-Report.pdf',
+                margin:       10,
+                filename:     'Business_Report.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             html2pdf().from(element).set(opt).save();
         }
