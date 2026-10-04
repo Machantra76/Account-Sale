@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ប្រព័ន្ធគ្រប់គ្រងការលក់ និងស្តុក (POS & Inventory System)</title>
     <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"[cite: 5]>
     <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet"[cite: 5]>
     <!-- Google Fonts: Kantumruy Pro & Battambang -->
-    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet"[cite: 5]>
     <!-- html2pdf for Save PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"[cite: 5]}></script>
     <style>
         :root {
             --bg-body: #f8fafc;
@@ -98,14 +98,14 @@
                     <label class="form-label small text-muted fw-bold">ឈ្មោះអ្នកប្រើប្រាស់ (Username)</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0 rounded-start-3"><i class="bi bi-person"></i></span>
-                        <input type="text" class="form-control border-start-0" id="loginUsername" placeholder="បញ្ចូលឈ្មោះ..." required>
+                        <input type="text" class="form-control border-start-0" id="loginUsername" placeholder="បញ្ចូលឈ្មោះ..."[cite: 5] required>
                     </div>
                 </div>
                 <div class="mb-4">
                     <label class="form-label small text-muted fw-bold">ពាក្យសម្ងាត់ (Password)</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light border-end-0 rounded-start-3"><i class="bi bi-key"></i></span>
-                        <input type="password" class="form-control border-start-0" id="loginPassword" placeholder="បញ្ចូលពាក្យសម្ងាត់..." required>
+                        <input type="password" class="form-control border-start-0" id="loginPassword" placeholder="បញ្ចូលពាក្យសម្ងាត់..."[cite: 5] required>
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary w-100 py-2 shadow-sm fw-bold">ចូលគណនី (Login)</button>
@@ -181,20 +181,20 @@
                     <form id="masterForm">
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">Category (ក្រុមទំនិញ)</label>
-                            <input type="text" class="form-control form-control-sm" id="masterCategory" placeholder="ឧ. ភេសជ្ជៈ, ស្រាបៀរ..." required>
+                            <input type="text" class="form-control form-control-sm" id="masterCategory" placeholder="ឧ. ភេសជ្ជៈ, ស្រាបៀរ..."[cite: 5] required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ (Item Name)</label>
-                            <input type="text" class="form-control form-control-sm" id="masterItemName" placeholder="ឧ. កូកាកូឡា, ទីហ្គឺរ..." required>
+                            <input type="text" class="form-control form-control-sm" id="masterItemName" placeholder="ឧ. កូកាកូឡា, ទីហ្គឺរ..."[cite: 5] required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">រូបភាពទំនិញ (Image File)</label>
-                            <input type="file" class="form-control form-control-sm" id="masterImageFile" accept="image/png, image/jpeg, image/jpg, image/webp">
+                            <input type="file" class="form-control form-control-sm" id="masterImageFile" accept="image/png, image/jpeg, image/jpg, image/webp"[cite: 5]>
                         </div>
                         <div class="row">
                             <div class="col-6 mb-3">
                                 <label class="form-label small text-muted fw-bold">ឯកតា (Unit)</label>
-                                <select class="form-select form-select-sm" id="masterUnit" required>
+                                <select class="form-select form-select-sm" id="masterUnit"[cite: 5] required>
                                     <option value="ដប">ដប</option>
                                     <option value="កំប៉ុង">កំប៉ុង</option>
                                     <option value="កេស">កេស</option>
@@ -209,22 +209,22 @@
                             </div>
                             <div class="col-6 mb-3">
                                 <label class="form-label small text-muted fw-bold">ស្តុកដំបូង (Initial Qty)</label>
-                                <input type="number" class="form-control form-control-sm" id="masterStock" value="0" min="0" required>
+                                <input type="number" class="form-control form-control-sm" id="masterStock" value="0" min="0"[cite: 5] required>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-6 mb-3">
                                 <label class="form-label small text-muted fw-bold">តម្លៃដើម ($ Cost)</label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" id="masterCostPrice" placeholder="0.00" required>
+                                <input type="number" step="0.01" class="form-control form-control-sm" id="masterCostPrice" placeholder="0.00"[cite: 5] required>
                             </div>
                             <div class="col-6 mb-3">
                                 <label class="form-label small text-muted fw-bold">តម្លៃលក់រាយ ($ Retail)</label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" id="masterRetailPrice" placeholder="0.00" required>
+                                <input type="number" step="0.01" class="form-control form-control-sm" id="masterRetailPrice" placeholder="0.00"[cite: 5] required>
                             </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">តម្លៃលក់ដុំ ($ Wholesale)</label>
-                            <input type="number" step="0.01" class="form-control form-control-sm" id="masterWholesalePrice" placeholder="0.00" required>
+                            <input type="number" step="0.01" class="form-control form-control-sm" id="masterWholesalePrice" placeholder="0.00"[cite: 5] required>
                         </div>
                         <button type="submit" class="btn btn-dark btn-sm w-100 shadow-sm py-2">
                             <i class="bi bi-plus-circle me-1"></i> រក្សាទុកទំនិញចូលបញ្ជី (Save Item)
@@ -244,11 +244,11 @@
                                 </h6>
                             </div>
                             <div class="mb-2">
-                                <select class="form-select form-select-sm" id="posSelectCategory" onchange="onPosCategoryChanged()">
+                                <select class="form-select form-select-sm" id="posSelectCategory" onchange="onPosCategoryChanged()"[cite: 5]>
                                     <option value="">-- គ្រប់ Category ទាំងអស់ --</option>
                                 </select>
                             </div>
-                            <div id="posImageGrid" class="row g-2" style="max-height: 420px; overflow-y: auto;">
+                            <div id="posImageGrid" class="row g-2" style="max-height: 420px; overflow-y: auto;"[cite: 5]>
                                 <p class="text-muted text-center py-3">សូមជ្រើសរើស Category ដើម្បីបង្ហាញរូបភាពទំនិញ</p>
                             </div>
                         </div>
@@ -260,7 +260,7 @@
                                     <i class="bi bi-cart-fill"></i> វិក្កយបត្របច្ចុប្បន្ន (Current Cart)
                                 </h6>
                                 <div>
-                                    <button class="btn btn-sm btn-outline-secondary py-1 px-3" onclick="clearCurrentCart()" style="font-size: 13px;">សម្អាត (Clear)</button>
+                                    <button class="btn btn-sm btn-outline-secondary py-1 px-3" onclick="clearCurrentCart()" style="font-size: 13px;"[cite: 5]>សម្អាត (Clear)</button>
                                 </div>
                             </div>
                             <div class="row g-2 align-items-center mb-2 bg-light p-2 rounded-3 border">
@@ -268,11 +268,11 @@
                                     <label class="form-label text-muted fw-bold mb-0" style="font-size: 13px;">💱 ១ដុល្លារ = រៀល:</label>
                                 </div>
                                 <div class="col-6">
-                                    <input type="number" class="form-control form-control-sm fw-bold" id="exchangeRateInput" value="4000" oninput="renderCartTable()" style="font-size: 14px;">
+                                    <input type="number" class="form-control form-control-sm fw-bold" id="exchangeRateInput" value="4000" oninput="renderCartTable()" style="font-size: 14px;"[cite: 5]>
                                 </div>
                             </div>
-                            <div class="table-responsive flex-grow-1" style="max-height: 220px; overflow-y: auto;">
-                                <table class="table table-sm table-hover align-middle mb-0" style="font-size: 14px;">
+                            <div class="table-responsive flex-grow-1" style="max-height: 220px; overflow-y: auto;"[cite: 5]>
+                                <table class="table table-sm table-hover align-middle mb-0" style="font-size: 14px;"[cite: 5]>
                                     <thead class="table-light sticky-top">
                                         <tr style="font-size: 13px;">
                                             <th>ទំនិញ (Item)</th>
@@ -289,9 +289,35 @@
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <h5 class="text-success fw-bold m-0" id="cartGrandTotalLabel" style="font-size: 16px;">សរុប: $0.00 / 0 រៀល</h5>
                                 </div>
-                                <button class="btn btn-success shadow-sm w-100 fw-bold py-2" onclick="checkoutAndPrintInvoice()" style="font-size: 15px;">
+                                <button class="btn btn-success shadow-sm w-100 fw-bold py-2" onclick="checkoutAndPrintInvoice()" style="font-size: 15px;"[cite: 5]>
                                     <i class="bi bi-printer-fill me-1"></i> បញ្ចប់ការលក់ និងព្រិន្ទ (Checkout & Print)
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Master List Table Container (សម្រាប់ Stock Keeper) -->
+                    <div class="col-12" id="colMasterListCardContainer" style="display: none;">
+                        <div id="masterListCard" class="card p-4 shadow-sm bg-white h-100">
+                            <h5 class="text-secondary fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
+                                <i class="bi bi-archive-fill"></i> បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)
+                            </h5>
+                            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;"[cite: 5]>
+                                <table class="table table-sm table-hover align-middle mb-0"[cite: 5]>
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th>Category</th>
+                                            <th>ឈ្មោះទំនិញ (Item)</th>
+                                            <th>ឯកតា (Unit)</th>
+                                            <th>ស្តុកសល់ (Stock)</th>
+                                            <th>តម្លៃដើម ($ Cost)</th>
+                                            <th>លក់រាយ ($ Retail)</th>
+                                            <th>លក់ដុំ ($ Wholesale)</th>
+                                            <th class="text-center admin-action-col">សកម្មភាព (Actions)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="masterTableBody"></tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -299,15 +325,15 @@
             </div>
         </div>
 
-        <!-- ជួរទី១.៥៖ ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History) - សម្រាប់ Admin -->
+        <!-- ជួរទី១៖ ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History) -->
         <div class="row g-4 mb-4 mt-5" id="rowSectionSalesHistory">
             <div class="col-lg-12">
                 <div id="incomeCard" class="card p-4 shadow-sm bg-white border-start border-success border-4">
                     <h5 class="mb-3 text-success fw-bold fs-6 d-flex align-items-center gap-2">
                         <i class="bi bi-cash-coin"></i> ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History)
                     </h5>
-                    <div class="table-responsive" style="max-height: 230px; overflow-y: auto;">
-                        <table class="table table-striped table-hover align-middle mb-0">
+                    <div class="table-responsive" style="max-height: 230px; overflow-y: auto;"[cite: 5]>
+                        <table class="table table-striped table-hover align-middle mb-0"[cite: 5]>
                             <thead class="table-success sticky-top">
                                 <tr>
                                     <th>កាលបរិច្ឆេទ (Date)</th>
@@ -336,24 +362,24 @@
                     <form id="restockForm">
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">ជ្រើសរើស Category (Category)</label>
-                            <select class="form-select" id="restockSelectCategory" onchange="onRestockCategoryChanged()">
+                            <select class="form-select" id="restockSelectCategory" onchange="onRestockCategoryChanged()"[cite: 5]>
                                 <option value="">-- គ្រប់ Category ទាំងអស់ --</option>
                             </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ (Item Name)</label>
-                            <select class="form-select" id="restockSelectItem" required>
+                            <select class="form-select" id="restockSelectItem"[cite: 5] required>
                                 <option value="">-- ជ្រើសរើសទំនិញ --</option>
                             </select>
                         </div>
                         <div class="row">
                             <div class="col-6 mb-3">
                                 <label class="form-label small text-muted fw-bold">ចំនួនទិញបន្ថែម (Qty)</label>
-                                <input type="number" class="form-control" id="restockQty" value="1" min="1" required>
+                                <input type="number" class="form-control" id="restockQty" value="1" min="1"[cite: 5] required>
                             </div>
                             <div class="col-6 mb-3">
                                 <label class="form-label small text-muted fw-bold">តម្លៃទិញ ($ Price)</label>
-                                <input type="number" step="0.01" class="form-control" id="restockPrice" placeholder="0.00" required>
+                                <input type="number" step="0.01" class="form-control" id="restockPrice" placeholder="0.00"[cite: 5] required>
                             </div>
                         </div>
                         <button type="submit" class="btn btn-outline-danger btn-sm w-100 shadow-sm py-2">បញ្ជាក់ការទិញស្តុកចូល (Restock)</button>
@@ -366,8 +392,8 @@
                     <h5 class="mb-3 text-danger fw-bold fs-6 d-flex align-items-center gap-2">
                         <i class="bi bi-receipt-cutoff"></i> ប្រវត្តិការទិញស្តុកចូល (Purchase Transactions)
                     </h5>
-                    <div class="table-responsive" style="max-height: 230px; overflow-y: auto;">
-                        <table class="table table-striped table-hover align-middle mb-0">
+                    <div class="table-responsive" style="max-height: 230px; overflow-y: auto;"[cite: 5]>
+                        <table class="table table-striped table-hover align-middle mb-0"[cite: 5]>
                             <thead class="table-danger sticky-top">
                                 <tr>
                                     <th>កាលបរិច្ឆេទ (Date)</th>
@@ -386,16 +412,15 @@
             </div>
         </div>
 
-        <!-- ជួរទី៣៖ Master List (សម្រាប់ Stock Keeper) & Staff Accounts Form (សម្រាប់ Admin) -->
+        <!-- ជួរទី៣៖ Master List Table & Staff Accounts Form -->
         <div class="row g-4 mb-4" id="rowSection3">
-            <div class="col-lg-8" id="colStockKeeperMasterList">
-                <!-- Stock Keeper Master List -->
-                <div id="masterListCard" class="card p-4 shadow-sm bg-white h-100">
+            <div class="col-lg-8" id="colAdminMasterListContainer">
+                <div id="adminMasterListCard" class="card p-4 shadow-sm bg-white h-100">
                     <h5 class="text-secondary fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
                         <i class="bi bi-archive-fill"></i> បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)
                     </h5>
-                    <div class="table-responsive" style="max-height: 230px; overflow-y: auto;">
-                        <table class="table table-sm table-hover align-middle mb-0">
+                    <div class="table-responsive" style="max-height: 230px; overflow-y: auto;"[cite: 5]>
+                        <table class="table table-sm table-hover align-middle mb-0"[cite: 5]>
                             <thead class="table-light sticky-top">
                                 <tr>
                                     <th>Category</th>
@@ -408,7 +433,7 @@
                                     <th class="text-center admin-action-col">សកម្មភាព (Actions)</th>
                                 </tr>
                             </thead>
-                            <tbody id="masterTableBody"></tbody>
+                            <tbody id="masterTableBodyAdmin"></tbody>
                         </table>
                     </div>
                 </div>
@@ -422,19 +447,19 @@
                     <form id="createUserForm">
                         <div class="mb-2">
                             <label class="form-label small text-muted fw-bold">ឈ្មោះបង្ហាញ (Full Name)</label>
-                            <input type="text" class="form-control form-control-sm" id="newUserName" placeholder="ឧ. ហេង សុខា" required>
+                            <input type="text" class="form-control form-control-sm" id="newUserName" placeholder="ឧ. ហេង សុខា"[cite: 5] required>
                         </div>
                         <div class="mb-2">
                             <label class="form-label small text-muted fw-bold">Username (សម្រាប់ចូល)</label>
-                            <input type="text" class="form-control form-control-sm" id="newUserUsername" placeholder="ឧ. sokha" required>
+                            <input type="text" class="form-control form-control-sm" id="newUserUsername" placeholder="ឧ. sokha"[cite: 5] required>
                         </div>
                         <div class="mb-2">
                             <label class="form-label small text-muted fw-bold">Password (ពាក្យសម្ងាត់)</label>
-                            <input type="password" class="form-control form-control-sm" id="newUserPassword" placeholder="ពាក្យសម្ងាត់..." required>
+                            <input type="password" class="form-control form-control-sm" id="newUserPassword" placeholder="ពាក្យសម្ងាត់..."[cite: 5] required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">តួនាទី (Role)</label>
-                            <select class="form-select form-select-sm" id="newUserRole" required>
+                            <select class="form-select form-select-sm" id="newUserRole"[cite: 5] required>
                                 <option value="staff">Staff (បុគ្គលិកលក់ - POS Only)</option>
                                 <option value="stockkeeper">Stock Keeper (អ្នកកាន់ស្តុក - Inventory Only)</option>
                                 <option value="admin">Admin (អភិបាល - Full Access)</option>
@@ -478,7 +503,7 @@
                     <!-- Shift Sales Summary Section -->
                     <h6 class="text-success fw-bold mb-2">💵 បូកសរុបទឹកប្រាក់តាមវេនការងារបុគ្គលិក (Shift Sales Summary)</h6>
                     <div class="table-responsive mb-4">
-                        <table class="table table-sm table-bordered align-middle mb-0">
+                        <table class="table table-sm table-bordered align-middle mb-0"[cite: 5]>
                             <thead class="table-success">
                                 <tr>
                                     <th>ឈ្មោះបុគ្គលិក (Staff Name)</th>
@@ -494,7 +519,7 @@
                     <!-- Activity Logs History Table -->
                     <h6 class="text-dark fw-bold mb-2">📋 កំណត់ហេតុសកម្មភាពលម្អិត (Activity Logs)</h6>
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover align-middle mb-0">
+                        <table class="table table-striped table-hover align-middle mb-0"[cite: 5]>
                             <thead class="table-primary">
                                 <tr>
                                     <th>កាលបរិច្ឆេទ និងម៉ោង (Timestamp)</th>
@@ -567,7 +592,7 @@
 
                         <h6 class="text-dark fw-bold mb-2">1. ស្តុកសល់តាមប្រភេទ Category</h6>
                         <div class="table-responsive mb-4">
-                            <table class="table table-sm table-bordered align-middle mb-0">
+                            <table class="table table-sm table-bordered align-middle mb-0"[cite: 5]>
                                 <thead class="table-secondary">
                                     <tr>
                                         <th>Category (ក្រុម)</th>
@@ -583,7 +608,7 @@
 
                         <h6 class="text-success fw-bold mb-2">2. របាយការណ៍លក់ចេញ (Sales Report)</h6>
                         <div class="table-responsive mb-4">
-                            <table class="table table-sm table-bordered align-middle mb-0">
+                            <table class="table table-sm table-bordered align-middle mb-0"[cite: 5]>
                                 <thead class="table-success">
                                     <tr>
                                         <th>កាលបរិច្ឆេទ</th>
@@ -600,7 +625,7 @@
 
                         <h6 class="text-danger fw-bold mb-2">3. របាយការណ៍ទិញស្តុកចូល (Restock Report)</h6>
                         <div class="table-responsive">
-                            <table class="table table-sm table-bordered align-middle mb-0">
+                            <table class="table table-sm table-bordered align-middle mb-0"[cite: 5]>
                                 <thead class="table-danger">
                                     <tr>
                                         <th>កាលបរិច្ឆេទ</th>
@@ -638,14 +663,14 @@
                     
                     <div class="row g-2 align-items-center mb-3">
                         <div class="col-md-4">
-                            <select class="form-select form-select-sm" id="invoiceCategoryFilter" onchange="renderInvoiceHistoryTable()">
+                            <select class="form-select form-select-sm" id="invoiceCategoryFilter" onchange="renderInvoiceHistoryTable()"[cite: 5]>
                                 <option value="">-- គ្រប់ Category ទាំងអស់ --</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover align-middle mb-0">
+                        <table class="table table-striped table-hover align-middle mb-0"[cite: 5]>
                             <thead class="table-secondary">
                                 <tr>
                                     <th>លេខវិក្កយបត្រ (Invoice ID)</th>
@@ -676,8 +701,8 @@
                 </div>
                 <div class="modal-body p-4">
                     <input type="hidden" id="currentEditingInvoiceId">
-                    <div class="table-responsive mb-3" style="max-height: 300px; overflow-y: auto;">
-                        <table class="table table-sm table-bordered align-middle mb-0">
+                    <div class="table-responsive mb-3" style="max-height: 300px; overflow-y: auto;"[cite: 5]>
+                        <table class="table table-sm table-bordered align-middle mb-0"[cite: 5]>
                             <thead class="table-light">
                                 <tr>
                                     <th>Category & ទំនិញ</th>
@@ -713,11 +738,11 @@
                         <input type="hidden" id="editMasterId">
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">Category</label>
-                            <input type="text" class="form-control" id="editMasterCategory" required>
+                            <input type="text" class="form-control" id="editMasterCategory"[cite: 5] required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ (Item Name)</label>
-                            <input type="text" class="form-control" id="editMasterItemName" required>
+                            <input type="text" class="form-control" id="editMasterItemName"[cite: 5] required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">រូបភាពថ្មី (New Image)</label>
@@ -726,7 +751,7 @@
                         <div class="row">
                             <div class="col-6 mb-3">
                                 <label class="form-label small text-muted fw-bold">ឯកតា (Unit)</label>
-                                <select class="form-select" id="editMasterUnit" required>
+                                <select class="form-select" id="editMasterUnit"[cite: 5] required>
                                     <option value="ដប">ដប</option>
                                     <option value="កំប៉ុង">កំប៉ុង</option>
                                     <option value="កេស">កេស</option>
@@ -741,22 +766,22 @@
                             </div>
                             <div class="col-6 mb-3">
                                 <label class="form-label small text-muted fw-bold">ស្តុកបច្ចុប្បន្ន (Stock)</label>
-                                <input type="number" class="form-control" id="editMasterStock" min="0" required>
+                                <input type="number" class="form-control" id="editMasterStock" min="0"[cite: 5] required>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-6 mb-3">
                                 <label class="form-label small text-muted fw-bold">តម្លៃដើម ($ Cost)</label>
-                                <input type="number" step="0.01" class="form-control" id="editMasterCostPrice" required>
+                                <input type="number" step="0.01" class="form-control" id="editMasterCostPrice"[cite: 5] required>
                             </div>
                             <div class="col-6 mb-3">
                                 <label class="form-label small text-muted fw-bold">តម្លៃលក់រាយ ($ Retail)</label>
-                                <input type="number" step="0.01" class="form-control" id="editMasterRetailPrice" required>
+                                <input type="number" step="0.01" class="form-control" id="editMasterRetailPrice"[cite: 5] required>
                             </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">តម្លៃលក់ដុំ ($ Wholesale)</label>
-                            <input type="number" step="0.01" class="form-control" id="editMasterWholesalePrice" required>
+                            <input type="number" step="0.01" class="form-control" id="editMasterWholesalePrice"[cite: 5] required>
                         </div>
                         <button type="submit" class="btn btn-primary w-100 shadow-sm mt-3 py-2">រក្សាទុកការផ្លាស់ប្តូរ (Save Changes)</button>
                     </form>
@@ -778,19 +803,19 @@
                         <input type="hidden" id="editCartIndex">
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">ជ្រើសរើស Category (Category)</label>
-                            <select class="form-select" id="editCartSelectCategory" onchange="onEditCartCategoryChanged()" required>
+                            <select class="form-select" id="editCartSelectCategory" onchange="onEditCartCategoryChanged()"[cite: 5] required>
                                 <option value="">-- ជ្រើសរើស Category --</option>
                             </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">ជ្រើសរើសឈ្មោះទំនិញ (Item)</label>
-                            <select class="form-select" id="editCartSelectItem" required onchange="onEditCartItemSelected()">
+                            <select class="form-select" id="editCartSelectItem" required onchange="onEditCartItemSelected()"[cite: 5]>
                                 <option value="">-- ជ្រើសរើសទំនិញ --</option>
                             </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">ប្រភេទតម្លៃ (Pricing Type)</label>
-                            <select class="form-select" id="editCartPriceType" required onchange="onEditCartPriceTypeChanged()">
+                            <select class="form-select" id="editCartPriceType" required onchange="onEditCartPriceTypeChanged()"[cite: 5]>
                                 <option value="retail">លក់រាយ (Retail Price)</option>
                                 <option value="wholesale">លក់ដុំ (Wholesale Price)</option>
                             </select>
@@ -798,11 +823,11 @@
                         <div class="row">
                             <div class="col-6 mb-3">
                                 <label class="form-label small text-muted fw-bold">ចំនួន (Qty)</label>
-                                <input type="number" class="form-control" id="editCartQuantity" min="1" required oninput="calculateEditCartTotal()">
+                                <input type="number" class="form-control" id="editCartQuantity" min="1" required oninput="calculateEditCartTotal()"[cite: 5]>
                             </div>
                             <div class="col-6 mb-3">
                                 <label class="form-label small text-muted fw-bold">តម្លៃលក់ ($ Price)</label>
-                                <input type="number" step="0.01" class="form-control" id="editCartUnitPrice" required oninput="calculateEditCartTotal()">
+                                <input type="number" step="0.01" class="form-control" id="editCartUnitPrice" required oninput="calculateEditCartTotal()"[cite: 5]>
                             </div>
                         </div>
                         <div class="mb-3">
@@ -829,20 +854,20 @@
                         <input type="hidden" id="editTxId">
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">Category</label>
-                            <input type="text" class="form-control" id="editTxCategory" required>
+                            <input type="text" class="form-control" id="editTxCategory"[cite: 5] required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ (Item Name)</label>
-                            <input type="text" class="form-control" id="editTxItemName" required>
+                            <input type="text" class="form-control" id="editTxItemName"[cite: 5] required>
                         </div>
                         <div class="row">
                             <div class="col-6 mb-3">
                                 <label class="form-label small text-muted fw-bold">ចំនួន (Qty)</label>
-                                <input type="number" class="form-control" id="editTxQuantity" min="1" required>
+                                <input type="number" class="form-control" id="editTxQuantity" min="1"[cite: 5] required>
                             </div>
                             <div class="col-6 mb-3">
                                 <label class="form-label small text-muted fw-bold">តម្លៃ ($ Price)</label>
-                                <input type="number" step="0.01" class="form-control" id="editTxUnitPrice" required>
+                                <input type="number" step="0.01" class="form-control" id="editTxUnitPrice"[cite: 5] required>
                             </div>
                         </div>
                         <button type="submit" class="btn btn-success w-100 shadow-sm py-2">រក្សាទុកការកែប្រែ (Save)</button>
@@ -853,7 +878,7 @@
     </div>
 
     <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"[cite: 5]}></script>
 
     <!-- JavaScript -->
     <script>
@@ -963,6 +988,7 @@
                 return true;
             });
 
+            // 1. Render Activity Logs Table
             if (filteredLogs.length > 0) {
                 let sortedLogs = [...filteredLogs].reverse();
                 sortedLogs.forEach(log => {
@@ -981,6 +1007,8 @@
                 tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">មិនមានកំណត់ហេតុសកម្មភាពក្នុងចន្លោះពេលនេះទេ</td></tr>`;
             }
 
+            // 2. Render Shift Sales Summary Table
+            // Calculate sales per staff based on invoices matching date range
             let staffSalesMap = {};
             let filteredInvoices = allInvoicesList.filter(inv => {
                 if (!inv.date) return true;
@@ -990,6 +1018,8 @@
                 return true;
             });
 
+            // Find staff activity logs for sales or attribute to logged users
+            // Let's aggregate sales by staff name from activity logs or list all staff
             let users = getUsers();
             users.forEach(u => {
                 staffSalesMap[u.username] = {
@@ -1000,8 +1030,11 @@
                 };
             });
 
+            // Map invoices if activity log contains who sold or attribute based on logs
+            // Alternatively, scan logs for "លក់ទំនិញ" and match timestamps or attribute directly
             filteredLogs.forEach(log => {
                 if (log.action.includes("លក់ទំនិញ (Invoice:")) {
+                    // Extract invoice id or amount if needed, or we can cross-reference allInvoicesList
                     let match = log.action.match(/Invoice:\s*(INV-\d+)/);
                     if (match) {
                         let invId = match[1];
@@ -1059,7 +1092,7 @@
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
                 if (userObj.role === 'stockkeeper') {
-                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Staff ប៉ុណ្ណោះ។");
+                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Staff ប៉ុណ្ណោះ。");
                     return;
                 }
             }
@@ -1099,12 +1132,12 @@
                 let colPosCartArea = document.getElementById('colPosCartArea');
                 let posCatalogCol = document.getElementById('posCatalogCol');
                 let posCartCol = document.getElementById('posCartCol');
+                let colMasterListCardContainer = document.getElementById('colMasterListCardContainer');
                 
                 let rowSectionSalesHistory = document.getElementById('rowSectionSalesHistory');
                 let colRestockCard = document.getElementById('colRestockCard');
+                let colAdminMasterListContainer = document.getElementById('colAdminMasterListContainer');
                 let colExpenseCard = document.getElementById('colExpenseCard');
-                
-                let colStockKeeperMasterList = document.getElementById('colStockKeeperMasterList');
                 let colAdminUserCard = document.getElementById('colAdminUserCard');
 
                 if (userObj.role === 'staff') {
@@ -1114,15 +1147,15 @@
                     posCatalogCol.className = "col-lg-6";
                     posCartCol.style.display = 'block';
                     posCartCol.className = "col-lg-6";
+                    colMasterListCardContainer.style.display = 'none';
 
                     rowSectionSalesHistory.style.display = 'block';
                     document.getElementById('incomeCard').style.display = 'block';
 
                     colRestockCard.style.display = 'none';
+                    colAdminMasterListContainer.style.display = 'none';
                     colExpenseCard.className = "col-lg-12";
                     colExpenseCard.style.display = 'none';
-
-                    colStockKeeperMasterList.style.display = 'none';
                     colAdminUserCard.style.display = 'none';
 
                     document.getElementById('adminReportBtn').style.display = 'none';
@@ -1138,17 +1171,20 @@
                     colPosCartArea.className = "col-lg-8";
                     posCatalogCol.style.display = 'none';
                     posCartCol.style.display = 'none';
+                    
+                    colMasterListCardContainer.style.display = 'block';
+                    colMasterListCardContainer.className = "col-12";
 
                     rowSectionSalesHistory.style.display = 'none';
 
                     colRestockCard.style.display = 'block';
                     colRestockCard.className = "col-lg-4";
 
+                    colAdminMasterListContainer.style.display = 'none';
+
                     colExpenseCard.style.display = 'block';
                     colExpenseCard.className = "col-lg-8";
 
-                    colStockKeeperMasterList.style.display = 'block';
-                    colStockKeeperMasterList.className = "col-lg-12";
                     colAdminUserCard.style.display = 'none';
 
                     document.getElementById('adminReportBtn').style.display = 'none';
@@ -1157,6 +1193,7 @@
                     document.getElementById('adminSummaryCards').style.display = 'none';
 
                 } else {
+                    // Admin Layout Setup
                     colMasterForm.style.display = 'block';
                     colMasterForm.className = "col-lg-4";
 
@@ -1166,6 +1203,7 @@
                     posCatalogCol.className = "col-lg-6";
                     posCartCol.style.display = 'block';
                     posCartCol.className = "col-lg-6";
+                    colMasterListCardContainer.style.display = 'none';
 
                     rowSectionSalesHistory.style.display = 'block';
                     document.getElementById('incomeCard').style.display = 'block';
@@ -1173,11 +1211,12 @@
                     colRestockCard.style.display = 'block';
                     colRestockCard.className = "col-lg-4";
 
+                    colAdminMasterListContainer.style.display = 'block';
+                    colAdminMasterListContainer.className = "col-lg-8";
+
                     colExpenseCard.style.display = 'block';
                     colExpenseCard.className = "col-lg-8";
 
-                    colStockKeeperMasterList.style.display = 'block';
-                    colStockKeeperMasterList.className = "col-lg-8";
                     colAdminUserCard.style.display = 'block';
                     colAdminUserCard.className = "col-lg-4";
 
@@ -1982,35 +2021,38 @@
             let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
             let isStaff = loggedUser.role === 'staff';
 
-            let tbody = document.getElementById('masterTableBody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
+            let tbodyList = ['masterTableBody', 'masterTableBodyAdmin'];
             
-            if (masterItemsList.length > 0) {
-                masterItemsList.forEach(m => {
-                    let unitLabel = m.unit ? m.unit : 'ដុំ';
-                    let tr = document.createElement('tr');
-                    let actionTd = isStaff ? '' : `
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditMaster('${m.id}', '${m.category.replace(/'/g, "\\'")}', '${m.item_name.replace(/'/g, "\\'")}', '${m.unit || 'ដុំ'}', ${m.stock_quantity || 0}, ${m.cost_price || 0}, ${m.retail_price || 0}, ${m.wholesale_price || 0})">កែ</button>
-                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteMasterItem('${m.id}', '${m.item_name.replace(/'/g, "\\'")}')">លុប</button>
-                        </td>`;
-                    
-                    tr.innerHTML = `
-                        <td>${m.category}</td>
-                        <td class="fw-bold">${m.item_name}</td>
-                        <td><span class="badge bg-secondary">${unitLabel}</span></td>
-                        <td><span class="badge bg-primary">${m.stock_quantity || 0}</span></td>
-                        <td>$${parseFloat(m.cost_price || 0).toFixed(2)}</td>
-                        <td class="text-success fw-bold">$${parseFloat(m.retail_price || 0).toFixed(2)}</td>
-                        <td class="text-primary fw-bold">$${parseFloat(m.wholesale_price || 0).toFixed(2)}</td>
-                        ${actionTd}
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } else {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3">មិនទាន់មានទំនិញក្នុងស្តុកទេ</td></tr>`;
-            }
+            tbodyList.forEach(tbodyId => {
+                let tbody = document.getElementById(tbodyId);
+                if(!tbody) return;
+                tbody.innerHTML = '';
+                if (masterItemsList.length > 0) {
+                    masterItemsList.forEach(m => {
+                        let unitLabel = m.unit ? m.unit : 'ដុំ';
+                        let tr = document.createElement('tr');
+                        let actionTd = isStaff ? '' : `
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditMaster('${m.id}', '${m.category.replace(/'/g, "\\'")}', '${m.item_name.replace(/'/g, "\\'")}', '${m.unit || 'ដុំ'}', ${m.stock_quantity || 0}, ${m.cost_price || 0}, ${m.retail_price || 0}, ${m.wholesale_price || 0})">កែ</button>
+                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteMasterItem('${m.id}', '${m.item_name.replace(/'/g, "\\'")}')">លុប</button>
+                            </td>`;
+                        
+                        tr.innerHTML = `
+                            <td>${m.category}</td>
+                            <td class="fw-bold">${m.item_name}</td>
+                            <td><span class="badge bg-secondary">${unitLabel}</span></td>
+                            <td><span class="badge bg-primary">${m.stock_quantity || 0}</span></td>
+                            <td>$${parseFloat(m.cost_price || 0).toFixed(2)}</td>
+                            <td class="text-success fw-bold">$${parseFloat(m.retail_price || 0).toFixed(2)}</td>
+                            <td class="text-primary fw-bold">$${parseFloat(m.wholesale_price || 0).toFixed(2)}</td>
+                            ${actionTd}
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3">មិនទាន់មានទំនិញក្នុងស្តុកទេ</td></tr>`;
+                }
+            });
         }
 
         function getBase64(file) {
@@ -2549,7 +2591,7 @@
             let printContent = document.getElementById('printableReportArea').innerHTML;
             let printWindow = window.open('', '_blank', 'height=800,width=900');
             printWindow.document.write('<html><head><title>របាយការណ៍អាជីវកម្ម</title>');
-            printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">');
+            printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"[cite: 5]>');
             printWindow.document.write('<style>body { font-family: "Kantumruy Pro", sans-serif; padding: 20px; color: #000000; } table { font-size: 12px; width: 100%; }</style>');
             printWindow.document.write('</head><body>');
             printWindow.document.write('<h3 class="text-center mb-4 fw-bold">របាយការណ៍សង្ខេបស្តុក និងការលក់</h3>');
