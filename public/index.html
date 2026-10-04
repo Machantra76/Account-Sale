@@ -299,35 +299,7 @@
             </div>
         </div>
 
-        <!-- ជួរបញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List) - បង្ហាញទូលាយទាំង Admin និង Stock Keeper ជាមួយ Scroll លាតចុះក្រោម -->
-        <div class="row g-4 mb-4" id="rowSectionMasterList">
-            <div class="col-12">
-                <div id="masterListCard" class="card p-4 shadow-sm bg-white h-100">
-                    <h5 class="text-secondary fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
-                        <i class="bi bi-archive-fill"></i> បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)
-                    </h5>
-                    <div class="table-responsive shadow-sm rounded-3 border" style="max-height: 520px; overflow-y: auto;">
-                        <table class="table table-sm table-hover align-middle mb-0">
-                            <thead class="table-light sticky-top" style="z-index: 5;">
-                                <tr>
-                                    <th>Category</th>
-                                    <th>ឈ្មោះទំនិញ (Item)</th>
-                                    <th>ឯកតា (Unit)</th>
-                                    <th>ស្តុកសល់ (Stock)</th>
-                                    <th>តម្លៃដើម ($ Cost)</th>
-                                    <th>លក់រាយ ($ Retail)</th>
-                                    <th>លក់ដុំ ($ Wholesale)</th>
-                                    <th class="text-center admin-action-col">សកម្មភាព (Actions)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="masterTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ជួរទី១៖ ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History) -->
+        <!-- ជួរទី១.៥៖ ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History) - សម្រាប់ Admin -->
         <div class="row g-4 mb-4 mt-5" id="rowSectionSalesHistory">
             <div class="col-lg-12">
                 <div id="incomeCard" class="card p-4 shadow-sm bg-white border-start border-success border-4">
@@ -414,9 +386,35 @@
             </div>
         </div>
 
-        <!-- ជួរទី៣៖ Staff Accounts Form (សម្រាប់ Admin បង្កើត User) -->
+        <!-- ជួរទី៣៖ Master List (សម្រាប់ Stock Keeper) & Staff Accounts Form (សម្រាប់ Admin) -->
         <div class="row g-4 mb-4" id="rowSection3">
-            <div class="col-lg-4 offset-lg-8" id="colAdminUserCard">
+            <div class="col-lg-8" id="colStockKeeperMasterList">
+                <!-- Stock Keeper Master List -->
+                <div id="masterListCard" class="card p-4 shadow-sm bg-white h-100">
+                    <h5 class="text-secondary fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-archive-fill"></i> បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)
+                    </h5>
+                    <div class="table-responsive" style="max-height: 230px; overflow-y: auto;">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>Category</th>
+                                    <th>ឈ្មោះទំនិញ (Item)</th>
+                                    <th>ឯកតា (Unit)</th>
+                                    <th>ស្តុកសល់ (Stock)</th>
+                                    <th>តម្លៃដើម ($ Cost)</th>
+                                    <th>លក់រាយ ($ Retail)</th>
+                                    <th>លក់ដុំ ($ Wholesale)</th>
+                                    <th class="text-center admin-action-col">សកម្មភាព (Actions)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="masterTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4" id="colAdminUserCard">
                 <div id="adminUserCard" class="card p-4 shadow-sm bg-white border-top border-primary border-4 h-100">
                     <h5 class="mb-3 text-primary fw-bold fs-6 d-flex align-items-center gap-2">
                         <i class="bi bi-person-plus-fill"></i> បង្កើតគណនីបុគ្គលិក (Staff Accounts)
@@ -1061,7 +1059,7 @@
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
                 if (userObj.role === 'stockkeeper') {
-                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Staff ប៉ុណ្ណោះ。");
+                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Staff ប៉ុណ្ណោះ។");
                     return;
                 }
             }
@@ -1101,11 +1099,12 @@
                 let colPosCartArea = document.getElementById('colPosCartArea');
                 let posCatalogCol = document.getElementById('posCatalogCol');
                 let posCartCol = document.getElementById('posCartCol');
-                let rowSectionMasterList = document.getElementById('rowSectionMasterList');
                 
                 let rowSectionSalesHistory = document.getElementById('rowSectionSalesHistory');
                 let colRestockCard = document.getElementById('colRestockCard');
                 let colExpenseCard = document.getElementById('colExpenseCard');
+                
+                let colStockKeeperMasterList = document.getElementById('colStockKeeperMasterList');
                 let colAdminUserCard = document.getElementById('colAdminUserCard');
 
                 if (userObj.role === 'staff') {
@@ -1115,7 +1114,6 @@
                     posCatalogCol.className = "col-lg-6";
                     posCartCol.style.display = 'block';
                     posCartCol.className = "col-lg-6";
-                    rowSectionMasterList.style.display = 'none';
 
                     rowSectionSalesHistory.style.display = 'block';
                     document.getElementById('incomeCard').style.display = 'block';
@@ -1123,6 +1121,8 @@
                     colRestockCard.style.display = 'none';
                     colExpenseCard.className = "col-lg-12";
                     colExpenseCard.style.display = 'none';
+
+                    colStockKeeperMasterList.style.display = 'none';
                     colAdminUserCard.style.display = 'none';
 
                     document.getElementById('adminReportBtn').style.display = 'none';
@@ -1131,7 +1131,6 @@
                     document.getElementById('adminSummaryCards').style.display = 'none';
 
                 } else if (userObj.role === 'stockkeeper') {
-                    // 🎯 Stock Keeper Layout: បង្ហាញ Form បង្កើតទំនិញ និងបង្ហាញ Master List ខាងក្រោមលាតសន្ធឹងยาวចុះមកក្រោម
                     colMasterForm.style.display = 'block';
                     colMasterForm.className = "col-lg-4";
 
@@ -1139,8 +1138,6 @@
                     colPosCartArea.className = "col-lg-8";
                     posCatalogCol.style.display = 'none';
                     posCartCol.style.display = 'none';
-                    
-                    rowSectionMasterList.style.display = 'block';
 
                     rowSectionSalesHistory.style.display = 'none';
 
@@ -1150,6 +1147,8 @@
                     colExpenseCard.style.display = 'block';
                     colExpenseCard.className = "col-lg-8";
 
+                    colStockKeeperMasterList.style.display = 'block';
+                    colStockKeeperMasterList.className = "col-lg-12";
                     colAdminUserCard.style.display = 'none';
 
                     document.getElementById('adminReportBtn').style.display = 'none';
@@ -1158,7 +1157,6 @@
                     document.getElementById('adminSummaryCards').style.display = 'none';
 
                 } else {
-                    // Admin Layout Setup: បង្ហាញគ្រប់មុខងារទាំងអស់ រួមទាំង Master List វែងចុះក្រោម
                     colMasterForm.style.display = 'block';
                     colMasterForm.className = "col-lg-4";
 
@@ -1168,7 +1166,6 @@
                     posCatalogCol.className = "col-lg-6";
                     posCartCol.style.display = 'block';
                     posCartCol.className = "col-lg-6";
-                    rowSectionMasterList.style.display = 'block';
 
                     rowSectionSalesHistory.style.display = 'block';
                     document.getElementById('incomeCard').style.display = 'block';
@@ -1179,6 +1176,8 @@
                     colExpenseCard.style.display = 'block';
                     colExpenseCard.className = "col-lg-8";
 
+                    colStockKeeperMasterList.style.display = 'block';
+                    colStockKeeperMasterList.className = "col-lg-8";
                     colAdminUserCard.style.display = 'block';
                     colAdminUserCard.className = "col-lg-4";
 
