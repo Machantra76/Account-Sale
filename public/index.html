@@ -292,7 +292,7 @@
                         </div>
                     </div>
                     
-                    <!-- Master List Table Container -->
+                    <!-- Master List Table Container (សម្រាប់ Stock Keeper) -->
                     <div class="col-12" id="colMasterListCardContainer" style="display: none;">
                         <div id="masterListCard" class="card p-4 shadow-sm bg-white h-100">
                             <h5 class="text-secondary fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
@@ -348,7 +348,7 @@
             </div>
         </div>
 
-        <!-- ជួរទី២៖ Restock Form & Master List Table (Admin) / Purchase Transactions -->
+        <!-- ជួរទី២៖ Restock Form & Master List Table (Admin) -->
         <div class="row g-4 mb-4" id="rowSection2">
             <div class="col-lg-4" id="colRestockCard">
                 <div id="restockCard" class="card p-4 shadow-sm bg-white h-100">
@@ -1762,7 +1762,6 @@
             let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
             let isStaff = loggedUser.role === 'staff';
 
-            // Render both Stockkeeper/Staff table and Admin table
             let tbodyList = ['masterTableBody', 'masterTableBodyAdmin'];
             
             tbodyList.forEach(tbodyId => {
