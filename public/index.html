@@ -166,9 +166,10 @@
             </div>
         </div>
 
-        <div class="row g-4 align-items-stretch">
-            <!-- FORMS SECTION (Admin Only) -->
-            <div class="col-lg-4 d-flex flex-column" id="adminFormsColumn">
+        <!-- MAIN LAYOUT ROW -->
+        <div class="row g-4">
+            <!-- LEFT COLUMN: Master Items Form Only -->
+            <div class="col-lg-4" id="adminFormsColumn">
                 <!-- Master Item Form -->
                 <div id="adminMasterCard" class="card p-4 shadow-sm mb-4 bg-white">
                     <h5 class="mb-3 text-dark fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
@@ -290,13 +291,13 @@
                 </div>
             </div>
 
-            <!-- TABLES SECTION -->
-            <div class="col-lg-8 d-flex flex-column" id="mainTablesColumn">
-                <!-- POS & CART SIDE-BY-SIDE CONTAINER FOR STAFF / USERS -->
+            <!-- RIGHT COLUMN: POS Catalog & Current Cart (Aligned at the top with Master Items) -->
+            <div class="col-lg-8" id="mainTablesColumn">
+                <!-- POS & CART SIDE-BY-SIDE CONTAINER -->
                 <div class="row g-3 mb-4">
                     <!-- POS IMAGE GRID CONTAINER -->
-                    <div class="col-lg-6 d-flex">
-                        <div id="posGridCard" class="card p-3 shadow-sm w-100 bg-white border-success border-2 d-flex flex-column">
+                    <div class="col-lg-6">
+                        <div id="posGridCard" class="card p-3 shadow-sm h-100 bg-white border-success border-2 d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <h6 class="text-success fw-bold m-0 fs-6 d-flex align-items-center gap-1">
                                     <i class="bi bi-grid-3x3-gap-fill"></i> ជ្រើសរើសទំនិញ (POS Catalog)
@@ -307,15 +308,15 @@
                                     <option value="">-- គ្រប់ Category ទាំងអស់ --</option>
                                 </select>
                             </div>
-                            <div id="posImageGrid" class="row g-2 flex-grow-1" style="max-height: 440px; overflow-y: auto;">
+                            <div id="posImageGrid" class="row g-2 flex-grow-1" style="max-height: 480px; overflow-y: auto;">
                                 <p class="text-muted text-center py-3">សូមជ្រើសរើស Category ដើម្បីបង្ហាញរូបភាពទំនិញ</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- CURRENT CART -->
-                    <div class="col-lg-6 d-flex">
-                        <div id="currentCartCard" class="card p-3 shadow-sm w-100 bg-white border-success border-2 d-flex flex-column">
+                    <div class="col-lg-6">
+                        <div id="currentCartCard" class="card p-3 shadow-sm h-100 bg-white border-success border-2 d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <h6 class="text-success fw-bold m-0 fs-5 d-flex align-items-center gap-1">
                                     <i class="bi bi-cart-fill"></i> វិក្កយបត្របច្ចុប្បន្ន (Current Cart)
@@ -335,7 +336,7 @@
                                 </div>
                             </div>
 
-                            <div class="table-responsive flex-grow-1" style="max-height: 250px; overflow-y: auto;">
+                            <div class="table-responsive flex-grow-1" style="max-height: 290px; overflow-y: auto;">
                                 <table class="table table-sm table-hover align-middle mb-0" style="font-size: 14px;">
                                     <thead class="table-light sticky-top">
                                         <tr style="font-size: 13px;">
