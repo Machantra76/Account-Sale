@@ -1054,8 +1054,8 @@
                 let adminFormsColumn = document.getElementById('adminFormsColumn');
                 let mainTablesColumn = document.getElementById('mainTablesColumn');
 
+                // កំណត់សិទ្ធិលាក់ទាំងស្រុងតាម Role នីមួយៗ
                 if (userObj.role === 'staff') {
-                    // Staff: បិទ Master Items, Restock, Staff Accounts, Master & Stock List ទាំងស្រុង
                     adminFormsColumn.style.display = 'none';
                     mainTablesColumn.className = "col-lg-12 d-flex flex-column gap-4";
 
@@ -1071,7 +1071,6 @@
                     document.getElementById('expenseCard').style.display = 'none';
 
                 } else if (userObj.role === 'stock') {
-                    // Stock: បិទ Staff Accounts ប៉ុន្តែបើក Master Items និង Restock
                     adminFormsColumn.style.display = 'flex';
                     document.getElementById('adminMasterCard').style.display = 'flex';
                     document.getElementById('restockCard').style.display = 'flex';
@@ -1091,7 +1090,6 @@
                     document.getElementById('expenseCard').style.display = 'flex';
 
                 } else {
-                    // Admin: បើកទាំងអស់
                     adminFormsColumn.style.display = 'flex';
                     document.getElementById('adminMasterCard').style.display = 'flex';
                     document.getElementById('restockCard').style.display = 'flex';
@@ -1651,7 +1649,7 @@
                         if (isStock) {
                             actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិ</span>`;
                         } else if (isStaff) {
-                            // Staff: ឃាត់មិនឱ្យកែ ឬលុប គឺឱ្យត្រឹមព្រិន្ទនិងមើល
+                            // Staff: បិតមិនឱ្យកែ និងលុប គឺអនុញ្ញាតឱ្យព្រិន្ទនិងមើលប៉ុណ្ណោះ
                             actionBtns = `
                                 <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="reprintInvoice('${inv.id}')">ព្រិន្ទ</button>
                             `;
