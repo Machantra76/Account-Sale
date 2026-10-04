@@ -168,9 +168,9 @@
 
         <div class="row g-4">
             <!-- FORMS SECTION (Admin Only) -->
-            <div class="col-lg-4" id="adminFormsColumn">
+            <div class="col-lg-4 d-flex flex-column gap-4" id="adminFormsColumn">
                 <!-- Master Item Form -->
-                <div id="adminMasterCard" class="card p-4 shadow-sm mb-4 bg-white">
+                <div id="adminMasterCard" class="card p-4 shadow-sm bg-white">
                     <h5 class="mb-3 text-dark fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-gear-fill text-primary"></i> បង្កើតមុខទំនិញ និងកំណត់តម្លៃ (Master Items)
                     </h5>
@@ -229,7 +229,7 @@
                 </div>
 
                 <!-- Restock Expense Form -->
-                <div id="restockCard" class="card p-4 shadow-sm mb-4 bg-white">
+                <div id="restockCard" class="card p-4 shadow-sm bg-white">
                     <h5 class="mb-3 text-danger fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-box-arrow-in-down"></i> ទិញស្តុកចូលបន្ថែម (Restock Inventory)
                     </h5>
@@ -291,9 +291,9 @@
             </div>
 
             <!-- TABLES SECTION -->
-            <div class="col-lg-8" id="mainTablesColumn">
+            <div class="col-lg-8 d-flex flex-column gap-4" id="mainTablesColumn">
                 <!-- POS & CART SIDE-BY-SIDE CONTAINER FOR STAFF / USERS -->
-                <div class="row g-3 mb-4">
+                <div class="row g-3">
                     <!-- POS IMAGE GRID CONTAINER -->
                     <div class="col-lg-6">
                         <div id="posGridCard" class="card p-3 shadow-sm h-100 bg-white border-success border-2">
@@ -363,7 +363,7 @@
                 </div>
 
                 <!-- INCOME TABLE SECTION (ដាក់នៅខាងក្រោម POS & Cart ផ្ទាល់ សម្រាប់ទាំង Admin និង Staff) -->
-                <div id="incomeCard" class="card p-4 shadow-sm mb-4 bg-white border-start border-success border-4">
+                <div id="incomeCard" class="card p-4 shadow-sm bg-white border-start border-success border-4">
                     <h5 class="mb-3 text-success fw-bold fs-6 d-flex align-items-center gap-2">
                         <i class="bi bi-cash-coin"></i> ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History)
                     </h5>
@@ -386,7 +386,7 @@
                 </div>
 
                 <!-- Master List Table -->
-                <div id="masterListCard" class="card p-4 shadow-sm mb-4 bg-white">
+                <div id="masterListCard" class="card p-4 shadow-sm bg-white">
                     <h5 class="text-secondary fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
                         <i class="bi bi-archive-fill"></i> បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)
                     </h5>
@@ -822,7 +822,7 @@
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
                 if (userObj.role === 'staff') {
-                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin ប៉ុណ្ណោះ。");
+                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin ប៉ុណ្ណោះ។");
                     return;
                 }
             }
@@ -868,7 +868,7 @@
 
                 if (userObj.role === 'staff') {
                     adminFormsColumn.style.display = 'none';
-                    mainTablesColumn.className = "col-lg-12";
+                    mainTablesColumn.className = "col-lg-12 d-flex flex-column gap-4";
 
                     document.getElementById('adminReportBtn').style.display = 'none';
                     document.getElementById('adminInvoiceHistoryBtn').style.display = 'inline-block';
@@ -876,14 +876,13 @@
                     
                     document.getElementById('masterListCard').style.display = 'none';
                     document.getElementById('expenseCard').style.display = 'none';
-                    // ឱ្យបង្ហាញប្រវត្តិការលក់ចេញសរុប (incomeCard) សម្រាប់ Staff ស្មើគ្នាខាងក្រោម POS
                     document.getElementById('incomeCard').style.display = 'block';
 
                     document.getElementById('posGridCard').style.display = 'block';
                     document.getElementById('currentCartCard').style.display = 'block';
                 } else {
-                    adminFormsColumn.style.display = 'block';
-                    mainTablesColumn.className = "col-lg-8";
+                    adminFormsColumn.style.display = 'flex';
+                    mainTablesColumn.className = "col-lg-8 d-flex flex-column gap-4";
 
                     document.getElementById('adminMasterCard').style.display = 'block';
                     document.getElementById('restockCard').style.display = 'block';
