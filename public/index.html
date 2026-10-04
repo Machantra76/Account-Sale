@@ -175,8 +175,8 @@
         <div class="row g-4">
             <!-- LEFT COLUMN (Admin / Stock Staff Forms) -->
             <div class="col-lg-4 d-flex flex-column gap-4" id="adminFormsColumn">
-                <!-- Master Item Form (Height: 620px) -->
-                <div id="adminMasterCard" class="card p-4 shadow-sm bg-white d-flex flex-column" style="height: 620px;">
+                <!-- Master Item Form -->
+                <div id="adminMasterCard" class="card p-4 shadow-sm bg-white d-flex flex-column">
                     <h5 class="mb-2 text-dark fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-gear-fill text-primary"></i> បង្កើតមុខទំនិញ និងកំណត់តម្លៃ (Master Items)
                     </h5>
@@ -236,8 +236,8 @@
                     </form>
                 </div>
 
-                <!-- Restock Expense Form (Height: 335px) -->
-                <div id="restockCard" class="card p-4 shadow-sm bg-white d-flex flex-column" style="height: 335px;">
+                <!-- Restock Expense Form -->
+                <div id="restockCard" class="card p-4 shadow-sm bg-white d-flex flex-column mt-3">
                     <h5 class="mb-2 text-danger fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-box-arrow-in-down"></i> ទិញស្តុកចូលបន្ថែម (Restock Inventory)
                     </h5>
@@ -270,8 +270,8 @@
                     </form>
                 </div>
 
-                <!-- Create User Role Form (Height: 560px) -->
-                <div id="adminUserCard" class="card p-4 shadow-sm bg-white border-top border-primary border-4 d-flex flex-column" style="height: 560px;">
+                <!-- Create User Role Form -->
+                <div id="adminUserCard" class="card p-4 shadow-sm bg-white border-top border-primary border-4 d-flex flex-column mt-3">
                     <h5 class="mb-3 text-primary fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-person-plus-fill"></i> បង្កើតគណនីបុគ្គលិក (Staff Accounts)
                     </h5>
@@ -305,7 +305,7 @@
 
             <!-- RIGHT COLUMN (Tables & POS Section) -->
             <div class="col-lg-8 d-flex flex-column gap-4" id="mainTablesColumn">
-                <!-- POS & CART SIDE-BY-SIDE CONTAINER (Height: 620px) -->
+                <!-- POS & CART SIDE-BY-SIDE CONTAINER -->
                 <div class="row g-3" id="posAndCartRow">
                     <!-- POS IMAGE GRID CONTAINER -->
                     <div class="col-lg-6 d-flex flex-column">
@@ -375,7 +375,7 @@
                     </div>
                 </div>
 
-                <!-- Master List Table (Height: 335px) -->
+                <!-- Master List Table -->
                 <div id="masterListCard" class="card p-4 shadow-sm bg-white d-flex flex-column" style="height: 335px;">
                     <h5 class="text-secondary fw-bold fs-6 mb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-archive-fill"></i> បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)
@@ -399,7 +399,7 @@
                     </div>
                 </div>
 
-                <!-- INCOME TABLE SECTION (Height: 270px) -->
+                <!-- INCOME TABLE SECTION -->
                 <div id="incomeCard" class="card p-4 shadow-sm bg-white border-start border-success border-4 d-flex flex-column" style="height: 270px;">
                     <h5 class="mb-2 text-success fw-bold fs-6 d-flex align-items-center gap-2">
                         <i class="bi bi-cash-coin"></i> ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History)
@@ -422,7 +422,7 @@
                     </div>
                 </div>
 
-                <!-- EXPENSE TABLE SECTION (Height: 270px) -->
+                <!-- EXPENSE TABLE SECTION -->
                 <div id="expenseCard" class="card p-4 shadow-sm bg-white border-start border-danger border-4 d-flex flex-column" style="height: 270px;">
                     <h5 class="mb-2 text-danger fw-bold fs-6 d-flex align-items-center gap-2">
                         <i class="bi bi-receipt-cutoff"></i> ប្រវត្តិការទិញស្តុកចូល (Purchase Transactions)
@@ -1059,8 +1059,12 @@
                 let adminFormsColumn = document.getElementById('adminFormsColumn');
                 let mainTablesColumn = document.getElementById('mainTablesColumn');
 
+                // កំណត់ការបង្ហាញ និងលាក់តាម Role នីមួយៗ
+                let adminMasterCard = document.getElementById('adminMasterCard');
+                let restockCard = document.getElementById('restockCard');
+                let adminUserCard = document.getElementById('adminUserCard');
+
                 if (userObj.role === 'staff') {
-                    // Staff: បិទ Master Items, Restock, Staff Accounts, Master & Stock List
                     adminFormsColumn.style.display = 'none';
                     mainTablesColumn.className = "col-lg-12 d-flex flex-column gap-4";
 
@@ -1076,11 +1080,10 @@
                     document.getElementById('expenseCard').style.display = 'none';
 
                 } else if (userObj.role === 'stock') {
-                    // Stock: បិទ Staff Accounts ប៉ុន្តែបើក Master Items និង Restock
                     adminFormsColumn.style.display = 'flex';
-                    document.getElementById('adminMasterCard').style.display = 'flex';
-                    document.getElementById('restockCard').style.display = 'flex';
-                    document.getElementById('adminUserCard').style.display = 'none'; // បិទ Staff Accounts
+                    if(adminMasterCard) adminMasterCard.style.display = 'flex';
+                    if(restockCard) restockCard.style.display = 'flex';
+                    if(adminUserCard) adminUserCard.style.display = 'none'; // បិទ/លាក់ប្រអប់បង្កើតគណនីបុគ្គលិកចោល
 
                     mainTablesColumn.className = "col-lg-8 d-flex flex-column gap-4";
                     document.getElementById('posAndCartRow').style.display = 'none';
@@ -1096,11 +1099,10 @@
                     document.getElementById('expenseCard').style.display = 'flex';
 
                 } else {
-                    // Admin: បើកទាំងអស់
                     adminFormsColumn.style.display = 'flex';
-                    document.getElementById('adminMasterCard').style.display = 'flex';
-                    document.getElementById('restockCard').style.display = 'flex';
-                    document.getElementById('adminUserCard').style.display = 'flex';
+                    if(adminMasterCard) adminMasterCard.style.display = 'flex';
+                    if(restockCard) restockCard.style.display = 'flex';
+                    if(adminUserCard) adminUserCard.style.display = 'flex'; // បើកបង្ហាញធម្មតាសម្រាប់ Admin
 
                     mainTablesColumn.className = "col-lg-8 d-flex flex-column gap-4";
                     document.getElementById('posAndCartRow').style.display = 'flex';
