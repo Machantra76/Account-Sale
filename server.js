@@ -2,10 +2,20 @@ const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
 const path = require('path');
+const session = require('express-session');
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
+
+// កំណត់ Session សម្រាប់គ្រប់គ្រង Login និង Role
+app.use(session({
+    secret: 'your_secret_key_here',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false }
+}));
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -50,9 +60,20 @@ const initTables = async () => {
             amount DECIMAL(10, 2) NOT NULL
         );
     `;
+    // បន្ថែម Table សម្រាប់ Users និង Role
+    const queryUsers = `
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            username VARCHAR(255) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL,
+            role VARCHAR(50) DEFAULT 'staff'
+        );
+    `;
+
     try {
         await pool.query(queryMaster);
         await pool.query(queryTransactions);
+        await pool.query(queryUsers);
         
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'EXPENSE';`);
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS image_url TEXT;`);
@@ -69,6 +90,42 @@ const initTables = async () => {
     }
 };
 initTables();
+
+// AUTHENTICATION APIs (API សម្រាប់ Login និងទាញយក Role)
+app.post('/api/login', async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        const result = await pool.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password]);
+        if (result.rows.length > 0) {
+            const user = result.rows[0];
+            req.session.user = {
+                id: user.id,
+                username: user.username,
+                role: user.role // កំណត់ role (ឧទាហរណ៍: 'staff')
+            };
+            res.json({ success: true, user: req.session.user });
+        } else {
+            res.status(401).json({ success: false, error: 'ឈ្មោះអ្នកប្រើប្រាស់ ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ' });
+        }
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.get('/api/current-user', (req, res) => {
+    if (req.session && req.session.user) {
+        res.json({ success: true, user: req.session.user });
+    } else {
+        // បើមិនទាន់ Login អាចកំណត់ Default ជា staff សម្រាប់ការតេស្ត
+        res.json({ success: true, user: { username: 'tong', role: 'staff' } });
+    }
+});
+
+app.post('/api/logout', (req, res) => {
+     req.session.destroy(() => {
+         res.json({ success: true, message: 'Logged out successfully' });
+     });
+});
 
 // MASTER ITEMS API
 app.get('/api/accounting/master-items', async (req, res) => {
@@ -232,7 +289,6 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
         const price = parseFloat(unit_price) || 0;
         const totalAmount = qty * price;
 
-        // Revert old stock impact
         if (oldTx.item_id) {
             if (oldTx.type === 'INCOME') {
                 await client.query(`UPDATE master_items SET stock_quantity = stock_quantity + $1 WHERE id = $2`, [oldTx.quantity, oldTx.item_id]);
@@ -241,7 +297,6 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
             }
         }
 
-        // Apply new stock impact
         if (oldTx.item_id) {
             if (oldTx.type === 'INCOME') {
                 await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [qty, oldTx.item_id]);
