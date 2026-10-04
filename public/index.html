@@ -916,7 +916,6 @@
         function recordUserActivity(actionDesc) {
             let loggedUserStr = sessionStorage.getItem("loggedUserObj");
             if (!loggedUserStr) return;
-            let userObj = JSON.parse(loggedUserStr);
             let currentLogId = sessionStorage.getItem("currentActivityLogId");
 
             let logs = JSON.parse(localStorage.getItem("appActivityLogs") || "[]");
@@ -1061,6 +1060,7 @@
                 let mainTablesColumn = document.getElementById('mainTablesColumn');
 
                 if (userObj.role === 'staff') {
+                    // Staff: បិទ Master Items, Restock, Staff Accounts, Master & Stock List
                     adminFormsColumn.style.display = 'none';
                     mainTablesColumn.className = "col-lg-12 d-flex flex-column gap-4";
 
@@ -1076,10 +1076,11 @@
                     document.getElementById('expenseCard').style.display = 'none';
 
                 } else if (userObj.role === 'stock') {
+                    // Stock: បិទ Staff Accounts ប៉ុន្តែបើក Master Items និង Restock
                     adminFormsColumn.style.display = 'flex';
                     document.getElementById('adminMasterCard').style.display = 'flex';
                     document.getElementById('restockCard').style.display = 'flex';
-                    document.getElementById('adminUserCard').style.display = 'none'; // បិទ Staff Accounts សម្រាប់ Stock
+                    document.getElementById('adminUserCard').style.display = 'none'; // បិទ Staff Accounts
 
                     mainTablesColumn.className = "col-lg-8 d-flex flex-column gap-4";
                     document.getElementById('posAndCartRow').style.display = 'none';
@@ -1095,7 +1096,7 @@
                     document.getElementById('expenseCard').style.display = 'flex';
 
                 } else {
-                    // Admin
+                    // Admin: បើកទាំងអស់
                     adminFormsColumn.style.display = 'flex';
                     document.getElementById('adminMasterCard').style.display = 'flex';
                     document.getElementById('restockCard').style.display = 'flex';
@@ -1145,7 +1146,7 @@
                     role: found.role,
                     checkIn: checkInTimeString,
                     checkOut: null,
-                    activities: [{ time: new Date().toLocaleTimeString(), desc: 'ចូលប្រើប្រាស់ប្រព័ន្ធ (Login)' }]
+                    activities: [{ time: new Date().toLocaleTimeString(), desc: 'ចូលប្រព័ន្ធ (Login)' }]
                 });
                 localStorage.setItem("appActivityLogs", JSON.stringify(logs));
 
