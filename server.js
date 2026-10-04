@@ -50,35 +50,9 @@ const initTables = async () => {
             amount DECIMAL(10, 2) NOT NULL
         );
     `;
-    // បន្ថែមតារាងសម្រាប់គ្រប់គ្រងបំណុល
-    const querySales = `
-        CREATE TABLE IF NOT EXISTS sales (
-            id SERIAL PRIMARY KEY,
-            customer_name VARCHAR(255) NOT NULL,
-            total_amount NUMERIC(12, 2) NOT NULL,
-            paid_amount NUMERIC(12, 2) DEFAULT 0,
-            debt_amount NUMERIC(12, 2) GENERATED ALWAYS AS (total_amount - paid_amount) STORED,
-            status VARCHAR(50) DEFAULT 'Unpaid',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-    `;
-    const queryPurchases = `
-        CREATE TABLE IF NOT EXISTS purchases (
-            id SERIAL PRIMARY KEY,
-            supplier_name VARCHAR(255) NOT NULL,
-            total_cost NUMERIC(12, 2) NOT NULL,
-            paid_cost NUMERIC(12, 2) DEFAULT 0,
-            remaining_debt NUMERIC(12, 2) GENERATED ALWAYS AS (total_cost - paid_cost) STORED,
-            status VARCHAR(50) DEFAULT 'Unpaid',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-    `;
-
     try {
         await pool.query(queryMaster);
         await pool.query(queryTransactions);
-        await pool.query(querySales);
-        await pool.query(queryPurchases);
         
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'EXPENSE';`);
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS image_url TEXT;`);
@@ -258,6 +232,7 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
         const price = parseFloat(unit_price) || 0;
         const totalAmount = qty * price;
 
+        // Revert old stock impact
         if (oldTx.item_id) {
             if (oldTx.type === 'INCOME') {
                 await client.query(`UPDATE master_items SET stock_quantity = stock_quantity + $1 WHERE id = $2`, [oldTx.quantity, oldTx.item_id]);
@@ -266,6 +241,7 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
             }
         }
 
+        // Apply new stock impact
         if (oldTx.item_id) {
             if (oldTx.type === 'INCOME') {
                 await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [qty, oldTx.item_id]);
@@ -358,134 +334,6 @@ app.delete('/api/accounting/transactions/:id', async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     } finally {
         client.release();
-    }
-});
-
-// ==========================================
-// 🆕 DEBTS API (មុខងារគ្រប់គ្រងបំណុលថ្មី)
-// ==========================================
-
-// ១. មើលបញ្ជីភ្ញៀវជំពាក់ (Customer Debts)
-app.get('/api/accounting/customer-debts', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM sales WHERE debt_amount > 0 ORDER BY created_at DESC');
-        res.json({ success: true, data: result.rows });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
-// បន្ថែមវិក្កយបត្រលក់ជំពាក់ថ្មី (Customer Debt)
-app.post('/api/accounting/customer-debts', async (req, res) => {
-    try {
-        const { customer_name, total_amount, paid_amount } = req.body;
-        const paid = parseFloat(paid_amount) || 0;
-        const total = parseFloat(total_amount) || 0;
-        
-        let status = 'Unpaid';
-        if (paid > 0 && paid < total) status = 'Partially Paid';
-        if (paid >= total) status = 'Paid';
-
-        const query = `
-            INSERT INTO sales (customer_name, total_amount, paid_amount, status)
-            VALUES ($1, $2, $3, $4) RETURNING *;
-        `;
-        const result = await pool.query(query, [customer_name, total, paid, status]);
-        res.status(201).json({ success: true, data: result.rows[0] });
-    } catch (err) {
-        res.status(400).json({ success: false, error: err.message });
-    }
-});
-
-// បង់ប្រាក់បន្ថែមសម្រាប់ភ្ញៀវជំពាក់
-app.put('/api/accounting/customer-debts/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { payment_amount } = req.body;
-
-        const sale = await pool.query('SELECT * FROM sales WHERE id = $1', [id]);
-        if (sale.rows.length === 0) return res.status(404).json({ success: false, error: 'ไม่พบข้อมูล' });
-
-        const currentPaid = parseFloat(sale.rows[0].paid_amount);
-        const total = parseFloat(sale.rows[0].total_amount);
-        const newPaid = currentPaid + parseFloat(payment_amount || 0);
-        
-        let status = 'Partially Paid';
-        if (newPaid >= total) {
-            status = 'Paid';
-        }
-
-        const updateQuery = `
-            UPDATE sales 
-            SET paid_amount = $1, status = $2 
-            WHERE id = $3 RETURNING *;
-        `;
-        const updated = await pool.query(updateQuery, [newPaid, status, id]);
-        res.json({ success: true, data: updated.rows[0] });
-    } catch (err) {
-        res.status(400).json({ success: false, error: err.message });
-    }
-});
-
-// ២. មើលបញ្ជីที่เราជំពាក់ Supplier (Supplier Debts)
-app.get('/api/accounting/supplier-debts', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM purchases WHERE remaining_debt > 0 ORDER BY created_at DESC');
-        res.json({ success: true, data: result.rows });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
-// បន្ថែមការទិញស្តុកជំពាក់ Supplier ថ្មី
-app.post('/api/accounting/supplier-debts', async (req, res) => {
-    try {
-        const { supplier_name, total_cost, paid_cost } = req.body;
-        const paid = parseFloat(paid_cost) || 0;
-        const total = parseFloat(total_cost) || 0;
-
-        let status = 'Unpaid';
-        if (paid > 0 && paid < total) status = 'Partially Paid';
-        if (paid >= total) status = 'Paid';
-
-        const query = `
-            INSERT INTO purchases (supplier_name, total_cost, paid_cost, status)
-            VALUES ($1, $2, $3, $4) RETURNING *;
-        `;
-        const result = await pool.query(query, [supplier_name, total, paid, status]);
-        res.status(201).json({ success: true, data: result.rows[0] });
-    } catch (err) {
-        res.status(400).json({ success: false, error: err.message });
-    }
-});
-
-// សងលុយ Supplier វិញ
-app.put('/api/accounting/supplier-debts/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { payment_amount } = req.body;
-
-        const purchase = await pool.query('SELECT * FROM purchases WHERE id = $1', [id]);
-        if (purchase.rows.length === 0) return res.status(404).json({ success: false, error: 'ไม่พบข้อมูล' });
-
-        const currentPaid = parseFloat(purchase.rows[0].paid_cost);
-        const total = parseFloat(purchase.rows[0].total_cost);
-        const newPaid = currentPaid + parseFloat(payment_amount || 0);
-
-        let status = 'Partially Paid';
-        if (newPaid >= total) {
-            status = 'Paid';
-        }
-
-        const updateQuery = `
-            UPDATE purchases 
-            SET paid_cost = $1, status = $2 
-            WHERE id = $3 RETURNING *;
-        `;
-        const updated = await pool.query(updateQuery, [newPaid, status, id]);
-        res.json({ success: true, data: updated.rows[0] });
-    } catch (err) {
-        res.status(400).json({ success: false, error: err.message });
     }
 });
 
