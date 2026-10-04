@@ -11,7 +11,7 @@
     <!-- Google Fonts: Kantumruy Pro & Battambang -->
     <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- html2pdf for Save PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"}></script>
     <style>
         :root {
             --bg-body: #f8fafc;
@@ -296,13 +296,14 @@
                         </div>
                     </div>
                     
-                    <!-- Master List Table Container (សម្រាប់ Stock Keeper - Scrollable Table) -->
+                    <!-- Master List Table Container (សម្រាប់ Stock Keeper - Scrollable Table down) -->
                     <div class="col-12" id="colMasterListCardContainer" style="display: none;">
                         <div id="masterListCard" class="card p-4 shadow-sm bg-white h-100">
                             <h5 class="text-secondary fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
                                 <i class="bi bi-archive-fill"></i> បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)
                             </h5>
-                            <div class="table-responsive shadow-sm rounded-3 border" style="max-height: 350px; overflow-y: auto;">
+                            <!-- កែប្រែកម្ពស់ max-height ឱ្យវែងលាតសន្ធឹងចុះមកក្រោម (ឧ. 520px) និងមាន Scrollbar -->
+                            <div class="table-responsive shadow-sm rounded-3 border" style="max-height: 520px; overflow-y: auto;">
                                 <table class="table table-sm table-hover align-middle mb-0">
                                     <thead class="table-light sticky-top" style="z-index: 5;">
                                         <tr>
@@ -878,7 +879,7 @@
     </div>
 
     <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"}></script>
 
     <!-- JavaScript -->
     <script>
@@ -1084,7 +1085,7 @@
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
                 if (userObj.role === 'stockkeeper') {
-                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Staff ប៉ុណ្ណោះ。");
+                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Staff ប៉ុណ្ណោះ។");
                     return;
                 }
             }
@@ -1156,7 +1157,7 @@
                     document.getElementById('adminSummaryCards').style.display = 'none';
 
                 } else if (userObj.role === 'stockkeeper') {
-                    // កំណត់បង្ហាញសម្រាប់ Role STOCKKEEPER ឱ្យឃើញ Master List ជាមួយ Scrollable ត្រង់នេះ
+                    // 🎯 កំណត់បង្ហាញសម្រាប់ Role STOCKKEEPER ឱ្យបង្ហាញបញ្ជីស្តុក (Master & Stock List) ជាមួយ Scrollable ลงមកក្រោម
                     colMasterForm.style.display = 'block';
                     colMasterForm.className = "col-lg-4";
 
