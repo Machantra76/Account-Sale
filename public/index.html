@@ -362,6 +362,29 @@
                     </div>
                 </div>
 
+                <!-- INCOME TABLE SECTION (ដាក់នៅខាងក្រោម POS & Cart ផ្ទាល់ សម្រាប់ទាំង Admin និង Staff) -->
+                <div id="incomeCard" class="card p-4 shadow-sm mb-4 bg-white border-start border-success border-4">
+                    <h5 class="mb-3 text-success fw-bold fs-6 d-flex align-items-center gap-2">
+                        <i class="bi bi-cash-coin"></i> ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History)
+                    </h5>
+                    <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                        <table class="table table-striped table-hover align-middle mb-0">
+                            <thead class="table-success sticky-top">
+                                <tr>
+                                    <th>កាលបរិច្ឆេទ (Date)</th>
+                                    <th>Category</th>
+                                    <th>ទំនិញ (Item)</th>
+                                    <th>ចំនួនលក់ (Qty)</th>
+                                    <th>តម្លៃលក់ (Price)</th>
+                                    <th>សរុប ($ Total)</th>
+                                    <th class="text-center">សកម្មភាព (Actions)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="incomeTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- Master List Table -->
                 <div id="masterListCard" class="card p-4 shadow-sm mb-4 bg-white">
                     <h5 class="text-secondary fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
@@ -382,29 +405,6 @@
                                 </tr>
                             </thead>
                             <tbody id="masterTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- INCOME TABLE SECTION -->
-                <div id="incomeCard" class="card p-4 shadow-sm mb-4 bg-white border-start border-success border-4">
-                    <h5 class="mb-3 text-success fw-bold fs-6 d-flex align-items-center gap-2">
-                        <i class="bi bi-cash-coin"></i> ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History)
-                    </h5>
-                    <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
-                        <table class="table table-striped table-hover align-middle mb-0">
-                            <thead class="table-success sticky-top">
-                                <tr>
-                                    <th>កាលបរិច្ឆេទ (Date)</th>
-                                    <th>Category</th>
-                                    <th>ទំនិញ (Item)</th>
-                                    <th>ចំនួនលក់ (Qty)</th>
-                                    <th>តម្លៃលក់ (Price)</th>
-                                    <th>សរុប ($ Total)</th>
-                                    <th class="text-center">សកម្មភាព (Actions)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="incomeTableBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -822,7 +822,7 @@
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
                 if (userObj.role === 'staff') {
-                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin ប៉ុណ្ណោះ។");
+                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin ប៉ុណ្ណោះ。");
                     return;
                 }
             }
@@ -875,8 +875,9 @@
                     document.getElementById('adminSummaryCards').style.display = 'none';
                     
                     document.getElementById('masterListCard').style.display = 'none';
-                    document.getElementById('incomeCard').style.display = 'none';
                     document.getElementById('expenseCard').style.display = 'none';
+                    // ឱ្យបង្ហាញប្រវត្តិការលក់ចេញសរុប (incomeCard) សម្រាប់ Staff ស្មើគ្នាខាងក្រោម POS
+                    document.getElementById('incomeCard').style.display = 'block';
 
                     document.getElementById('posGridCard').style.display = 'block';
                     document.getElementById('currentCartCard').style.display = 'block';
