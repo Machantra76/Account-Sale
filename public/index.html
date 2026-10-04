@@ -109,6 +109,7 @@
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary w-100 py-2 shadow-sm fw-bold">ចូលគណនី (Login)</button>
+                <button type="button" onclick="hardResetApp()" class="btn btn-outline-secondary w-100 mt-2 py-1 small">🧹 សម្អាតទិន្នន័យឃ្លាំងចាស់ (Reset Cache)</button>
             </form>
         </div>
     </div>
@@ -851,6 +852,12 @@
             editTransactionModal = new bootstrap.Modal(document.getElementById('editTransactionModal'));
             checkLoginState();
         });
+
+        function hardResetApp() {
+            sessionStorage.removeItem("loggedUserObj");
+            localStorage.removeItem("appUsers");
+            location.reload();
+        }
 
         function openReportModal() {
             let loggedUserStr = sessionStorage.getItem("loggedUserObj");
