@@ -1,15 +1,15 @@
 {
-  "name": "my-accesses-api",
+  "name": "account-sale",
   "version": "1.0.0",
-  "description": "",
+  "description": "POS & Inventory Management System",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "express": "^4.19.2",
-    "pg": "^8.11.5"
+    "express-session": "^1.18.1",
+    "pg": "^8.11.3"
   }
 }
