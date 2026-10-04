@@ -166,11 +166,12 @@
             </div>
         </div>
 
+        <!-- MAIN LAYOUT ROW -->
         <div class="row g-4">
-            <!-- FORMS SECTION (Admin Only) -->
-            <div class="col-lg-4" id="adminFormsColumn">
-                <!-- Master Item Form -->
-                <div id="adminMasterCard" class="card p-4 shadow-sm mb-4 bg-white">
+            <!-- ខាងឆ្វេង៖ FORMS SECTION (Admin Forms) -->
+            <div class="col-lg-4 d-flex flex-column gap-4" id="adminFormsColumn">
+                <!-- 1. Master Item Form -->
+                <div id="adminMasterCard" class="card p-4 shadow-sm bg-white">
                     <h5 class="mb-3 text-dark fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-gear-fill text-primary"></i> បង្កើតមុខទំនិញ និងកំណត់តម្លៃ (Master Items)
                     </h5>
@@ -228,8 +229,8 @@
                     </form>
                 </div>
 
-                <!-- Restock Expense Form -->
-                <div id="restockCard" class="card p-4 shadow-sm mb-4 bg-white">
+                <!-- 2. Restock Expense Form (តម្រៀបស្មើជាមួយ Master List ខាងស្តាំ) -->
+                <div id="restockCard" class="card p-4 shadow-sm bg-white">
                     <h5 class="mb-3 text-danger fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-box-arrow-in-down"></i> ទិញស្តុកចូលបន្ថែម (Restock Inventory)
                     </h5>
@@ -260,7 +261,7 @@
                     </form>
                 </div>
 
-                <!-- Create User Role Form -->
+                <!-- 3. Create User Role Form (តម្រៀបស្មើជាមួយ Purchase Transactions ខាងស្តាំ) -->
                 <div id="adminUserCard" class="card p-4 shadow-sm bg-white border-top border-primary border-4">
                     <h5 class="mb-3 text-primary fw-bold fs-6 d-flex align-items-center gap-2">
                         <i class="bi bi-person-plus-fill"></i> បង្កើតគណនីបុគ្គលិក (Staff Accounts)
@@ -290,10 +291,10 @@
                 </div>
             </div>
 
-            <!-- TABLES SECTION -->
-            <div class="col-lg-8" id="mainTablesColumn">
-                <!-- POS & CART SIDE-BY-SIDE CONTAINER FOR STAFF / USERS -->
-                <div class="row g-3 mb-4">
+            <!-- ខាងស្តាំ៖ TABLES & POS SECTION -->
+            <div class="col-lg-8 d-flex flex-column gap-4" id="mainTablesColumn">
+                <!-- POS & CART SIDE-BY-SIDE -->
+                <div class="row g-3">
                     <!-- POS IMAGE GRID CONTAINER -->
                     <div class="col-lg-6">
                         <div id="posGridCard" class="card p-3 shadow-sm h-100 bg-white border-success border-2">
@@ -325,10 +326,10 @@
                                 </div>
                             </div>
 
-                            <!-- 💱 ប្រអប់កំណត់អត្រាប្តូរប្រាក់រៀល -->
+                            <!-- 💱 អត្រាប្តូរប្រាក់ -->
                             <div class="row g-2 align-items-center mb-2 bg-light p-2 rounded-3 border">
                                 <div class="col-6">
-                                    <label class="form-label text-muted fw-bold mb-0" style="font-size: 13px;">💱 ១ដុល្លារ = រៀល (Exchange Rate):</label>
+                                    <label class="form-label text-muted fw-bold mb-0" style="font-size: 13px;">💱 ១ដុល្លារ = រៀល:</label>
                                 </div>
                                 <div class="col-6">
                                     <input type="number" class="form-control form-control-sm fw-bold" id="exchangeRateInput" value="4000" oninput="renderCartTable()" style="font-size: 14px;">
@@ -362,8 +363,8 @@
                     </div>
                 </div>
 
-                <!-- INCOME TABLE SECTION (ដាក់នៅខាងក្រោម POS & Cart ផ្ទាល់ សម្រាប់ទាំង Admin និង Staff) -->
-                <div id="incomeCard" class="card p-4 shadow-sm mb-4 bg-white border-start border-success border-4">
+                <!-- INCOME TABLE SECTION -->
+                <div id="incomeCard" class="card p-4 shadow-sm bg-white border-start border-success border-4">
                     <h5 class="mb-3 text-success fw-bold fs-6 d-flex align-items-center gap-2">
                         <i class="bi bi-cash-coin"></i> ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History)
                     </h5>
@@ -385,8 +386,8 @@
                     </div>
                 </div>
 
-                <!-- Master List Table -->
-                <div id="masterListCard" class="card p-4 shadow-sm mb-4 bg-white">
+                <!-- Master List Table (ស្មើជាមួយ Restock Card ខាងឆ្វេង) -->
+                <div id="masterListCard" class="card p-4 shadow-sm bg-white">
                     <h5 class="text-secondary fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
                         <i class="bi bi-archive-fill"></i> បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)
                     </h5>
@@ -409,7 +410,7 @@
                     </div>
                 </div>
 
-                <!-- EXPENSE TABLE SECTION -->
+                <!-- EXPENSE TABLE SECTION (ស្មើជាមួយ Create User Card ខាងឆ្វេង) -->
                 <div id="expenseCard" class="card p-4 shadow-sm bg-white border-start border-danger border-4">
                     <h5 class="mb-3 text-danger fw-bold fs-6 d-flex align-items-center gap-2">
                         <i class="bi bi-receipt-cutoff"></i> ប្រវត្តិការទិញស្តុកចូល (Purchase Transactions)
@@ -822,7 +823,7 @@
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
                 if (userObj.role === 'staff') {
-                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin ប៉ុណ្ណោះ。");
+                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin ប៉ុណ្ណោះ។");
                     return;
                 }
             }
@@ -868,7 +869,7 @@
 
                 if (userObj.role === 'staff') {
                     adminFormsColumn.style.display = 'none';
-                    mainTablesColumn.className = "col-lg-12";
+                    mainTablesColumn.className = "col-lg-12 d-flex flex-column gap-4";
 
                     document.getElementById('adminReportBtn').style.display = 'none';
                     document.getElementById('adminInvoiceHistoryBtn').style.display = 'inline-block';
@@ -876,14 +877,13 @@
                     
                     document.getElementById('masterListCard').style.display = 'none';
                     document.getElementById('expenseCard').style.display = 'none';
-                    // ឱ្យបង្ហាញប្រវត្តិការលក់ចេញសរុប (incomeCard) សម្រាប់ Staff ស្មើគ្នាខាងក្រោម POS
                     document.getElementById('incomeCard').style.display = 'block';
 
                     document.getElementById('posGridCard').style.display = 'block';
                     document.getElementById('currentCartCard').style.display = 'block';
                 } else {
-                    adminFormsColumn.style.display = 'block';
-                    mainTablesColumn.className = "col-lg-8";
+                    adminFormsColumn.style.display = 'flex';
+                    mainTablesColumn.className = "col-lg-8 d-flex flex-column gap-4";
 
                     document.getElementById('adminMasterCard').style.display = 'block';
                     document.getElementById('restockCard').style.display = 'block';
