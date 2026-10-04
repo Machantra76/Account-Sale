@@ -60,7 +60,6 @@ const initTables = async () => {
             amount DECIMAL(10, 2) NOT NULL
         );
     `;
-    // បន្ថែម Table សម្រាប់ Users និង Role
     const queryUsers = `
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
@@ -91,7 +90,7 @@ const initTables = async () => {
 };
 initTables();
 
-// AUTHENTICATION APIs (API សម្រាប់ Login និងទាញយក Role)
+// AUTHENTICATION APIs
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -101,7 +100,7 @@ app.post('/api/login', async (req, res) => {
             req.session.user = {
                 id: user.id,
                 username: user.username,
-                role: user.role // កំណត់ role (ឧទាហរណ៍: 'staff')
+                role: user.role
             };
             res.json({ success: true, user: req.session.user });
         } else {
@@ -116,7 +115,6 @@ app.get('/api/current-user', (req, res) => {
     if (req.session && req.session.user) {
         res.json({ success: true, user: req.session.user });
     } else {
-        // បើមិនទាន់ Login អាចកំណត់ Default ជា staff សម្រាប់ការតេស្ត
         res.json({ success: true, user: { username: 'tong', role: 'staff' } });
     }
 });
