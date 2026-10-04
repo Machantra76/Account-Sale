@@ -168,7 +168,7 @@
 
         <div class="row g-4">
             <!-- FORMS SECTION (Admin Only) -->
-            <div class="col-lg-5" id="adminFormsColumn">
+            <div class="col-lg-4" id="adminFormsColumn">
                 <!-- Master Item Form -->
                 <div id="adminMasterCard" class="card p-4 shadow-sm mb-4 bg-white">
                     <h5 class="mb-3 text-dark fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
@@ -291,7 +291,7 @@
             </div>
 
             <!-- TABLES SECTION -->
-            <div class="col-lg-7" id="mainTablesColumn">
+            <div class="col-lg-8" id="mainTablesColumn">
                 <!-- POS & CART SIDE-BY-SIDE CONTAINER FOR STAFF / USERS -->
                 <div class="row g-3 mb-4">
                     <!-- POS IMAGE GRID CONTAINER -->
@@ -882,7 +882,7 @@
                     document.getElementById('currentCartCard').style.display = 'block';
                 } else {
                     adminFormsColumn.style.display = 'block';
-                    mainTablesColumn.className = "col-lg-7";
+                    mainTablesColumn.className = "col-lg-8";
 
                     document.getElementById('adminMasterCard').style.display = 'block';
                     document.getElementById('restockCard').style.display = 'block';
@@ -1751,7 +1751,7 @@
             if (imageFile) {
                 try {
                     imageUrl = await getBase64(imageFile);
-                } catch(err) {
+                } catch (err) {
                     console.error("Error reading file:", err);
                 }
             }
@@ -1776,7 +1776,7 @@
                 let result = await res.json();
                 if (result.success) {
                     editMasterModal.hide();
-                    fetchMasterItems();
+                    loadAppData();
                 }
             } catch (err) {
                 console.error("Error updating master item:", err);
@@ -1784,30 +1784,12 @@
         });
 
         async function deleteMasterItem(id) {
-            if (!confirm("តើអ្នកពិតជាចង់លុបទំនិញនេះមែនទេ?")) return;
+            if (!confirm("តើបងចង់លុបទំនិញនេះពី Master List មែនទេ?")) return;
             try {
-                let res = await fetch(`${API_URL}/master-items/${id}`, { method: 'DELETE' });
-                let result = await res.json();
-                if (result.success) {
-                    fetchMasterItems();
-                }
+                await fetch(`${API_URL}/master-items/${id}`, { method: 'DELETE' });
+                fetchMasterItems();
             } catch (err) {
                 console.error("Error deleting master item:", err);
-            }
-        }
-
-        async function fetchSummary() {
-            try {
-                let res = await fetch(`${API_URL}/summary`);
-                let result = await res.json();
-                if (result.success) {
-                    let d = result.data;
-                    document.getElementById('lblTotalIncome').innerText = `$${parseFloat(d.total_income || 0).toFixed(2)}`;
-                    document.getElementById('lblTotalExpense').innerText = `$${parseFloat(d.total_expense || 0).toFixed(2)}`;
-                    document.getElementById('lblNetProfit').innerText = `$${parseFloat(d.net_profit || 0).toFixed(2)}`;
-                }
-            } catch (err) {
-                console.error("Error fetching summary:", err);
             }
         }
 
@@ -1815,112 +1797,181 @@
             try {
                 let res = await fetch(`${API_URL}/transactions`);
                 let result = await res.json();
+                
                 if (result.success) {
                     allTransactionsList = result.data;
-                    renderTransactionsTables(allTransactionsList);
                     renderReportsTables();
                 }
+
+                let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+                let isStaff = loggedUser.role === 'staff';
+
+                let incomeTbody = document.getElementById('incomeTableBody');
+                let expenseTbody = document.getElementById('expenseTableBody');
+                
+                incomeTbody.innerHTML = '';
+                expenseTbody.innerHTML = '';
+
+                let groupedInvoicesSales = {};
+                if (allInvoicesList && allInvoicesList.length > 0) {
+                    allInvoicesList.forEach(inv => {
+                        if (inv.items && Array.isArray(inv.items)) {
+                            inv.items.forEach(item => {
+                                let key = (item.item_name || "").trim() + "_" + (item.category || "").trim();
+                                let qty = parseInt(item.quantity) || 0;
+                                let price = parseFloat(item.unit_price) || 0;
+                                let totalAmt = qty * price;
+
+                                if (!groupedInvoicesSales[key]) {
+                                    groupedInvoicesSales[key] = {
+                                        invoice_id: inv.id,
+                                        category: item.category || "ទំនិញទូទៅ",
+                                        item_name: item.item_name || "មិនស្គាល់ឈ្មោះ",
+                                        quantity: 0,
+                                        total_amount: 0,
+                                        unit_price: price,
+                                        latest_date: inv.date
+                                    };
+                                }
+                                groupedInvoicesSales[key].quantity += qty;
+                                groupedInvoicesSales[key].total_amount += totalAmt;
+                                groupedInvoicesSales[key].unit_price = groupedInvoicesSales[key].quantity > 0 ? (groupedInvoicesSales[key].total_amount / groupedInvoicesSales[key].quantity) : price;
+
+                                if (inv.date && new Date(inv.date) > new Date(groupedInvoicesSales[key].latest_date)) {
+                                    groupedInvoicesSales[key].latest_date = inv.date;
+                                    groupedInvoicesSales[key].invoice_id = inv.id;
+                                }
+                            });
+                        }
+                    });
+                }
+
+                let mergedIncomesList = Object.values(groupedInvoicesSales);
+
+                if (mergedIncomesList.length > 0) {
+                    mergedIncomesList.forEach((item) => {
+                        let actionBtns = '';
+                        if (!isStaff) {
+                            actionBtns = `
+                                <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${item.invoice_id}')">កែ</button>
+                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${item.invoice_id}')">លុប</button>
+                            `;
+                        } else {
+                            actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិ</span>`;
+                        }
+
+                        let tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${item.latest_date ? new Date(item.latest_date).toLocaleDateString() : '-'}</td>
+                            <td><span class="badge bg-secondary">${item.category}</span></td>
+                            <td class="fw-bold">${item.item_name}</td>
+                            <td><span class="badge bg-success">${item.quantity}</span></td>
+                            <td>$${item.unit_price.toFixed(2)}</td>
+                            <td class="text-success fw-bold">$${item.total_amount.toFixed(2)}</td>
+                            <td class="text-center">${actionBtns}</td>
+                        `;
+                        incomeTbody.appendChild(tr);
+                    });
+                } else {
+                    incomeTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការលក់នៅឡើយទេ</td></tr>`;
+                }
+
+                if (result.success && allTransactionsList.length > 0) {
+                    let expenses = allTransactionsList.filter(tx => tx.type === 'EXPENSE');
+                    let groupedExpenses = {};
+                    expenses.forEach(tx => {
+                        let key = (tx.item_name || "").trim() + "_" + (tx.category || "").trim();
+                        let txAmount = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
+                        let txQty = parseInt(tx.quantity) || 0;
+
+                        if (!groupedExpenses[key]) {
+                            groupedExpenses[key] = {
+                                id: tx.id,
+                                item_id: tx.item_id,
+                                category: tx.category,
+                                item_name: tx.item_name,
+                                quantity: 0,
+                                total_amount: 0,
+                                unit_price: parseFloat(tx.unit_price) || 0,
+                                latest_date: tx.date
+                            };
+                        }
+                        groupedExpenses[key].quantity += txQty;
+                        groupedExpenses[key].total_amount += txAmount;
+
+                        if (tx.date && new Date(tx.date) > new Date(groupedExpenses[key].latest_date)) {
+                            groupedExpenses[key].latest_date = tx.date;
+                            groupedExpenses[key].id = tx.id;
+                        }
+                    });
+
+                    let mergedExpensesList = Object.values(groupedExpenses);
+
+                    if (mergedExpensesList.length > 0) {
+                        expenseTbody.innerHTML = '';
+                        mergedExpensesList.forEach((item) => {
+                            let matchedMaster = masterItemsList.find(m => m.id == item.item_id);
+                            let imgUrl = matchedMaster && matchedMaster.image_url ? matchedMaster.image_url : '';
+                            let imgTag = imgUrl ? `<img src="${imgUrl}" width="38" height="38" class="rounded object-fit-cover me-2 border">` : `<span class="badge bg-light text-muted border me-2 py-2 px-1">គ្មានរូប</span>`;
+
+                            let actionBtns = '';
+                            if (!isStaff) {
+                                actionBtns = `
+                                    <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditTransaction('${item.id}', 'EXPENSE', '${item.category.replace(/'/g, "\\'")}', '${item.item_name.replace(/'/g, "\\'")}', ${item.quantity}, ${item.unit_price})">កែ</button>
+                                    <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${item.id}')">លុប</button>
+                                `;
+                            } else {
+                                actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិ</span>`;
+                            }
+
+                            let tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${item.latest_date ? new Date(item.latest_date).toLocaleDateString() : '-'}</td>
+                                <td><span class="badge bg-secondary">${item.category}</span></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        ${imgTag}
+                                        <span class="fw-bold">${item.item_name}</span>
+                                    </div>
+                                </td>
+                                <td>${item.quantity}</td>
+                                <td>$${item.unit_price.toFixed(2)}</td>
+                                <td class="text-danger fw-bold">$${item.total_amount.toFixed(2)}</td>
+                                <td class="text-center">${actionBtns}</td>
+                            `;
+                            expenseTbody.appendChild(tr);
+                        });
+                    } else {
+                        expenseTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការទិញស្តុកនៅឡើយទេ</td></tr>`;
+                    }
+                } else {
+                    expenseTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យនៅឡើយទេ</td></tr>`;
+                }
+
             } catch (err) {
                 console.error("Error fetching transactions:", err);
             }
         }
 
-        function renderTransactionsTables(list) {
-            let incomeTbody = document.getElementById('incomeTableBody');
-            let expenseTbody = document.getElementById('expenseTableBody');
-            incomeTbody.innerHTML = '';
-            expenseTbody.innerHTML = '';
-
-            let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
-            let isStaff = loggedUser.role === 'staff';
-
-            let incomes = list.filter(t => t.type === 'INCOME');
-            let expenses = list.filter(t => t.type === 'EXPENSE');
-
-            if (incomes.length > 0) {
-                incomes.forEach(t => {
-                    let tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${new Date(t.created_at || Date.now()).toLocaleString()}</td>
-                        <td>${t.category || '-'}</td>
-                        <td class="fw-bold">${t.item_name}</td>
-                        <td>${t.quantity}</td>
-                        <td>$${parseFloat(t.unit_price || 0).toFixed(2)}</td>
-                        <td class="text-success fw-bold">$${parseFloat(t.amount || 0).toFixed(2)}</td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary py-0 px-2" onclick="openEditTransaction('${t.id}')">កែ</button>
-                        </td>
-                    `;
-                    incomeTbody.appendChild(tr);
-                });
-            } else {
-                incomeTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-2">មិនមានប្រវត្តិលក់ទេ</td></tr>`;
-            }
-
-            if (expenses.length > 0) {
-                expenses.forEach(t => {
-                    let matchedMaster = masterItemsList.find(m => m.id == t.item_id || m.item_name === t.item_name);
-                    let imgHtml = (matchedMaster && matchedMaster.image_url) 
-                        ? `<img src="${matchedMaster.image_url}" class="rounded border" style="width: 32px; height: 32px; object-fit: contain; background: #fff;" alt="">` 
-                        : `<span class="badge bg-light text-dark border">គ្មានរូប</span>`;
-
-                    let actionTd = isStaff ? '' : `
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary py-0 px-2" onclick="openEditTransaction('${t.id}')">កែ</button>
-                        </td>`;
-
-                    let tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${new Date(t.created_at || Date.now()).toLocaleString()}</td>
-                        <td>${t.category || '-'}</td>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                ${imgHtml}
-                                <span class="fw-bold">${t.item_name}</span>
-                            </div>
-                        </td>
-                        <td>${t.quantity}</td>
-                        <td>$${parseFloat(t.unit_price || 0).toFixed(2)}</td>
-                        <td class="text-danger fw-bold">$${parseFloat(t.amount || 0).toFixed(2)}</td>
-                        ${actionTd}
-                    `;
-                    expenseTbody.appendChild(tr);
-                });
-            } else {
-                expenseTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-2">មិនមានប្រវត្តិទិញស្តុកទេ</td></tr>`;
-            }
-        }
-
-        function openEditTransaction(id) {
-            let found = allTransactionsList.find(t => t.id == id);
-            if (!found) return;
-
-            document.getElementById('editTxId').value = found.id;
-            document.getElementById('editTxCategory').value = found.category || '';
-            document.getElementById('editTxItemName').value = found.item_name || '';
-            document.getElementById('editTxQuantity').value = found.quantity || 1;
-            document.getElementById('editTxUnitPrice').value = found.unit_price || 0;
-            document.getElementById('editTxModalTitle').innerText = found.type === 'INCOME' ? 'កែប្រែប្រវត្តិការលក់' : 'កែប្រែប្រវត្តិការទិញស្តុក';
+        function openEditTransaction(id, type, cat, name, qty, price) {
+            document.getElementById('editTxId').value = id;
+            document.getElementById('editTxCategory').value = cat;
+            document.getElementById('editTxItemName').value = name;
+            document.getElementById('editTxQuantity').value = qty;
+            document.getElementById('editTxUnitPrice').value = price;
+            document.getElementById('editTxModalTitle').innerText = type === 'INCOME' ? 'កែប្រែប្រវត្តិការលក់' : 'កែប្រែប្រវត្តិការទិញស្តុក';
             editTransactionModal.show();
         }
 
         document.getElementById('editTransactionForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             let id = document.getElementById('editTxId').value;
-            let found = allTransactionsList.find(t => t.id == id);
-            if (!found) return;
-
-            let qty = parseInt(document.getElementById('editTxQuantity').value) || 1;
-            let unitPrice = parseFloat(document.getElementById('editTxUnitPrice').value) || 0;
-
             let data = {
-                type: found.type,
-                item_id: found.item_id,
                 category: document.getElementById('editTxCategory').value.trim(),
                 item_name: document.getElementById('editTxItemName').value.trim(),
-                quantity: qty,
-                unit_price: unitPrice,
-                amount: qty * unitPrice
+                quantity: parseInt(document.getElementById('editTxQuantity').value) || 1,
+                unit_price: parseFloat(document.getElementById('editTxUnitPrice').value) || 0,
+                amount: (parseInt(document.getElementById('editTxQuantity').value) || 1) * (parseFloat(document.getElementById('editTxUnitPrice').value) || 0)
             };
 
             try {
@@ -1933,6 +1984,8 @@
                 if (result.success) {
                     editTransactionModal.hide();
                     loadAppData();
+                } else {
+                    alert("❌ កំហុសក្នុងការកែប្រែទិន្នន័យ!");
                 }
             } catch (err) {
                 console.error("Error updating transaction:", err);
@@ -1940,97 +1993,194 @@
         });
 
         function renderReportsTables() {
-            let totalIncome = 0;
-            let totalExpense = 0;
+            let startDate = document.getElementById('reportStartDate').value;
+            let endDate = document.getElementById('reportEndDate').value;
 
-            let startDate = document.getElementById('reportStartDate')?.value;
-            let endDate = document.getElementById('reportEndDate')?.value;
-
-            let filteredTx = allTransactionsList.filter(t => {
-                if (!startDate && !endDate) return true;
-                let txDateStr = t.created_at ? t.created_at.substring(0, 10) : '';
-                if (!txDateStr) return true;
-                if (startDate && txDateStr < startDate) return false;
-                if (endDate && txDateStr > endDate) return false;
-                return true;
-            });
-
-            if (startDate || endDate) {
-                document.getElementById('reportDateRangeLabel').innerText = `កាលបរិច្ឆេទ: ${startDate || 'ចាប់ផ្តើម'} ដល់ ${endDate || 'បច្ចុប្បន្ន'}`;
-            } else {
-                document.getElementById('reportDateRangeLabel').innerText = `កាលបរិច្ឆេទ: ទូទាំងប្រវត្តិ`;
+            let dateRangeText = "កាលបរិច្ឆេទ: ទូទាំងប្រវត្តិ";
+            if (startDate && endDate) {
+                dateRangeText = `កាលបរិច្ឆេទចាប់ពី: ${startDate} ដល់ ${endDate}`;
+            } else if (startDate) {
+                dateRangeText = `កាលបរិច្ឆេទចាប់ពី: ${startDate} ឡើងទៅ`;
+            } else if (endDate) {
+                dateRangeText = `កាលបរិច្ឆេទរហូតដល់: ${endDate}`;
             }
-
-            filteredTx.forEach(t => {
-                let amt = parseFloat(t.amount || 0);
-                if (t.type === 'INCOME') totalIncome += amt;
-                if (t.type === 'EXPENSE') totalExpense += amt;
-            });
-
-            let netProfit = totalIncome - totalExpense;
-
-            document.getElementById('reportLblTotalIncome').innerText = `$${totalIncome.toFixed(2)}`;
-            document.getElementById('reportLblTotalExpense').innerText = `$${totalExpense.toFixed(2)}`;
-            document.getElementById('reportLblNetProfit').innerText = `$${netProfit.toFixed(2)}`;
+            document.getElementById('reportDateRangeLabel').innerText = dateRangeText;
 
             let stockTbody = document.getElementById('reportStockTableBody');
             stockTbody.innerHTML = '';
-            if (masterItemsList.length > 0) {
-                masterItemsList.forEach(m => {
-                    let totalStockVal = (m.stock_quantity || 0) * (parseFloat(m.cost_price) || 0);
+            
+            let sortedMaster = [...masterItemsList].sort((a, b) => a.category.localeCompare(b.category));
+            let calculatedTotalInventoryValue = 0;
+            
+            if (sortedMaster.length > 0) {
+                sortedMaster.forEach(m => {
+                    let stockQty = parseInt(m.stock_quantity) || 0;
+                    let costPrice = parseFloat(m.cost_price) || 0;
+                    let totalStockValue = stockQty * costPrice;
+                    calculatedTotalInventoryValue += totalStockValue;
+                    let unitLabel = m.unit || 'ដុំ';
+
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>${m.category}</td>
+                        <td><span class="badge bg-secondary">${m.category}</span></td>
                         <td class="fw-bold">${m.item_name}</td>
-                        <td>${m.unit || 'ដុំ'}</td>
-                        <td><span class="badge bg-primary">${m.stock_quantity || 0}</span></td>
-                        <td class="fw-bold">$${totalStockVal.toFixed(2)}</td>
+                        <td>${unitLabel}</td>
+                        <td><span class="badge bg-primary">${stockQty}</span></td>
+                        <td class="fw-bold">$${totalStockValue.toFixed(2)}</td>
                     `;
                     stockTbody.appendChild(tr);
                 });
             } else {
-                stockTbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">គ្មានទំនិញក្នុងស្តុកទេ</td></tr>`;
+                stockTbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-2">មិនមានទិន្នន័យស្តុកទេ</td></tr>`;
             }
+
+            let filteredTx = allTransactionsList.filter(tx => {
+                if (!tx.date) return true;
+                let txDateOnly = tx.date.split('T')[0];
+                if (startDate && txDateOnly < startDate) return false;
+                if (endDate && txDateOnly > endDate) return false;
+                return true;
+            });
 
             let salesTbody = document.getElementById('reportSalesTableBody');
             salesTbody.innerHTML = '';
-            let salesTx = filteredTx.filter(t => t.type === 'INCOME');
+            let salesTxRaw = filteredTx.filter(tx => tx.type === 'INCOME');
+            let calculatedTotalIncome = 0;
+
+            let groupedReportSales = {};
+            salesTxRaw.forEach(tx => {
+                let key = (tx.item_name || "").trim() + "_" + (tx.category || "").trim();
+                let txAmount = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
+                let txQty = parseInt(tx.quantity) || 0;
+
+                if (!groupedReportSales[key]) {
+                    groupedReportSales[key] = {
+                        category: tx.category,
+                        item_name: tx.item_name,
+                        quantity: 0,
+                        total_amount: 0,
+                        unit_price: parseFloat(tx.unit_price) || 0,
+                        latest_date: tx.date
+                    };
+                }
+                groupedReportSales[key].quantity += txQty;
+                groupedReportSales[key].total_amount += txAmount;
+                groupedReportSales[key].unit_price = groupedReportSales[key].quantity > 0 ? (groupedReportSales[key].total_amount / groupedReportSales[key].quantity) : parseFloat(tx.unit_price);
+
+                if (tx.date && new Date(tx.date) > new Date(groupedReportSales[key].latest_date)) {
+                    groupedReportSales[key].latest_date = tx.date;
+                }
+            });
+
+            let salesTx = Object.values(groupedReportSales);
+            let totalSalesQty = 0;
+
             if (salesTx.length > 0) {
-                salesTx.forEach(t => {
+                salesTx.forEach(tx => {
+                    let totalAmt = tx.total_amount;
+                    calculatedTotalIncome += totalAmt;
+                    totalSalesQty += tx.quantity;
+
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>${new Date(t.created_at || Date.now()).toLocaleString()}</td>
-                        <td>${t.category || '-'}</td>
-                        <td class="fw-bold">${t.item_name}</td>
-                        <td>${t.quantity}</td>
-                        <td>$${parseFloat(t.unit_price || 0).toFixed(2)}</td>
-                        <td class="text-success fw-bold">$${parseFloat(t.amount || 0).toFixed(2)}</td>
+                        <td>${tx.latest_date ? new Date(tx.latest_date).toLocaleDateString() : '-'}</td>
+                        <td>${tx.category}</td>
+                        <td class="fw-bold">${tx.item_name}</td>
+                        <td>${tx.quantity}</td>
+                        <td>$${parseFloat(tx.unit_price).toFixed(2)}</td>
+                        <td class="text-success fw-bold">$${totalAmt.toFixed(2)}</td>
                     `;
                     salesTbody.appendChild(tr);
                 });
+
+                let totalTr = document.createElement('tr');
+                totalTr.className = "table-success fw-bold";
+                totalTr.innerHTML = `
+                    <td colspan="3" class="text-end">សរុបទឹកប្រាក់លក់ចេញ (Total Sales):</td>
+                    <td>${totalSalesQty}</td>
+                    <td>-</td>
+                    <td class="text-success">$${calculatedTotalIncome.toFixed(2)}</td>
+                `;
+                salesTbody.appendChild(totalTr);
+
             } else {
-                salesTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">មិនមានទិន្នន័យលក់ក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
+                salesTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-2">មិនមានទិន្នន័យលក់ក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
             }
 
             let restockTbody = document.getElementById('reportRestockTableBody');
             restockTbody.innerHTML = '';
-            let restockTx = filteredTx.filter(t => t.type === 'EXPENSE');
+            let restockTxRaw = filteredTx.filter(tx => tx.type === 'EXPENSE');
+
+            let groupedReportRestock = {};
+            restockTxRaw.forEach(tx => {
+                let key = (tx.item_name || "").trim() + "_" + (tx.category || "").trim();
+                let txAmount = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
+                let txQty = parseInt(tx.quantity) || 0;
+
+                if (!groupedReportRestock[key]) {
+                    groupedReportRestock[key] = {
+                        category: tx.category,
+                        item_name: tx.item_name,
+                        quantity: 0,
+                        total_amount: 0,
+                        unit_price: parseFloat(tx.unit_price) || 0,
+                        latest_date: tx.date
+                    };
+                }
+                groupedReportRestock[key].quantity += txQty;
+                groupedReportRestock[key].total_amount += txAmount;
+
+                if (tx.date && new Date(tx.date) > new Date(groupedReportRestock[key].latest_date)) {
+                    groupedReportRestock[key].latest_date = tx.date;
+                }
+            });
+
+            let restockTx = Object.values(groupedReportRestock);
+            let totalRestockQty = 0;
+            let totalRestockAmount = 0;
+
             if (restockTx.length > 0) {
-                restockTx.forEach(t => {
+                restockTx.forEach(tx => {
+                    totalRestockQty += tx.quantity;
+                    totalRestockAmount += tx.total_amount;
+
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>${new Date(t.created_at || Date.now()).toLocaleString()}</td>
-                        <td>${t.category || '-'}</td>
-                        <td class="fw-bold">${t.item_name}</td>
-                        <td>${t.quantity}</td>
-                        <td>$${parseFloat(t.unit_price || 0).toFixed(2)}</td>
-                        <td class="text-danger fw-bold">$${parseFloat(t.amount || 0).toFixed(2)}</td>
+                        <td>${tx.latest_date ? new Date(tx.latest_date).toLocaleDateString() : '-'}</td>
+                        <td>${tx.category}</td>
+                        <td class="fw-bold">${tx.item_name}</td>
+                        <td>${tx.quantity}</td>
+                        <td>$${parseFloat(tx.unit_price).toFixed(2)}</td>
+                        <td class="text-danger fw-bold">$${tx.total_amount.toFixed(2)}</td>
                     `;
                     restockTbody.appendChild(tr);
                 });
+
+                let totalRestockTr = document.createElement('tr');
+                totalRestockTr.className = "table-danger fw-bold";
+                totalRestockTr.innerHTML = `
+                    <td colspan="3" class="text-end">សរុបការចំណាយទិញស្តុក (Total Restock):</td>
+                    <td>${totalRestockQty}</td>
+                    <td>-</td>
+                    <td class="text-danger">$${totalRestockAmount.toFixed(2)}</td>
+                `;
+                restockTbody.appendChild(totalRestockTr);
+
             } else {
-                restockTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">មិនមានទិន្នន័យទិញស្តុកក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
+                restockTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-2">មិនមានទិន្នន័យទិញស្តុកក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
             }
+
+            let totalCostOfGoodsSold = 0;
+            salesTxRaw.forEach(tx => {
+                let matchedItem = masterItemsList.find(m => m.id == tx.item_id);
+                let cost = matchedItem ? (parseFloat(matchedItem.cost_price) || 0) : 0;
+                totalCostOfGoodsSold += (tx.quantity * cost);
+            });
+            let calculatedNetProfit = calculatedTotalIncome - totalCostOfGoodsSold;
+
+            document.getElementById('reportLblTotalIncome').innerText = `$${calculatedTotalIncome.toFixed(2)}`;
+            document.getElementById('reportLblTotalExpense').innerText = `$${calculatedTotalInventoryValue.toFixed(2)}`;
+            document.getElementById('reportLblNetProfit').innerText = `$${calculatedNetProfit.toFixed(2)}`;
         }
 
         function filterReportsData() {
@@ -2045,23 +2195,65 @@
 
         function printReportSection() {
             let printContent = document.getElementById('printableReportArea').innerHTML;
-            let originalContent = document.body.innerHTML;
-            document.body.innerHTML = printContent;
-            window.print();
-            document.body.innerHTML = originalContent;
-            window.location.reload();
+            let printWindow = window.open('', '_blank', 'height=800,width=900');
+            printWindow.document.write('<html><head><title>របាយការណ៍អាជីវកម្ម</title>');
+            printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">');
+            printWindow.document.write('<style>body { font-family: "Kantumruy Pro", sans-serif; padding: 20px; color: #000000; } table { font-size: 12px; width: 100%; }</style>');
+            printWindow.document.write('</head><body>');
+            printWindow.document.write('<h3 class="text-center mb-4 fw-bold">របាយការណ៍សង្ខេបស្តុក និងការលក់</h3>');
+            printWindow.document.write(printContent);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 600);
         }
 
         function downloadPDFReport() {
             let element = document.getElementById('printableReportArea');
+            let headerEl = element.querySelector('.print-header');
+            headerEl.classList.remove('d-none');
+
             let opt = {
                 margin:       0.5,
-                filename:     'Business_Report.pdf',
+                filename:     `Business_Report_${new Date().toISOString().split('T')[0]}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
+                html2canvas:  { scale: 2, useCORS: true },
                 jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().from(element).set(opt).save();
+
+            html2pdf().from(element).set(opt).save().then(() => {
+                headerEl.classList.add('d-none');
+            });
+        }
+
+        async function deleteTransaction(id) {
+            if (!confirm("តើបងចង់លុបទិន្នន័យនេះមែនទេ? (ស្តុកនឹងត្រូវបង្វិលត្រឡប់ចូលវិញដោយស្វ័យប្រវត្ត)")) return;
+            try {
+                await fetch(`${API_URL}/transactions/${id}`, { method: 'DELETE' });
+                loadAppData();
+            } catch (err) {
+                console.error("Error deleting transaction:", err);
+            }
+        }
+
+        async function fetchSummary() {
+            let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+            if (loggedUser.role === 'staff') return;
+
+            try {
+                let res = await fetch(`${API_URL}/summary`);
+                let data = await res.json();
+                if (data.success) {
+                    document.getElementById('lblTotalIncome').innerText = `$${data.summary.total_income.toFixed(2)}`;
+                    document.getElementById('lblTotalExpense').innerText = `$${data.summary.total_purchase_value.toFixed(2)}`;
+                    document.getElementById('lblNetProfit').innerText = `$${data.summary.net_profit.toFixed(2)}`;
+                }
+            } catch (err) {
+                console.error("Error fetching summary:", err);
+            }
         }
     </script>
 </body>
