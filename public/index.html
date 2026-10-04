@@ -1060,7 +1060,7 @@
                 let mainTablesColumn = document.getElementById('mainTablesColumn');
 
                 if (userObj.role === 'staff') {
-                    // Staff: បិទ Master Items, Restock, Staff Accounts, Master & Stock List
+                    // Staff: បិទ Master Items, Restock, Staff Accounts, Master & Stock List ទាំងស្រុង
                     adminFormsColumn.style.display = 'none';
                     mainTablesColumn.className = "col-lg-12 d-flex flex-column gap-4";
 
@@ -2416,106 +2416,71 @@
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${tx.latest_date ? new Date(tx.latest_date).toLocaleDateString() : '-'}</td>
-                        <td>${tx.category}</td>
+                        <td><span class="badge bg-secondary">${tx.category}</span></td>
                         <td class="fw-bold">${tx.item_name}</td>
-                        <td>${tx.quantity}</td>
-                        <td>$${parseFloat(tx.unit_price).toFixed(2)}</td>
+                        <td><span class="badge bg-success">${tx.quantity}</span></td>
+                        <td>$${tx.unit_price.toFixed(2)}</td>
                         <td class="text-success fw-bold">$${totalAmt.toFixed(2)}</td>
                     `;
                     salesTbody.appendChild(tr);
                 });
-
-                let totalTr = document.createElement('tr');
-                totalTr.className = "table-success fw-bold";
-                totalTr.innerHTML = `
-                    <td colspan="3" class="text-end">សរុបទឹកប្រាក់លក់ចេញ (Total Sales):</td>
-                    <td>${totalSalesQty}</td>
-                    <td>-</td>
-                    <td class="text-success">$${calculatedTotalIncome.toFixed(2)}</td>
-                `;
-                salesTbody.appendChild(totalTr);
-
             } else {
-                salesTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-2">មិនមានទិន្នន័យលក់ក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
+                salesTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-2">មិនមានទិន្នន័យលក់ទេ</td></tr>`;
             }
 
             let restockTbody = document.getElementById('reportRestockTableBody');
             restockTbody.innerHTML = '';
-            let restockTxRaw = filteredTx.filter(tx => tx.type === 'EXPENSE');
-
-            let groupedReportRestock = {};
-            restockTxRaw.forEach(tx => {
-                let key = (tx.item_name || "").trim() + "_" + (tx.category || "").trim();
-                let txAmount = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
-                let txQty = parseInt(tx.quantity) || 0;
-
-                if (!groupedReportRestock[key]) {
-                    groupedReportRestock[key] = {
-                        category: tx.category,
-                        item_name: tx.item_name,
-                        quantity: 0,
-                        total_amount: 0,
-                        unit_price: parseFloat(tx.unit_price) || 0,
-                        latest_date: tx.date
-                    };
-                }
-                groupedReportRestock[key].quantity += txQty;
-                groupedReportRestock[key].total_amount += txAmount;
-
-                if (tx.date && new Date(tx.date) > new Date(groupedReportRestock[key].latest_date)) {
-                    groupedReportRestock[key].latest_date = tx.date;
-                }
-            });
-
-            let restockTx = Object.values(groupedReportRestock);
-            let totalRestockQty = 0;
-            let totalRestockAmount = 0;
+            let restockTx = filteredTx.filter(tx => tx.type === 'EXPENSE');
+            let calculatedTotalExpense = 0;
 
             if (restockTx.length > 0) {
                 restockTx.forEach(tx => {
-                    totalRestockQty += tx.quantity;
-                    totalRestockAmount += tx.total_amount;
+                    let totalAmt = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
+                    calculatedTotalExpense += totalAmt;
 
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>${tx.latest_date ? new Date(tx.latest_date).toLocaleDateString() : '-'}</td>
-                        <td>${tx.category}</td>
+                        <td>${tx.date ? new Date(tx.date).toLocaleDateString() : '-'}</td>
+                        <td><span class="badge bg-secondary">${tx.category}</span></td>
                         <td class="fw-bold">${tx.item_name}</td>
-                        <td>${tx.quantity}</td>
-                        <td>$${parseFloat(tx.unit_price).toFixed(2)}</td>
-                        <td class="text-danger fw-bold">$${tx.total_amount.toFixed(2)}</td>
+                        <td><span class="badge bg-danger">${tx.quantity}</span></td>
+                        <td>$${parseFloat(tx.unit_price || 0).toFixed(2)}</td>
+                        <td class="text-danger fw-bold">$${totalAmt.toFixed(2)}</td>
                     `;
                     restockTbody.appendChild(tr);
                 });
-
-                let totalRestockTr = document.createElement('tr');
-                totalRestockTr.className = "table-danger fw-bold";
-                totalRestockTr.innerHTML = `
-                    <td colspan="3" class="text-end">សរុបការចំណាយទិញស្តុក (Total Restock):</td>
-                    <td>${totalRestockQty}</td>
-                    <td>-</td>
-                    <td class="text-danger">$${totalRestockAmount.toFixed(2)}</td>
-                `;
-                restockTbody.appendChild(totalRestockTr);
-
             } else {
-                restockTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-2">មិនមានទិន្នន័យទិញស្តុកក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
+                restockTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-2">មិនមានទិន្នន័យទិញស្តុកទេ</td></tr>`;
             }
 
-            let totalCostOfGoodsSold = 0;
-            salesTxRaw.forEach(tx => {
-                let matchedItem = masterItemsList.find(m => m.id == tx.item_id);
-                let cost = matchedItem ? (parseFloat(matchedItem.cost_price) || 0) : 0;
-                totalCostOfGoodsSold += (tx.quantity * cost);
-            });
-            let calculatedNetProfit = calculatedTotalIncome - totalCostOfGoodsSold;
+            let netProfit = calculatedTotalIncome - calculatedTotalExpense;
 
-            let incLbl = document.getElementById('reportLblTotalIncome');
-            let expLbl = document.getElementById('reportLblTotalExpense');
-            let proLbl = document.getElementById('reportLblNetProfit');
-            if(incLbl) incLbl.innerText = `$${calculatedTotalIncome.toFixed(2)}`;
-            if(expLbl) expLbl.innerText = `$${calculatedTotalInventoryValue.toFixed(2)}`;
-            if(proLbl) proLbl.innerText = `$${calculatedNetProfit.toFixed(2)}`;
+            let lblInc = document.getElementById('reportLblTotalIncome');
+            let lblExp = document.getElementById('reportLblTotalExpense');
+            let lblNet = document.getElementById('reportLblNetProfit');
+
+            if(lblInc) lblInc.innerText = `$${calculatedTotalIncome.toFixed(2)}`;
+            if(lblExp) lblExp.innerText = `$${calculatedTotalExpense.toFixed(2)}`;
+            if(lblNet) lblNet.innerText = `$${netProfit.toFixed(2)}`;
+        }
+
+        async function fetchSummary() {
+            try {
+                let res = await fetch(`${API_URL}/summary`);
+                let result = await res.json();
+                if (result.success) {
+                    let d = result.data;
+                    let incElem = document.getElementById('lblTotalIncome');
+                    let expElem = document.getElementById('lblTotalExpense');
+                    let netElem = document.getElementById('lblNetProfit');
+                    
+                    if(incElem) incElem.innerText = `$${parseFloat(d.total_income || 0).toFixed(2)}`;
+                    if(expElem) expElem.innerText = `$${parseFloat(d.total_expense || 0).toFixed(2)}`;
+                    if(netElem) netElem.innerText = `$${parseFloat(d.net_profit || 0).toFixed(2)}`;
+                }
+            } catch (err) {
+                console.error("Error fetching summary:", err);
+            }
         }
 
         function filterReportsData() {
@@ -2529,73 +2494,24 @@
         }
 
         function printReportSection() {
-            let printContent = document.getElementById('printableReportArea').innerHTML;
-            let printWindow = window.open('', '_blank', 'height=800,width=900');
-            printWindow.document.write('<html><head><title>របាយការណ៍អាជីវកម្ម</title>');
-            printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">');
-            printWindow.document.write('<style>body { font-family: "Kantumruy Pro", sans-serif; padding: 20px; color: #000000; } table { font-size: 12px; width: 100%; }</style>');
-            printWindow.document.write('</head><body>');
-            printWindow.document.write('<h3 class="text-center mb-4 fw-bold">របាយការណ៍សង្ខេបស្តុក និងការលក់</h3>');
-            printWindow.document.write(printContent);
-            printWindow.document.write('</body></html>');
-            printWindow.document.close();
-            printWindow.focus();
-            setTimeout(() => {
-                printWindow.print();
-                printWindow.close();
-            }, 600);
+            let printContents = document.getElementById('printableReportArea').innerHTML;
+            let originalContents = document.body.innerHTML;
+            document.body.innerHTML = printContents;
+            window.print();
+            document.body.innerHTML = originalContents;
+            window.location.reload();
         }
 
         function downloadPDFReport() {
             let element = document.getElementById('printableReportArea');
-            let headerEl = element.querySelector('.print-header');
-            headerEl.classList.remove('d-none');
-
             let opt = {
                 margin:       0.5,
-                filename:     `Business_Report_${new Date().toISOString().split('T')[0]}.pdf`,
+                filename:     'Business-Report.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
+                html2canvas:  { scale: 2 },
                 jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
-
-            html2pdf().from(element).set(opt).save().then(() => {
-                headerEl.classList.add('d-none');
-            });
-        }
-
-        async function deleteTransaction(id) {
-            let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
-            if (loggedUser.role === 'stock' || loggedUser.role === 'staff') {
-                alert("⚠ អ្នកគ្មានសិទ្ធិលុបទិន្នន័យទេ!");
-                return;
-            }
-
-            if (!confirm("តើបងចង់លុបទិន្នន័យនេះមែនទេ? (ស្តុកនឹងត្រូវបង្វិលត្រឡប់ចូលវិញដោយស្វ័យប្រវត្ត)")) return;
-            try {
-                await fetch(`${API_URL}/transactions/${id}`, { method: 'DELETE' });
-                recordUserActivity(`បានលុបទិន្នន័យប្រតិបត្តិការ (ID: ${id})`);
-                loadAppData();
-            } catch (err) {
-                console.error("Error deleting transaction:", err);
-            }
-        }
-
-        async function fetchSummary() {
-            let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
-            if (loggedUser.role === 'staff' || loggedUser.role === 'stock') return;
-
-            try {
-                let res = await fetch(`${API_URL}/summary`);
-                let data = await res.json();
-                if (data.success) {
-                    document.getElementById('lblTotalIncome').innerText = `$${data.summary.total_income.toFixed(2)}`;
-                    document.getElementById('lblTotalExpense').innerText = `$${data.summary.total_purchase_value.toFixed(2)}`;
-                    document.getElementById('lblNetProfit').innerText = `$${data.summary.net_profit.toFixed(2)}`;
-                }
-            } catch (err) {
-                console.error("Error fetching summary:", err);
-            }
+            html2pdf().from(element).set(opt).save();
         }
     </script>
 </body>
