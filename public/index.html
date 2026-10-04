@@ -292,11 +292,11 @@
 
             <!-- TABLES SECTION -->
             <div class="col-lg-8" id="mainTablesColumn">
-                <!-- POS & CART SIDE-BY-SIDE CONTAINER FOR STAFF / USERS -->
-                <div class="row g-3 mb-4">
+                <!-- POS & CART SIDE-BY-SIDE CONTAINER (កែសម្រួលឱ្យមានកម្ពស់ស្មើគ្នា និងរៀបចំស្របគ្នា) -->
+                <div class="row g-3 mb-4 align-items-stretch">
                     <!-- POS IMAGE GRID CONTAINER -->
-                    <div class="col-lg-6">
-                        <div id="posGridCard" class="card p-3 shadow-sm h-100 bg-white border-success border-2">
+                    <div class="col-lg-6 d-flex">
+                        <div id="posGridCard" class="card p-3 shadow-sm w-100 bg-white border-success border-2 d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <h6 class="text-success fw-bold m-0 fs-6 d-flex align-items-center gap-1">
                                     <i class="bi bi-grid-3x3-gap-fill"></i> ជ្រើសរើសទំនិញ (POS Catalog)
@@ -307,15 +307,15 @@
                                     <option value="">-- គ្រប់ Category ទាំងអស់ --</option>
                                 </select>
                             </div>
-                            <div id="posImageGrid" class="row g-2" style="max-height: 440px; overflow-y: auto;">
+                            <div id="posImageGrid" class="row g-2 flex-grow-1" style="max-height: 440px; overflow-y: auto;">
                                 <p class="text-muted text-center py-3">សូមជ្រើសរើស Category ដើម្បីបង្ហាញរូបភាពទំនិញ</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- CURRENT CART -->
-                    <div class="col-lg-6">
-                        <div id="currentCartCard" class="card p-3 shadow-sm h-100 bg-white border-success border-2 d-flex flex-column">
+                    <div class="col-lg-6 d-flex">
+                        <div id="currentCartCard" class="card p-3 shadow-sm w-100 bg-white border-success border-2 d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <h6 class="text-success fw-bold m-0 fs-5 d-flex align-items-center gap-1">
                                     <i class="bi bi-cart-fill"></i> វិក្កយបត្របច្ចុប្បន្ន (Current Cart)
