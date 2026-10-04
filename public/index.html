@@ -349,7 +349,7 @@
             </div>
         </div>
 
-        <!-- ជួរទី២៖ Restock Form & Master List Table (Admin) -->
+        <!-- ជួរទី២៖ Restock Form & Purchase Transactions (Side-by-Side ស្មើគ្នា 4-8) -->
         <div class="row g-4 mb-4" id="rowSection2">
             <div class="col-lg-4" id="colRestockCard">
                 <div id="restockCard" class="card p-4 shadow-sm bg-white h-100">
@@ -384,35 +384,6 @@
                 </div>
             </div>
             
-            <div class="col-lg-8" id="colAdminMasterListContainer">
-                <!-- Master List Table for Admin -->
-                <div id="adminMasterListCard" class="card p-4 shadow-sm bg-white h-100">
-                    <h5 class="text-secondary fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
-                        <i class="bi bi-archive-fill"></i> បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)
-                    </h5>
-                    <div class="table-responsive" style="max-height: 230px; overflow-y: auto;"[cite: 5]>
-                        <table class="table table-sm table-hover align-middle mb-0"[cite: 5]>
-                            <thead class="table-light sticky-top">
-                                <tr>
-                                    <th>Category</th>
-                                    <th>ឈ្មោះទំនិញ (Item)</th>
-                                    <th>ឯកតា (Unit)</th>
-                                    <th>ស្តុកសល់ (Stock)</th>
-                                    <th>តម្លៃដើម ($ Cost)</th>
-                                    <th>លក់រាយ ($ Retail)</th>
-                                    <th>លក់ដុំ ($ Wholesale)</th>
-                                    <th class="text-center admin-action-col">សកម្មភាព (Actions)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="masterTableBodyAdmin"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ជួរទី៣៖ Purchase Transactions & Staff Accounts Form -->
-        <div class="row g-4 mb-4" id="rowSection3">
             <div class="col-lg-8" id="colExpenseCard">
                 <div id="expenseCard" class="card p-4 shadow-sm bg-white border-start border-danger border-4 h-100">
                     <h5 class="mb-3 text-danger fw-bold fs-6 d-flex align-items-center gap-2">
@@ -432,6 +403,34 @@
                                 </tr>
                             </thead>
                             <tbody id="expenseTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ជួរទី៣៖ Master List Table (Admin) & Staff Accounts Form -->
+        <div class="row g-4 mb-4" id="rowSection3">
+            <div class="col-lg-8" id="colAdminMasterListContainer">
+                <div id="adminMasterListCard" class="card p-4 shadow-sm bg-white h-100">
+                    <h5 class="text-secondary fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-archive-fill"></i> បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)
+                    </h5>
+                    <div class="table-responsive" style="max-height: 230px; overflow-y: auto;"[cite: 5]>
+                        <table class="table table-sm table-hover align-middle mb-0"[cite: 5]>
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>Category</th>
+                                    <th>ឈ្មោះទំនិញ (Item)</th>
+                                    <th>ឯកតា (Unit)</th>
+                                    <th>ស្តុកសល់ (Stock)</th>
+                                    <th>តម្លៃដើម ($ Cost)</th>
+                                    <th>លក់រាយ ($ Retail)</th>
+                                    <th>លក់ដុំ ($ Wholesale)</th>
+                                    <th class="text-center admin-action-col">សកម្មភាព (Actions)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="masterTableBodyAdmin"></tbody>
                         </table>
                     </div>
                 </div>
