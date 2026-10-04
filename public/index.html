@@ -167,126 +167,132 @@
         </div>
 
         <div class="row g-4">
-            <!-- FORMS SECTION (Admin Only) -->
-            <div class="col-lg-4" id="adminFormsColumn">
-                <!-- Master Item Form -->
-                <div id="adminMasterCard" class="card p-4 shadow-sm mb-4 bg-white">
-                    <h5 class="mb-3 text-dark fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
-                        <i class="bi bi-gear-fill text-primary"></i> បង្កើតមុខទំនិញ និងកំណត់តម្លៃ (Master Items)
-                    </h5>
-                    <form id="masterForm">
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">Category (ក្រុមទំនិញ)</label>
-                            <input type="text" class="form-control form-control-sm" id="masterCategory" placeholder="ឧ. ភេសជ្ជៈ, ស្រាបៀរ..." required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ (Item Name)</label>
-                            <input type="text" class="form-control form-control-sm" id="masterItemName" placeholder="ឧ. កូកាកូឡា, ទីហ្គឺរ..." required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">រូបភាពទំនិញ (Image File)</label>
-                            <input type="file" class="form-control form-control-sm" id="masterImageFile" accept="image/png, image/jpeg, image/jpg, image/webp">
-                        </div>
-                        <div class="row">
-                            <div class="col-6 mb-3">
-                                <label class="form-label small text-muted fw-bold">ឯកតា (Unit)</label>
-                                <select class="form-select form-select-sm" id="masterUnit" required>
-                                    <option value="ដប">ដប</option>
-                                    <option value="កំប៉ុង">កំប៉ុង</option>
-                                    <option value="កេស">កេស</option>
-                                    <option value="ដុំ">ដុំ</option>
-                                    <option value="កញ្ចប់">កញ្ចប់</option>
-                                    <option value="សុង">សុង</option>
-                                    <option value="យួរ">យួរ</option>
-                                    <option value="កាដុង">កាដុង</option>
-                                    <option value="ធុង">ធុង</option>
-                                    <option value="ប្រអប">ប្រអប</option>
+            <!-- FORMS SECTION (Admin Only) - កែតម្រូវទំហំ និងប្លង់ឱ្យស្របតាមកម្ពស់ខាងស្តាំ -->
+            <div class="col-lg-4 d-flex flex-column justify-content-between" id="adminFormsColumn">
+                <!-- 1. Master Item Form (ទាញពង្រីក ቁመትឱ្យស្មើ POS & Cart ខាងស្តាំ) -->
+                <div id="adminMasterCard" class="card p-4 shadow-sm mb-4 bg-white flex-grow-1 d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="mb-3 text-dark fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
+                            <i class="bi bi-gear-fill text-primary"></i> បង្កើតមុខទំនិញ និងកំណត់តម្លៃ (Master Items)
+                        </h5>
+                        <form id="masterForm">
+                            <div class="mb-2">
+                                <label class="form-label small text-muted fw-bold">Category (ក្រុមទំនិញ)</label>
+                                <input type="text" class="form-control form-control-sm" id="masterCategory" placeholder="ឧ. ភេសជ្ជៈ, ស្រាបៀរ..." required>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ (Item Name)</label>
+                                <input type="text" class="form-control form-control-sm" id="masterItemName" placeholder="ឧ. កូកាកូឡា, ទីហ្គឺរ..." required>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small text-muted fw-bold">រូបភាពទំនិញ (Image File)</label>
+                                <input type="file" class="form-control form-control-sm" id="masterImageFile" accept="image/png, image/jpeg, image/jpg, image/webp">
+                            </div>
+                            <div class="row">
+                                <div class="col-6 mb-2">
+                                    <label class="form-label small text-muted fw-bold">ឯកតា (Unit)</label>
+                                    <select class="form-select form-select-sm" id="masterUnit" required>
+                                        <option value="ដប">ដប</option>
+                                        <option value="កំប៉ុង">កំប៉ុង</option>
+                                        <option value="កេស">កេស</option>
+                                        <option value="ដុំ">ដុំ</option>
+                                        <option value="កញ្ចប់">កញ្ចប់</option>
+                                        <option value="សុង">សុង</option>
+                                        <option value="យួរ">យួរ</option>
+                                        <option value="កាដុង">កាដុង</option>
+                                        <option value="ធុង">ធុង</option>
+                                        <option value="ប្រអប">ប្រអប</option>
+                                    </select>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label class="form-label small text-muted fw-bold">ស្តុកដំបូង (Initial Qty)</label>
+                                    <input type="number" class="form-control form-control-sm" id="masterStock" value="0" min="0" required>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 mb-2">
+                                    <label class="form-label small text-muted fw-bold">តម្លៃដើម ($ Cost)</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm" id="masterCostPrice" placeholder="0.00" required>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <label class="form-label small text-muted fw-bold">តម្លៃលក់រាយ ($ Retail)</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm" id="masterRetailPrice" placeholder="0.00" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted fw-bold">តម្លៃលក់ដុំ ($ Wholesale)</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" id="masterWholesalePrice" placeholder="0.00" required>
+                            </div>
+                            <button type="submit" class="btn btn-dark btn-sm w-100 shadow-sm py-2">
+                                <i class="bi bi-plus-circle me-1"></i> រក្សាទុកទំនិញចូលបញ្ជី (Save Item)
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 2. Restock Expense Form (ទាញពង្រីក ቁመትឱ្យស្មើ Master & Stock List ខាងស្តាំ) -->
+                <div id="restockCard" class="card p-4 shadow-sm mb-4 bg-white flex-grow-1 d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="mb-3 text-danger fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
+                            <i class="bi bi-box-arrow-in-down"></i> ទិញស្តុកចូលបន្ថែម (Restock Inventory)
+                        </h5>
+                        <form id="restockForm">
+                            <div class="mb-3">
+                                <label class="form-label small text-muted fw-bold">ជ្រើសរើស Category (Category)</label>
+                                <select class="form-select form-select-sm" id="restockSelectCategory" onchange="onRestockCategoryChanged()">
+                                    <option value="">-- គ្រប់ Category ទាំងអស់ --</option>
                                 </select>
                             </div>
-                            <div class="col-6 mb-3">
-                                <label class="form-label small text-muted fw-bold">ស្តុកដំបូង (Initial Qty)</label>
-                                <input type="number" class="form-control form-control-sm" id="masterStock" value="0" min="0" required>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ (Item Name)</label>
+                                <select class="form-select form-select-sm" id="restockSelectItem" required>
+                                    <option value="">-- ជ្រើសរើសទំនិញ --</option>
+                                </select>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-6 mb-3">
-                                <label class="form-label small text-muted fw-bold">តម្លៃដើម ($ Cost)</label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" id="masterCostPrice" placeholder="0.00" required>
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <label class="form-label small text-muted fw-bold">ចំនួនទិញបន្ថែម (Qty)</label>
+                                    <input type="number" class="form-control form-control-sm" id="restockQty" value="1" min="1" required>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <label class="form-label small text-muted fw-bold">តម្លៃទិញ ($ Price)</label>
+                                    <input type="number" step="0.01" class="form-control form-control-sm" id="restockPrice" placeholder="0.00" required>
+                                </div>
                             </div>
-                            <div class="col-6 mb-3">
-                                <label class="form-label small text-muted fw-bold">តម្លៃលក់រាយ ($ Retail)</label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" id="masterRetailPrice" placeholder="0.00" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">តម្លៃលក់ដុំ ($ Wholesale)</label>
-                            <input type="number" step="0.01" class="form-control form-control-sm" id="masterWholesalePrice" placeholder="0.00" required>
-                        </div>
-                        <button type="submit" class="btn btn-dark btn-sm w-100 shadow-sm py-2">
-                            <i class="bi bi-plus-circle me-1"></i> រក្សាទុកទំនិញចូលបញ្ជី (Save Item)
-                        </button>
-                    </form>
+                            <button type="submit" class="btn btn-outline-danger btn-sm w-100 shadow-sm py-2">បញ្ជាក់ការទិញស្តុកចូល (Restock)</button>
+                        </form>
+                    </div>
                 </div>
 
-                <!-- Restock Expense Form -->
-                <div id="restockCard" class="card p-4 shadow-sm mb-4 bg-white">
-                    <h5 class="mb-3 text-danger fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
-                        <i class="bi bi-box-arrow-in-down"></i> ទិញស្តុកចូលបន្ថែម (Restock Inventory)
-                    </h5>
-                    <form id="restockForm">
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">ជ្រើសរើស Category (Category)</label>
-                            <select class="form-select" id="restockSelectCategory" onchange="onRestockCategoryChanged()">
-                                <option value="">-- គ្រប់ Category ទាំងអស់ --</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ (Item Name)</label>
-                            <select class="form-select" id="restockSelectItem" required>
-                                <option value="">-- ជ្រើសរើសទំនិញ --</option>
-                            </select>
-                        </div>
-                        <div class="row">
-                            <div class="col-6 mb-3">
-                                <label class="form-label small text-muted fw-bold">ចំនួនទិញបន្ថែម (Qty)</label>
-                                <input type="number" class="form-control" id="restockQty" value="1" min="1" required>
+                <!-- 3. Create User Role Form (ទាញពង្រីក ቁመትឱ្យស្មើប្រវត្តិការលក់ និងប្រវត្តិទិញស្តុកខាងស្តាំរួមគ្នា) -->
+                <div id="adminUserCard" class="card p-4 shadow-sm bg-white border-top border-primary border-4 flex-grow-1 d-flex flex-column justify-content-between">
+                    <div>
+                        <h5 class="mb-3 text-primary fw-bold fs-6 d-flex align-items-center gap-2">
+                            <i class="bi bi-person-plus-fill"></i> បង្កើតគណនីបុគ្គលិក (Staff Accounts)
+                        </h5>
+                        <form id="createUserForm">
+                            <div class="mb-2">
+                                <label class="form-label small text-muted fw-bold">ឈ្មោះបង្ហាញ (Full Name)</label>
+                                <input type="text" class="form-control form-control-sm" id="newUserName" placeholder="ឧ. ហេង សុខា" required>
                             </div>
-                            <div class="col-6 mb-3">
-                                <label class="form-label small text-muted fw-bold">តម្លៃទិញ ($ Price)</label>
-                                <input type="number" step="0.01" class="form-control" id="restockPrice" placeholder="0.00" required>
+                            <div class="mb-2">
+                                <label class="form-label small text-muted fw-bold">Username (សម្រាប់ចូល)</label>
+                                <input type="text" class="form-control form-control-sm" id="newUserUsername" placeholder="ឧ. sokha" required>
                             </div>
-                        </div>
-                        <button type="submit" class="btn btn-outline-danger btn-sm w-100 shadow-sm py-2">បញ្ជាក់ការទិញស្តុកចូល (Restock)</button>
-                    </form>
-                </div>
-
-                <!-- Create User Role Form -->
-                <div id="adminUserCard" class="card p-4 shadow-sm bg-white border-top border-primary border-4">
-                    <h5 class="mb-3 text-primary fw-bold fs-6 d-flex align-items-center gap-2">
-                        <i class="bi bi-person-plus-fill"></i> បង្កើតគណនីបុគ្គលិក (Staff Accounts)
-                    </h5>
-                    <form id="createUserForm">
-                        <div class="mb-2">
-                            <label class="form-label small text-muted fw-bold">ឈ្មោះបង្ហាញ (Full Name)</label>
-                            <input type="text" class="form-control form-control-sm" id="newUserName" placeholder="ឧ. ហេង សុខា" required>
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label small text-muted fw-bold">Username (សម្រាប់ចូល)</label>
-                            <input type="text" class="form-control form-control-sm" id="newUserUsername" placeholder="ឧ. sokha" required>
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label small text-muted fw-bold">Password (ពាក្យសម្ងាត់)</label>
-                            <input type="password" class="form-control form-control-sm" id="newUserPassword" placeholder="ពាក្យសម្ងាត់..." required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">តួនាទី (Role)</label>
-                            <select class="form-select form-select-sm" id="newUserRole" required>
-                                <option value="staff">Staff (បុគ្គលិកលក់ - POS Only)</option>
-                                <option value="admin">Admin (អភិបាល - Full Access)</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-outline-primary btn-sm w-100 shadow-sm py-2">បង្កើតគណនីថ្មី (Create User)</button>
-                    </form>
+                            <div class="mb-2">
+                                <label class="form-label small text-muted fw-bold">Password (ពាក្យសម្ងាត់)</label>
+                                <input type="password" class="form-control form-control-sm" id="newUserPassword" placeholder="ពាក្យសម្ងាត់..." required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted fw-bold">តួនាទី (Role)</label>
+                                <select class="form-select form-select-sm" id="newUserRole" required>
+                                    <option value="staff">Staff (បុគ្គលិកលក់ - POS Only)</option>
+                                    <option value="admin">Admin (អភិបាល - Full Access)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-outline-primary btn-sm w-100 shadow-sm py-2">បង្កើតគណនីថ្មី (Create User)</button>
+                        </form>
+                    </div>
                 </div>
             </div>
 
@@ -554,7 +560,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <p class="text-muted small">បញ្ជីវិក្កយបត្រដែលបានបញ្ចប់ការលក់ទាំងអស់។ អ្នកអាចជ្រើសរើសតាម Category ចុចមើលលម្អិត កែប្រែ ឬព្រិន្ទឡើងវិញបាន។</p>
+                    <p class="text-muted small">បញ្ជីវិក្កយបត្រដែលបានបញ្ចប់การលក់ทั้งหมด។ អ្នកអាចជ្រើសរើសតាម Category ចុចមើលលម្អិត កែប្រែ ឬព្រិន្ទឡើងវិញได้។</p>
                     
                     <div class="row g-2 align-items-center mb-3">
                         <div class="col-md-4">
@@ -881,7 +887,7 @@
                     document.getElementById('posGridCard').style.display = 'block';
                     document.getElementById('currentCartCard').style.display = 'block';
                 } else {
-                    adminFormsColumn.style.display = 'block';
+                    adminFormsColumn.style.display = 'flex';
                     mainTablesColumn.className = "col-lg-8";
 
                     document.getElementById('adminMasterCard').style.display = 'block';
@@ -2105,154 +2111,6 @@
 
             } else {
                 salesTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-2">មិនមានទិន្នន័យលក់ក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
-            }
-
-            let restockTbody = document.getElementById('reportRestockTableBody');
-            restockTbody.innerHTML = '';
-            let restockTxRaw = filteredTx.filter(tx => tx.type === 'EXPENSE');
-
-            let groupedReportRestock = {};
-            restockTxRaw.forEach(tx => {
-                let key = (tx.item_name || "").trim() + "_" + (tx.category || "").trim();
-                let txAmount = parseFloat(tx.amount || (tx.quantity * tx.unit_price));
-                let txQty = parseInt(tx.quantity) || 0;
-
-                if (!groupedReportRestock[key]) {
-                    groupedReportRestock[key] = {
-                        category: tx.category,
-                        item_name: tx.item_name,
-                        quantity: 0,
-                        total_amount: 0,
-                        unit_price: parseFloat(tx.unit_price) || 0,
-                        latest_date: tx.date
-                    };
-                }
-                groupedReportRestock[key].quantity += txQty;
-                groupedReportRestock[key].total_amount += txAmount;
-
-                if (tx.date && new Date(tx.date) > new Date(groupedReportRestock[key].latest_date)) {
-                    groupedReportRestock[key].latest_date = tx.date;
-                }
-            });
-
-            let restockTx = Object.values(groupedReportRestock);
-            let totalRestockQty = 0;
-            let totalRestockAmount = 0;
-
-            if (restockTx.length > 0) {
-                restockTx.forEach(tx => {
-                    totalRestockQty += tx.quantity;
-                    totalRestockAmount += tx.total_amount;
-
-                    let tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${tx.latest_date ? new Date(tx.latest_date).toLocaleDateString() : '-'}</td>
-                        <td>${tx.category}</td>
-                        <td class="fw-bold">${tx.item_name}</td>
-                        <td>${tx.quantity}</td>
-                        <td>$${parseFloat(tx.unit_price).toFixed(2)}</td>
-                        <td class="text-danger fw-bold">$${tx.total_amount.toFixed(2)}</td>
-                    `;
-                    restockTbody.appendChild(tr);
-                });
-
-                let totalRestockTr = document.createElement('tr');
-                totalRestockTr.className = "table-danger fw-bold";
-                totalRestockTr.innerHTML = `
-                    <td colspan="3" class="text-end">សរុបការចំណាយទិញស្តុក (Total Restock):</td>
-                    <td>${totalRestockQty}</td>
-                    <td>-</td>
-                    <td class="text-danger">$${totalRestockAmount.toFixed(2)}</td>
-                `;
-                restockTbody.appendChild(totalRestockTr);
-
-            } else {
-                restockTbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-2">មិនមានទិន្នន័យទិញស្តុកក្នុងចន្លោះកាលបរិច្ឆេទនេះទេ</td></tr>`;
-            }
-
-            let totalCostOfGoodsSold = 0;
-            salesTxRaw.forEach(tx => {
-                let matchedItem = masterItemsList.find(m => m.id == tx.item_id);
-                let cost = matchedItem ? (parseFloat(matchedItem.cost_price) || 0) : 0;
-                totalCostOfGoodsSold += (tx.quantity * cost);
-            });
-            let calculatedNetProfit = calculatedTotalIncome - totalCostOfGoodsSold;
-
-            document.getElementById('reportLblTotalIncome').innerText = `$${calculatedTotalIncome.toFixed(2)}`;
-            document.getElementById('reportLblTotalExpense').innerText = `$${calculatedTotalInventoryValue.toFixed(2)}`;
-            document.getElementById('reportLblNetProfit').innerText = `$${calculatedNetProfit.toFixed(2)}`;
-        }
-
-        function filterReportsData() {
-            renderReportsTables();
-        }
-
-        function resetReportFilter() {
-            document.getElementById('reportStartDate').value = '';
-            document.getElementById('reportEndDate').value = '';
-            renderReportsTables();
-        }
-
-        function printReportSection() {
-            let printContent = document.getElementById('printableReportArea').innerHTML;
-            let printWindow = window.open('', '_blank', 'height=800,width=900');
-            printWindow.document.write('<html><head><title>របាយការណ៍អាជីវកម្ម</title>');
-            printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">');
-            printWindow.document.write('<style>body { font-family: "Kantumruy Pro", sans-serif; padding: 20px; color: #000000; } table { font-size: 12px; width: 100%; }</style>');
-            printWindow.document.write('</head><body>');
-            printWindow.document.write('<h3 class="text-center mb-4 fw-bold">របាយការណ៍សង្ខេបស្តុក និងការលក់</h3>');
-            printWindow.document.write(printContent);
-            printWindow.document.write('</body></html>');
-            printWindow.document.close();
-            printWindow.focus();
-            setTimeout(() => {
-                printWindow.print();
-                printWindow.close();
-            }, 600);
-        }
-
-        function downloadPDFReport() {
-            let element = document.getElementById('printableReportArea');
-            let headerEl = element.querySelector('.print-header');
-            headerEl.classList.remove('d-none');
-
-            let opt = {
-                margin:       0.5,
-                filename:     `Business_Report_${new Date().toISOString().split('T')[0]}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-            };
-
-            html2pdf().from(element).set(opt).save().then(() => {
-                headerEl.classList.add('d-none');
-            });
-        }
-
-        async function deleteTransaction(id) {
-            if (!confirm("តើបងចង់លុបទិន្នន័យនេះមែនទេ? (ស្តុកនឹងត្រូវបង្វិលត្រឡប់ចូលវិញដោយស្វ័យប្រវត្ត)")) return;
-            try {
-                await fetch(`${API_URL}/transactions/${id}`, { method: 'DELETE' });
-                loadAppData();
-            } catch (err) {
-                console.error("Error deleting transaction:", err);
-            }
-        }
-
-        async function fetchSummary() {
-            let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
-            if (loggedUser.role === 'staff') return;
-
-            try {
-                let res = await fetch(`${API_URL}/summary`);
-                let data = await res.json();
-                if (data.success) {
-                    document.getElementById('lblTotalIncome').innerText = `$${data.summary.total_income.toFixed(2)}`;
-                    document.getElementById('lblTotalExpense').innerText = `$${data.summary.total_purchase_value.toFixed(2)}`;
-                    document.getElementById('lblNetProfit').innerText = `$${data.summary.net_profit.toFixed(2)}`;
-                }
-            } catch (err) {
-                console.error("Error fetching summary:", err);
             }
         }
     </script>
