@@ -450,21 +450,22 @@
 
     <!-- ACTIVITY ATTENDANCE MODAL -->
     <div class="modal fade" id="activityModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content border-0 shadow-lg rounded-4">
                 <div class="modal-header bg-dark text-white">
                     <h5 class="modal-title fw-bold">📋 កំណត់ត្រាសកម្មភាព និងម៉ោងចូល-ចេញ (Staff & Stock Activity Logs)</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <p class="text-muted small">បញ្ជីកំណត់ត្រាពេលវេលាចូល (Check-in) និងចេញ (Check-out) របស់បុគ្គលិកទាំងអស់ក្នុងប្រព័ន្ធ។</p>
-                    <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                    <p class="text-muted small">បញ្ជីកំណត់ត្រាពេលវេលាចូល (Check-in), ចេញ (Check-out) និងសកម្មភាពដែលបានធ្វើរបស់អ្នកប្រើប្រាស់ក្នុងប្រព័ន្ធ។</p>
+                    <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
                         <table class="table table-striped table-hover align-middle mb-0">
                             <thead class="table-dark">
                                 <tr>
                                     <th>ឈ្មោះបុគ្គលិក (Name)</th>
                                     <th>Username</th>
                                     <th>តួនាទី (Role)</th>
+                                    <th>សកម្មភាពដែលបានធ្វើ (Activities)</th>
                                     <th>ម៉ោងចូល (Check-in)</th>
                                     <th>ម៉ោងចេញ (Check-out)</th>
                                 </tr>
@@ -912,6 +913,24 @@
             checkLoginState();
         });
 
+        function recordUserActivity(actionDesc) {
+            let loggedUserStr = sessionStorage.getItem("loggedUserObj");
+            if (!loggedUserStr) return;
+            let userObj = JSON.parse(loggedUserStr);
+            let currentLogId = sessionStorage.getItem("currentActivityLogId");
+
+            let logs = JSON.parse(localStorage.getItem("appActivityLogs") || "[]");
+            let log = logs.find(l => l.id === currentLogId);
+            if (log) {
+                if (!log.activities) log.activities = [];
+                log.activities.push({
+                    time: new Date().toLocaleTimeString(),
+                    desc: actionDesc
+                });
+                localStorage.setItem("appActivityLogs", JSON.stringify(logs));
+            }
+        }
+
         function openReportModal() {
             let loggedUserStr = sessionStorage.getItem("loggedUserObj");
             if (loggedUserStr) {
@@ -946,18 +965,29 @@
 
             if (logs.length > 0) {
                 logs.slice().reverse().forEach(log => {
+                    let activitiesHtml = '<ul class="mb-0 ps-3 small">';
+                    if (log.activities && log.activities.length > 0) {
+                        log.activities.forEach(act => {
+                            activitiesHtml += `<li><b>[${act.time}]</b> ${act.desc}</li>`;
+                        });
+                    } else {
+                        activitiesHtml += `<li>ចូលប្រព័ន្ធ (Login)</li>`;
+                    }
+                    activitiesHtml += '</ul>';
+
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td class="fw-bold">${log.name}</td>
                         <td><code>${log.username}</code></td>
                         <td><span class="badge bg-secondary">${log.role.toUpperCase()}</span></td>
+                        <td>${activitiesHtml}</td>
                         <td class="text-success">${log.checkIn}</td>
                         <td class="text-danger">${log.checkOut || 'កំពុងដំណើរការ (Online)'}</td>
                     `;
                     tbody.appendChild(tr);
                 });
             } else {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">មិនទាន់មានកំណត់ត្រា Activity ទេ</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">មិនទាន់មានកំណត់ត្រា Activity ទេ</td></tr>`;
             }
 
             activityModal.show();
@@ -1049,7 +1079,7 @@
                     adminFormsColumn.style.display = 'flex';
                     document.getElementById('adminMasterCard').style.display = 'flex';
                     document.getElementById('restockCard').style.display = 'flex';
-                    document.getElementById('adminUserCard').style.display = 'none';
+                    document.getElementById('adminUserCard').style.display = 'none'; // បិទ Staff Accounts សម្រាប់ Stock
 
                     mainTablesColumn.className = "col-lg-8 d-flex flex-column gap-4";
                     document.getElementById('posAndCartRow').style.display = 'none';
@@ -1114,7 +1144,8 @@
                     name: found.name,
                     role: found.role,
                     checkIn: checkInTimeString,
-                    checkOut: null
+                    checkOut: null,
+                    activities: [{ time: new Date().toLocaleTimeString(), desc: 'ចូលប្រើប្រាស់ប្រព័ន្ធ (Login)' }]
                 });
                 localStorage.setItem("appActivityLogs", JSON.stringify(logs));
 
@@ -1133,6 +1164,8 @@
                 let log = logs.find(l => l.id === currentLogId);
                 if (log) {
                     log.checkOut = checkOutTimeString;
+                    if (!log.activities) log.activities = [];
+                    log.activities.push({ time: new Date().toLocaleTimeString(), desc: 'ចាកចេញពីប្រព័ន្ធ (Logout)' });
                     localStorage.setItem("appActivityLogs", JSON.stringify(logs));
                 }
             }
@@ -1158,6 +1191,7 @@
 
             users.push({ name, username, password, role });
             localStorage.setItem("appUsers", JSON.stringify(users));
+            recordUserActivity(`បានបង្កើតគណនីបុគ្គលិកថ្មីឈ្មោះ "${name}" (${role})`);
             alert(`✅ បានបង្កើតគណនីសម្រាប់ "${name}" (${role}) ដោយជោគជ័យ!`);
             document.getElementById('createUserForm').reset();
         });
@@ -1535,6 +1569,7 @@
             allInvoicesList.push(invoiceObj);
             saveInvoicesToLocalStorage();
 
+            recordUserActivity(`បានលក់ទំនិញចេញ (វិក្កយបត្រ: ${invoiceId})`);
             printCartInvoice(currentCart, invoiceId);
             currentCart = [];
             renderCartTable();
@@ -1669,6 +1704,7 @@
             allInvoicesList = allInvoicesList.filter(i => i.id !== invId);
             saveInvoicesToLocalStorage();
             
+            recordUserActivity(`បានលុបវិក្កយបត្រលក់លេខ: ${invId}`);
             renderInvoiceHistoryTable();
             loadAppData();
         }
@@ -1838,6 +1874,7 @@
             allInvoicesList[oldInvoiceIndex] = currentEditingInvoice;
             saveInvoicesToLocalStorage();
 
+            recordUserActivity(`បានកែសម្រួលវិក្កយបត្រលក់លេខ: ${invId}`);
             alert(`✅ បានរក្សាទុកការកែប្រែវិក្កយបត្រ ${invId} និងបានធ្វើបច្ចុប្បន្នភាពស្តុកក្នុងឃ្លាំងដោយជោគជ័យ!`);
             editInvoiceModal.hide();
             loadAppData();
@@ -1874,6 +1911,7 @@
             e.preventDefault();
             let selectedId = document.getElementById('restockSelectItem').value;
             let foundItem = masterItemsList.find(i => i.id == selectedId);
+            let qtyToAdd = parseInt(document.getElementById('restockQty').value);
             if (!foundItem) return;
 
             let data = {
@@ -1881,9 +1919,9 @@
                 item_id: foundItem.id,
                 category: foundItem.category,
                 item_name: foundItem.item_name,
-                quantity: parseInt(document.getElementById('restockQty').value),
+                quantity: qtyToAdd,
                 unit_price: parseFloat(document.getElementById('restockPrice').value),
-                amount: parseInt(document.getElementById('restockQty').value) * parseFloat(document.getElementById('restockPrice').value)
+                amount: qtyToAdd * parseFloat(document.getElementById('restockPrice').value)
             };
 
             try {
@@ -1894,6 +1932,7 @@
                 });
                 let result = await res.json();
                 if (result.success) {
+                    recordUserActivity(`បានទិញស្តុកចូលបន្ថែម: ${foundItem.item_name} (${qtyToAdd} ${foundItem.unit || 'ដុំ'})`);
                     document.getElementById('restockForm').reset();
                     loadAppData();
                 }
@@ -1921,7 +1960,7 @@
                         actionTd = `
                             <td class="text-center">
                                 <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditMaster('${m.id}', '${m.category.replace(/'/g, "\\'")}', '${m.item_name.replace(/'/g, "\\'")}', '${m.unit || 'ដុំ'}', ${m.stock_quantity || 0}, ${m.cost_price || 0}, ${m.retail_price || 0}, ${m.wholesale_price || 0})">កែ</button>
-                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteMasterItem('${m.id}')">លុប</button>
+                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteMasterItem('${m.id}', '${m.item_name.replace(/'/g, "\\'")}')">លុប</button>
                             </td>`;
                     } else if (loggedUser.role === 'stock') {
                         actionTd = `<td class="text-center text-muted small">គ្មានសិទ្ធិកែ/លុប</td>`;
@@ -1955,6 +1994,7 @@
 
         document.getElementById('masterForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
+            let itemName = document.getElementById('masterItemName').value.trim();
             let imageFile = document.getElementById('masterImageFile').files[0];
             let imageUrl = '';
             if (imageFile) {
@@ -1968,7 +2008,7 @@
             let data = {
                 type: 'EXPENSE',
                 category: document.getElementById('masterCategory').value.trim(),
-                item_name: document.getElementById('masterItemName').value.trim(),
+                item_name: itemName,
                 image_url: imageUrl,
                 unit: document.getElementById('masterUnit').value,
                 stock_quantity: parseInt(document.getElementById('masterStock').value) || 0,
@@ -1986,6 +2026,7 @@
                 });
                 let result = await res.json();
                 if (result.success) {
+                    recordUserActivity(`បានបង្កើតទំនិញថ្មីក្នុង Master List: ${itemName}`);
                     document.getElementById('masterForm').reset();
                     fetchMasterItems();
                 }
@@ -2009,6 +2050,7 @@
         document.getElementById('editMasterForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             let id = document.getElementById('editMasterId').value;
+            let itemName = document.getElementById('editMasterItemName').value.trim();
             let imageFile = document.getElementById('editMasterImageFile').files[0];
             let existingItem = masterItemsList.find(i => i.id == id);
             let imageUrl = existingItem ? existingItem.image_url : '';
@@ -2023,7 +2065,7 @@
 
             let data = {
                 category: document.getElementById('editMasterCategory').value.trim(),
-                item_name: document.getElementById('editMasterItemName').value.trim(),
+                item_name: itemName,
                 image_url: imageUrl,
                 unit: document.getElementById('editMasterUnit').value,
                 stock_quantity: parseInt(document.getElementById('editMasterStock').value) || 0,
@@ -2040,6 +2082,7 @@
                 });
                 let result = await res.json();
                 if (result.success) {
+                    recordUserActivity(`បានកែប្រែព័ត៌មានទំនិញស្តុក: ${itemName}`);
                     editMasterModal.hide();
                     loadAppData();
                 }
@@ -2048,7 +2091,7 @@
             }
         });
 
-        async function deleteMasterItem(id) {
+        async function deleteMasterItem(id, itemName) {
             let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
             if (loggedUser.role === 'stock') {
                 alert("⚠ បុគ្គលិកស្តុកគ្មានសិទ្ធិលុបទំនិញទេ!");
@@ -2058,6 +2101,7 @@
             if (!confirm("តើបងចង់លុបទំនិញនេះពី Master List មែនទេ?")) return;
             try {
                 await fetch(`${API_URL}/master-items/${id}`, { method: 'DELETE' });
+                recordUserActivity(`បានលុបទំនិញចេញពី Master List: ${itemName}`);
                 fetchMasterItems();
             } catch (err) {
                 console.error("Error deleting master item:", err);
@@ -2076,11 +2120,12 @@
 
                 let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
                 let isStock = loggedUser.role === 'stock';
+                let isStaff = loggedUser.role === 'staff';
 
                 let incomeActionHeader = document.getElementById('incomeActionHeader');
                 let expenseActionHeader = document.getElementById('expenseActionHeader');
-                if(incomeActionHeader) incomeActionHeader.style.display = isStock ? 'none' : '';
-                if(expenseActionHeader) expenseActionHeader.style.display = isStock ? 'none' : '';
+                if(incomeActionHeader) incomeActionHeader.style.display = (isStock || isStaff) ? 'none' : '';
+                if(expenseActionHeader) expenseActionHeader.style.display = (isStock || isStaff) ? 'none' : '';
 
                 let incomeTbody = document.getElementById('incomeTableBody');
                 let expenseTbody = document.getElementById('expenseTableBody');
@@ -2127,7 +2172,7 @@
                 if (mergedIncomesList.length > 0) {
                     mergedIncomesList.forEach((item) => {
                         let actionBtns = '';
-                        if (isStock) {
+                        if (isStock || isStaff) {
                             actionBtns = '';
                         } else {
                             actionBtns = `
@@ -2144,12 +2189,12 @@
                             <td><span class="badge bg-success">${item.quantity}</span></td>
                             <td>$${item.unit_price.toFixed(2)}</td>
                             <td class="text-success fw-bold">$${item.total_amount.toFixed(2)}</td>
-                            ${isStock ? '' : `<td class="text-center">${actionBtns}</td>`}
+                            ${(isStock || isStaff) ? '' : `<td class="text-center">${actionBtns}</td>`}
                         `;
                         incomeTbody.appendChild(tr);
                     });
                 } else {
-                    incomeTbody.innerHTML = `<tr><td colspan="${isStock ? 6 : 7}" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការលក់នៅឡើយទេ</td></tr>`;
+                    incomeTbody.innerHTML = `<tr><td colspan="${(isStock || isStaff) ? 6 : 7}" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការលក់នៅឡើយទេ</td></tr>`;
                 }
 
                 if (result.success && allTransactionsList.length > 0) {
@@ -2191,7 +2236,7 @@
                             let imgTag = imgUrl ? `<img src="${imgUrl}" width="38" height="38" class="rounded object-fit-cover me-2 border">` : `<span class="badge bg-light text-muted border me-2 py-2 px-1">គ្មានរូប</span>`;
 
                             let actionBtns = '';
-                            if (isStock) {
+                            if (isStock || isStaff) {
                                 actionBtns = '';
                             } else {
                                 actionBtns = `
@@ -2213,15 +2258,15 @@
                                 <td>${item.quantity}</td>
                                 <td>$${item.unit_price.toFixed(2)}</td>
                                 <td class="text-danger fw-bold">$${item.total_amount.toFixed(2)}</td>
-                                ${isStock ? '' : `<td class="text-center">${actionBtns}</td>`}
+                                ${(isStock || isStaff) ? '' : `<td class="text-center">${actionBtns}</td>`}
                             `;
                             expenseTbody.appendChild(tr);
                         });
                     } else {
-                        expenseTbody.innerHTML = `<tr><td colspan="${isStock ? 6 : 7}" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការទិញស្តុកនៅឡើយទេ</td></tr>`;
+                        expenseTbody.innerHTML = `<tr><td colspan="${(isStock || isStaff) ? 6 : 7}" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការទិញស្តុកនៅឡើយទេ</td></tr>`;
                     }
                 } else {
-                    expenseTbody.innerHTML = `<tr><td colspan="${isStock ? 6 : 7}" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យនៅឡើយទេ</td></tr>`;
+                    expenseTbody.innerHTML = `<tr><td colspan="${(isStock || isStaff) ? 6 : 7}" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យនៅឡើយទេ</td></tr>`;
                 }
 
             } catch (err) {
@@ -2231,8 +2276,8 @@
 
         function openEditTransaction(id, type, cat, name, qty, price) {
             let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
-            if (loggedUser.role === 'stock') {
-                alert("⚠ បុគ្គលិកស្តុកគ្មានសិទ្ធិកែប្រែទេ!");
+            if (loggedUser.role === 'stock' || loggedUser.role === 'staff') {
+                alert("⚠ អ្នកគ្មានសិទ្ធិកែប្រែទេ!");
                 return;
             }
 
@@ -2248,9 +2293,10 @@
         document.getElementById('editTransactionForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             let id = document.getElementById('editTxId').value;
+            let itemName = document.getElementById('editTxItemName').value.trim();
             let data = {
                 category: document.getElementById('editTxCategory').value.trim(),
-                item_name: document.getElementById('editTxItemName').value.trim(),
+                item_name: itemName,
                 quantity: parseInt(document.getElementById('editTxQuantity').value) || 1,
                 unit_price: parseFloat(document.getElementById('editTxUnitPrice').value) || 0,
                 amount: (parseInt(document.getElementById('editTxQuantity').value) || 1) * (parseFloat(document.getElementById('editTxUnitPrice').value) || 0)
@@ -2264,6 +2310,7 @@
                 });
                 let result = await res.json();
                 if (result.success) {
+                    recordUserActivity(`បានកែប្រែប្រវត្តិប្រតិបត្តិការទំនិញ: ${itemName}`);
                     editTransactionModal.hide();
                     loadAppData();
                 } else {
@@ -2518,14 +2565,15 @@
 
         async function deleteTransaction(id) {
             let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
-            if (loggedUser.role === 'stock') {
-                alert("⚠ បុគ្គលិកស្តុកគ្មានសិទ្ធិលុបទិន្នន័យទេ!");
+            if (loggedUser.role === 'stock' || loggedUser.role === 'staff') {
+                alert("⚠ អ្នកគ្មានសិទ្ធិលុបទិន្នន័យទេ!");
                 return;
             }
 
             if (!confirm("តើបងចង់លុបទិន្នន័យនេះមែនទេ? (ស្តុកនឹងត្រូវបង្វិលត្រឡប់ចូលវិញដោយស្វ័យប្រវត្ត)")) return;
             try {
                 await fetch(`${API_URL}/transactions/${id}`, { method: 'DELETE' });
+                recordUserActivity(`បានលុបទិន្នន័យប្រតិបត្តិការ (ID: ${id})`);
                 loadAppData();
             } catch (err) {
                 console.error("Error deleting transaction:", err);
