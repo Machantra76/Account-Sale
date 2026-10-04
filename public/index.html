@@ -264,38 +264,34 @@
                     </form>
                 </div>
 
-                <!-- Create User Role Form (Height: 260px) -->
-                <div id="adminUserCard" class="card p-4 shadow-sm bg-white border-top border-primary border-4 d-flex flex-column" style="height: 260px;">
-                    <h5 class="mb-2 text-primary fw-bold fs-6 d-flex align-items-center gap-2">
+                <!-- Create User Role Form (Height: 560px - Matches Sales + Purchase Transactions Height) -->
+                <div id="adminUserCard" class="card p-4 shadow-sm bg-white border-top border-primary border-4 d-flex flex-column" style="height: 560px;">
+                    <h5 class="mb-3 text-primary fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-person-plus-fill"></i> បង្កើតគណនីបុគ្គលិក (Staff Accounts)
                     </h5>
                     <form id="createUserForm" class="d-flex flex-column justify-content-between flex-grow-1">
                         <div>
-                            <div class="row g-2">
-                                <div class="col-6 mb-2">
-                                    <label class="form-label small text-muted fw-bold mb-1">ឈ្មោះបង្ហាញ (Full Name)</label>
-                                    <input type="text" class="form-control form-control-sm" id="newUserName" placeholder="ឧ. ហេង សុខា" required>
-                                </div>
-                                <div class="col-6 mb-2">
-                                    <label class="form-label small text-muted fw-bold mb-1">Username (សម្រាប់ចូល)</label>
-                                    <input type="text" class="form-control form-control-sm" id="newUserUsername" placeholder="ឧ. sokha" required>
-                                </div>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted fw-bold mb-1">ឈ្មោះបង្ហាញ (Full Name)</label>
+                                <input type="text" class="form-control" id="newUserName" placeholder="ឧ. ហេង សុខា" required>
                             </div>
-                            <div class="row g-2">
-                                <div class="col-6 mb-2">
-                                    <label class="form-label small text-muted fw-bold mb-1">Password (ពាក្យសម្ងាត់)</label>
-                                    <input type="password" class="form-control form-control-sm" id="newUserPassword" placeholder="ពាក្យសម្ងាត់..." required>
-                                </div>
-                                <div class="col-6 mb-2">
-                                    <label class="form-label small text-muted fw-bold mb-1">តួនាទី (Role)</label>
-                                    <select class="form-select form-select-sm" id="newUserRole" required>
-                                        <option value="staff">Staff (បុគ្គលិកលក់)</option>
-                                        <option value="admin">Admin (អភិបាល)</option>
-                                    </select>
-                                </div>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted fw-bold mb-1">Username (សម្រាប់ចូល)</label>
+                                <input type="text" class="form-control" id="newUserUsername" placeholder="ឧ. sokha" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted fw-bold mb-1">Password (ពាក្យសម្ងាត់)</label>
+                                <input type="password" class="form-control" id="newUserPassword" placeholder="ពាក្យសម្ងាត់..." required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small text-muted fw-bold mb-1">តួនាទី (Role)</label>
+                                <select class="form-select" id="newUserRole" required>
+                                    <option value="staff">Staff (បុគ្គលិកលក់ - POS Only)</option>
+                                    <option value="admin">Admin (អភិបាល - Full Access)</option>
+                                </select>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-outline-primary btn-sm w-100 shadow-sm py-1">បង្កើតគណនីថ្មី (Create User)</button>
+                        <button type="submit" class="btn btn-outline-primary btn-sm w-100 shadow-sm py-2">បង្កើតគណនីថ្មី (Create User)</button>
                     </form>
                 </div>
             </div>
@@ -396,8 +392,8 @@
                     </div>
                 </div>
 
-                <!-- INCOME TABLE SECTION (Height: 260px) -->
-                <div id="incomeCard" class="card p-4 shadow-sm bg-white border-start border-success border-4 d-flex flex-column" style="height: 260px;">
+                <!-- INCOME TABLE SECTION (Height: 270px) -->
+                <div id="incomeCard" class="card p-4 shadow-sm bg-white border-start border-success border-4 d-flex flex-column" style="height: 270px;">
                     <h5 class="mb-2 text-success fw-bold fs-6 d-flex align-items-center gap-2">
                         <i class="bi bi-cash-coin"></i> ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History)
                     </h5>
@@ -419,8 +415,8 @@
                     </div>
                 </div>
 
-                <!-- EXPENSE TABLE SECTION (Height: 260px - Matches Staff Accounts Card) -->
-                <div id="expenseCard" class="card p-4 shadow-sm bg-white border-start border-danger border-4 d-flex flex-column" style="height: 260px;">
+                <!-- EXPENSE TABLE SECTION (Height: 270px) -->
+                <div id="expenseCard" class="card p-4 shadow-sm bg-white border-start border-danger border-4 d-flex flex-column" style="height: 270px;">
                     <h5 class="mb-2 text-danger fw-bold fs-6 d-flex align-items-center gap-2">
                         <i class="bi bi-receipt-cutoff"></i> ប្រវត្តិការទិញស្តុកចូល (Purchase Transactions)
                     </h5>
