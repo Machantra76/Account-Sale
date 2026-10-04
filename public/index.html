@@ -173,9 +173,9 @@
         </div>
 
         <div class="row g-4">
-            <!-- LEFT COLUMN (Forms) -->
+            <!-- LEFT COLUMN (Admin / Stock Staff Forms) -->
             <div class="col-lg-4 d-flex flex-column gap-4" id="adminFormsColumn">
-                <!-- Master Item Form -->
+                <!-- Master Item Form (Height: 620px) -->
                 <div id="adminMasterCard" class="card p-4 shadow-sm bg-white d-flex flex-column" style="height: 620px;">
                     <h5 class="mb-2 text-dark fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-gear-fill text-primary"></i> បង្កើតមុខទំនិញ និងកំណត់តម្លៃ (Master Items)
@@ -236,7 +236,7 @@
                     </form>
                 </div>
 
-                <!-- Restock Expense Form -->
+                <!-- Restock Expense Form (Height: 335px) -->
                 <div id="restockCard" class="card p-4 shadow-sm bg-white d-flex flex-column" style="height: 335px;">
                     <h5 class="mb-2 text-danger fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-box-arrow-in-down"></i> ទិញស្តុកចូលបន្ថែម (Restock Inventory)
@@ -270,7 +270,7 @@
                     </form>
                 </div>
 
-                <!-- Create User Role Form -->
+                <!-- Create User Role Form (Height: 560px) -->
                 <div id="adminUserCard" class="card p-4 shadow-sm bg-white border-top border-primary border-4 d-flex flex-column" style="height: 560px;">
                     <h5 class="mb-3 text-primary fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-person-plus-fill"></i> បង្កើតគណនីបុគ្គលិក (Staff Accounts)
@@ -305,7 +305,7 @@
 
             <!-- RIGHT COLUMN (Tables & POS Section) -->
             <div class="col-lg-8 d-flex flex-column gap-4" id="mainTablesColumn">
-                <!-- POS & CART SIDE-BY-SIDE CONTAINER -->
+                <!-- POS & CART SIDE-BY-SIDE CONTAINER (Height: 620px) -->
                 <div class="row g-3" id="posAndCartRow">
                     <!-- POS IMAGE GRID CONTAINER -->
                     <div class="col-lg-6 d-flex flex-column">
@@ -338,6 +338,7 @@
                                 </div>
                             </div>
 
+                            <!-- 💱 ប្រអប់កំណត់អត្រាប្តូរប្រាក់រៀល -->
                             <div class="row g-2 align-items-center mb-2 bg-light p-2 rounded-3 border">
                                 <div class="col-6">
                                     <label class="form-label text-muted fw-bold mb-0" style="font-size: 13px;">💱 ១ដុល្លារ = រៀល:</label>
@@ -374,7 +375,7 @@
                     </div>
                 </div>
 
-                <!-- Master List Table -->
+                <!-- Master List Table (Height: 335px) -->
                 <div id="masterListCard" class="card p-4 shadow-sm bg-white d-flex flex-column" style="height: 335px;">
                     <h5 class="text-secondary fw-bold fs-6 mb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-archive-fill"></i> បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)
@@ -398,7 +399,7 @@
                     </div>
                 </div>
 
-                <!-- INCOME TABLE SECTION -->
+                <!-- INCOME TABLE SECTION (Height: 270px) -->
                 <div id="incomeCard" class="card p-4 shadow-sm bg-white border-start border-success border-4 d-flex flex-column" style="height: 270px;">
                     <h5 class="mb-2 text-success fw-bold fs-6 d-flex align-items-center gap-2">
                         <i class="bi bi-cash-coin"></i> ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History)
@@ -421,7 +422,7 @@
                     </div>
                 </div>
 
-                <!-- EXPENSE TABLE SECTION -->
+                <!-- EXPENSE TABLE SECTION (Height: 270px) -->
                 <div id="expenseCard" class="card p-4 shadow-sm bg-white border-start border-danger border-4 d-flex flex-column" style="height: 270px;">
                     <h5 class="mb-2 text-danger fw-bold fs-6 d-flex align-items-center gap-2">
                         <i class="bi bi-receipt-cutoff"></i> ប្រវត្តិការទិញស្តុកចូល (Purchase Transactions)
@@ -456,16 +457,15 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <p class="text-muted small">បញ្ជីកំណត់ត្រាពេលវេលាចូល (Check-in), ចេញ (Check-out) និងសកម្មភាពលម្អិតដែលបានធ្វើរបស់អ្នកប្រើប្រាស់ក្នុងប្រព័ន្ធ។</p>
+                    <p class="text-muted small">បញ្ជីកំណត់ត្រាពេលវេលាចូល (Check-in), ចេញ (Check-out) និងសកម្មភាពដែលបានធ្វើរបស់អ្នកប្រើប្រាស់ក្នុងប្រព័ន្ធ។</p>
                     <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
                         <table class="table table-striped table-hover align-middle mb-0">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>ឈ្មោះបុគ្គលិក</th>
+                                    <th>ឈ្មោះបុគ្គលិក (Name)</th>
                                     <th>Username</th>
-                                    <th>តួនាទី</th>
-                                    <th>សកម្មភាពលម្អិត (Action Description)</th>
-                                    <th>ម៉ោងធ្វើសកម្មភាព</th>
+                                    <th>តួនាទី (Role)</th>
+                                    <th>សកម្មភាពដែលបានធ្វើ (Activities)</th>
                                     <th>ម៉ោងចូល (Check-in)</th>
                                     <th>ម៉ោងចេញ (Check-out)</th>
                                 </tr>
@@ -964,24 +964,29 @@
 
             if (logs.length > 0) {
                 logs.slice().reverse().forEach(log => {
+                    let activitiesHtml = '<ul class="mb-0 ps-3 small">';
                     if (log.activities && log.activities.length > 0) {
                         log.activities.forEach(act => {
-                            let tr = document.createElement('tr');
-                            tr.innerHTML = `
-                                <td class="fw-bold">${log.name}</td>
-                                <td><code>${log.username}</code></td>
-                                <td><span class="badge bg-secondary">${log.role.toUpperCase()}</span></td>
-                                <td class="text-primary fw-semibold">${act.desc}</td>
-                                <td><span class="badge bg-light text-dark border">${act.time}</span></td>
-                                <td class="text-success">${log.checkIn}</td>
-                                <td class="text-danger">${log.checkOut || 'កំពុងដំណើរការ (Online)'}</td>
-                            `;
-                            tbody.appendChild(tr);
+                            activitiesHtml += `<li><b>[${act.time}]</b> ${act.desc}</li>`;
                         });
+                    } else {
+                        activitiesHtml += `<li>ចូលប្រព័ន្ធ (Login)</li>`;
                     }
+                    activitiesHtml += '</ul>';
+
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="fw-bold">${log.name}</td>
+                        <td><code>${log.username}</code></td>
+                        <td><span class="badge bg-secondary">${log.role.toUpperCase()}</span></td>
+                        <td>${activitiesHtml}</td>
+                        <td class="text-success">${log.checkIn}</td>
+                        <td class="text-danger">${log.checkOut || 'កំពុងដំណើរការ (Online)'}</td>
+                    `;
+                    tbody.appendChild(tr);
                 });
             } else {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានកំណត់ត្រា Activity ទេ</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">មិនទាន់មានកំណត់ត្រា Activity ទេ</td></tr>`;
             }
 
             activityModal.show();
@@ -1054,42 +1059,31 @@
                 let adminFormsColumn = document.getElementById('adminFormsColumn');
                 let mainTablesColumn = document.getElementById('mainTablesColumn');
 
-                let adminMasterCard = document.getElementById('adminMasterCard');
-                let restockCard = document.getElementById('restockCard');
-                let adminUserCard = document.getElementById('adminUserCard');
-                let masterListCard = document.getElementById('masterListCard');
-                let incomeCard = document.getElementById('incomeCard');
-                let expenseCard = document.getElementById('expenseCard');
-                let posAndCartRow = document.getElementById('posAndCartRow');
-
                 if (userObj.role === 'staff') {
-                    // STAFF: បិត/លាក់ Master Items, Restock, Staff Accounts, Master & Stock List ទាំងស្រុង
+                    // Staff: បិទ Master Items, Restock, Staff Accounts, Master & Stock List
                     adminFormsColumn.style.display = 'none';
                     mainTablesColumn.className = "col-lg-12 d-flex flex-column gap-4";
 
-                    posAndCartRow.style.display = 'flex';
-                    masterListCard.style.display = 'none';
-                    incomeCard.style.display = 'none';
-                    expenseCard.style.display = 'none';
-
+                    document.getElementById('posAndCartRow').style.display = 'flex';
                     document.getElementById('adminReportBtn').style.display = 'none';
                     document.getElementById('adminActivityBtn').style.display = 'none';
                     document.getElementById('shiftReportBtn').style.display = 'inline-block';
                     document.getElementById('adminInvoiceHistoryBtn').style.display = 'inline-block';
                     document.getElementById('adminSummaryCards').style.display = 'none';
+                    
+                    document.getElementById('masterListCard').style.display = 'none';
+                    document.getElementById('incomeCard').style.display = 'none';
+                    document.getElementById('expenseCard').style.display = 'none';
 
                 } else if (userObj.role === 'stock') {
-                    // STOCK: បិទ Staff Accounts ប៉ុន្តែបើក Master Items, Restock, Master & Stock List
+                    // Stock: បិទ Staff Accounts ប៉ុន្តែបើក Master Items និង Restock
                     adminFormsColumn.style.display = 'flex';
-                    adminMasterCard.style.display = 'flex';
-                    restockCard.style.display = 'flex';
-                    adminUserCard.style.display = 'none'; // បិត Staff Accounts
+                    document.getElementById('adminMasterCard').style.display = 'flex';
+                    document.getElementById('restockCard').style.display = 'flex';
+                    document.getElementById('adminUserCard').style.display = 'none'; // បិទ Staff Accounts
 
                     mainTablesColumn.className = "col-lg-8 d-flex flex-column gap-4";
-                    posAndCartRow.style.display = 'none';
-                    masterListCard.style.display = 'flex';
-                    incomeCard.style.display = 'flex';
-                    expenseCard.style.display = 'flex';
+                    document.getElementById('posAndCartRow').style.display = 'none';
 
                     document.getElementById('adminReportBtn').style.display = 'none';
                     document.getElementById('adminActivityBtn').style.display = 'none';
@@ -1097,24 +1091,29 @@
                     document.getElementById('adminInvoiceHistoryBtn').style.display = 'inline-block';
                     document.getElementById('adminSummaryCards').style.display = 'none';
 
+                    document.getElementById('masterListCard').style.display = 'flex';
+                    document.getElementById('incomeCard').style.display = 'flex';
+                    document.getElementById('expenseCard').style.display = 'flex';
+
                 } else {
-                    // ADMIN: បើកបង្ហាញទាំងអស់
+                    // Admin: បើកទាំងអស់
                     adminFormsColumn.style.display = 'flex';
-                    adminMasterCard.style.display = 'flex';
-                    restockCard.style.display = 'flex';
-                    adminUserCard.style.display = 'flex';
+                    document.getElementById('adminMasterCard').style.display = 'flex';
+                    document.getElementById('restockCard').style.display = 'flex';
+                    document.getElementById('adminUserCard').style.display = 'flex';
 
                     mainTablesColumn.className = "col-lg-8 d-flex flex-column gap-4";
-                    posAndCartRow.style.display = 'flex';
-                    masterListCard.style.display = 'flex';
-                    incomeCard.style.display = 'flex';
-                    expenseCard.style.display = 'flex';
+                    document.getElementById('posAndCartRow').style.display = 'flex';
 
                     document.getElementById('adminReportBtn').style.display = 'inline-block';
                     document.getElementById('adminActivityBtn').style.display = 'inline-block';
                     document.getElementById('shiftReportBtn').style.display = 'none';
                     document.getElementById('adminInvoiceHistoryBtn').style.display = 'inline-block';
                     document.getElementById('adminSummaryCards').style.display = 'flex';
+
+                    document.getElementById('masterListCard').style.display = 'flex';
+                    document.getElementById('incomeCard').style.display = 'flex';
+                    document.getElementById('expenseCard').style.display = 'flex';
                 }
 
                 loadAppData();
@@ -1136,6 +1135,7 @@
                 sessionStorage.setItem("loggedUserObj", JSON.stringify(found));
                 sessionStorage.setItem("checkInTime", checkInTimeString);
 
+                // Record Activity Log
                 let logs = JSON.parse(localStorage.getItem("appActivityLogs") || "[]");
                 let logId = 'LOG-' + Date.now();
                 sessionStorage.setItem("currentActivityLogId", logId);
@@ -1657,9 +1657,8 @@
                         if (isStock) {
                             actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិ</span>`;
                         } else if (isStaff) {
-                            // Staff: បិតមិនឱ្យកែ និងលុប គឺអនុញ្ញាតឱ្យព្រិន្ទនិងមើលប៉ុណ្ណោះ
                             actionBtns = `
-                                <button class="btn btn-sm btn-outline-secondary py-0 px-2" onclick="reprintInvoice('${inv.id}')">ព្រិន្ទ</button>
+                                <button class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" onclick="reprintInvoice('${inv.id}')">ព្រិន្ទ</button>
                             `;
                         } else {
                             actionBtns = `
@@ -1701,7 +1700,7 @@
                 return;
             }
 
-            if (!confirm(`តើអ្នកពិតជាចង់លុបវិក្កយបត្រ ${invId} មែនទេ?`)) return;
+            if (!confirm(`តើអ្នកពិតជាចង់លុបវិក្កយបត្រ ${invId} មែនទេ? (ស្តុកក្នុងឃ្លាំងនៅរក្សាទុកធម្មតា)`)) return;
             
             allInvoicesList = allInvoicesList.filter(i => i.id !== invId);
             saveInvoicesToLocalStorage();
@@ -1845,6 +1844,7 @@
             if (oldInvoiceIndex === -1) return;
 
             let stockChanges = {};
+
             if (originalEditingInvoiceBackup && originalEditingInvoiceBackup.items) {
                 originalEditingInvoiceBackup.items.forEach(oldItem => {
                     let master = masterItemsList.find(m => m.id == oldItem.item_id || m.item_name === oldItem.item_name);
@@ -1944,6 +1944,8 @@
 
         function renderMasterTable() {
             let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+            let isStaffOrStock = loggedUser.role === 'staff' || loggedUser.role === 'stock';
+
             let actionHeader = document.getElementById('masterActionHeader');
             if(actionHeader) actionHeader.style.display = loggedUser.role === 'stock' ? 'none' : '';
 
@@ -2569,7 +2571,7 @@
                 return;
             }
 
-            if (!confirm("តើបងចង់លុបទិន្នន័យនេះមែនទេ?")) return;
+            if (!confirm("តើបងចង់លុបទិន្នន័យនេះមែនទេ? (ស្តុកនឹងត្រូវបង្វិលត្រឡប់ចូលវិញដោយស្វ័យប្រវត្ត)")) return;
             try {
                 await fetch(`${API_URL}/transactions/${id}`, { method: 'DELETE' });
                 recordUserActivity(`បានលុបទិន្នន័យប្រតិបត្តិការ (ID: ${id})`);
