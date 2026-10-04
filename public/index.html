@@ -11,7 +11,7 @@
     <!-- Google Fonts: Kantumruy Pro & Battambang -->
     <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- html2pdf for Save PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"}></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --bg-body: #f8fafc;
@@ -295,32 +295,33 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Master List Table Container (សម្រាប់ Stock Keeper - Scrollable Table down) -->
-                    <div class="col-12" id="colMasterListCardContainer" style="display: none;">
-                        <div id="masterListCard" class="card p-4 shadow-sm bg-white h-100">
-                            <h5 class="text-secondary fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
-                                <i class="bi bi-archive-fill"></i> បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)
-                            </h5>
-                            <!-- កែប្រែកម្ពស់ max-height ឱ្យវែងលាតសន្ធឹងចុះមកក្រោម (ឧ. 520px) និងមាន Scrollbar -->
-                            <div class="table-responsive shadow-sm rounded-3 border" style="max-height: 520px; overflow-y: auto;">
-                                <table class="table table-sm table-hover align-middle mb-0">
-                                    <thead class="table-light sticky-top" style="z-index: 5;">
-                                        <tr>
-                                            <th>Category</th>
-                                            <th>ឈ្មោះទំនិញ (Item)</th>
-                                            <th>ឯកតា (Unit)</th>
-                                            <th>ស្តុកសល់ (Stock)</th>
-                                            <th>តម្លៃដើម ($ Cost)</th>
-                                            <th>លក់រាយ ($ Retail)</th>
-                                            <th>លក់ដុំ ($ Wholesale)</th>
-                                            <th class="text-center admin-action-col">សកម្មភាព (Actions)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="masterTableBody"></tbody>
-                                </table>
-                            </div>
-                        </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ជួរបញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List) - បង្ហាញទូលាយទាំង Admin និង Stock Keeper ជាមួយ Scroll លាតចុះក្រោម -->
+        <div class="row g-4 mb-4" id="rowSectionMasterList">
+            <div class="col-12">
+                <div id="masterListCard" class="card p-4 shadow-sm bg-white h-100">
+                    <h5 class="text-secondary fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-archive-fill"></i> បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)
+                    </h5>
+                    <div class="table-responsive shadow-sm rounded-3 border" style="max-height: 520px; overflow-y: auto;">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead class="table-light sticky-top" style="z-index: 5;">
+                                <tr>
+                                    <th>Category</th>
+                                    <th>ឈ្មោះទំនិញ (Item)</th>
+                                    <th>ឯកតា (Unit)</th>
+                                    <th>ស្តុកសល់ (Stock)</th>
+                                    <th>តម្លៃដើម ($ Cost)</th>
+                                    <th>លក់រាយ ($ Retail)</th>
+                                    <th>លក់ដុំ ($ Wholesale)</th>
+                                    <th class="text-center admin-action-col">សកម្មភាព (Actions)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="masterTableBody"></tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -413,34 +414,9 @@
             </div>
         </div>
 
-        <!-- ជួរទី៣៖ Master List Table & Staff Accounts Form -->
+        <!-- ជួរទី៣៖ Staff Accounts Form (សម្រាប់ Admin បង្កើត User) -->
         <div class="row g-4 mb-4" id="rowSection3">
-            <div class="col-lg-8" id="colAdminMasterListContainer">
-                <div id="adminMasterListCard" class="card p-4 shadow-sm bg-white h-100">
-                    <h5 class="text-secondary fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
-                        <i class="bi bi-archive-fill"></i> បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)
-                    </h5>
-                    <div class="table-responsive shadow-sm rounded-3 border" style="max-height: 230px; overflow-y: auto;">
-                        <table class="table table-sm table-hover align-middle mb-0">
-                            <thead class="table-light sticky-top" style="z-index: 5;">
-                                <tr>
-                                    <th>Category</th>
-                                    <th>ឈ្មោះទំនិញ (Item)</th>
-                                    <th>ឯកតា (Unit)</th>
-                                    <th>ស្តុកសល់ (Stock)</th>
-                                    <th>តម្លៃដើម ($ Cost)</th>
-                                    <th>លក់រាយ ($ Retail)</th>
-                                    <th>លក់ដុំ ($ Wholesale)</th>
-                                    <th class="text-center admin-action-col">សកម្មភាព (Actions)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="masterTableBodyAdmin"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-4" id="colAdminUserCard">
+            <div class="col-lg-4 offset-lg-8" id="colAdminUserCard">
                 <div id="adminUserCard" class="card p-4 shadow-sm bg-white border-top border-primary border-4 h-100">
                     <h5 class="mb-3 text-primary fw-bold fs-6 d-flex align-items-center gap-2">
                         <i class="bi bi-person-plus-fill"></i> បង្កើតគណនីបុគ្គលិក (Staff Accounts)
@@ -879,7 +855,7 @@
     </div>
 
     <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"}></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- JavaScript -->
     <script>
@@ -1085,7 +1061,7 @@
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
                 if (userObj.role === 'stockkeeper') {
-                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Staff ប៉ុណ្ណោះ។");
+                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Staff ប៉ុណ្ណោះ。");
                     return;
                 }
             }
@@ -1125,11 +1101,10 @@
                 let colPosCartArea = document.getElementById('colPosCartArea');
                 let posCatalogCol = document.getElementById('posCatalogCol');
                 let posCartCol = document.getElementById('posCartCol');
-                let colMasterListCardContainer = document.getElementById('colMasterListCardContainer');
+                let rowSectionMasterList = document.getElementById('rowSectionMasterList');
                 
                 let rowSectionSalesHistory = document.getElementById('rowSectionSalesHistory');
                 let colRestockCard = document.getElementById('colRestockCard');
-                let colAdminMasterListContainer = document.getElementById('colAdminMasterListContainer');
                 let colExpenseCard = document.getElementById('colExpenseCard');
                 let colAdminUserCard = document.getElementById('colAdminUserCard');
 
@@ -1140,13 +1115,12 @@
                     posCatalogCol.className = "col-lg-6";
                     posCartCol.style.display = 'block';
                     posCartCol.className = "col-lg-6";
-                    colMasterListCardContainer.style.display = 'none';
+                    rowSectionMasterList.style.display = 'none';
 
                     rowSectionSalesHistory.style.display = 'block';
                     document.getElementById('incomeCard').style.display = 'block';
 
                     colRestockCard.style.display = 'none';
-                    colAdminMasterListContainer.style.display = 'none';
                     colExpenseCard.className = "col-lg-12";
                     colExpenseCard.style.display = 'none';
                     colAdminUserCard.style.display = 'none';
@@ -1157,7 +1131,7 @@
                     document.getElementById('adminSummaryCards').style.display = 'none';
 
                 } else if (userObj.role === 'stockkeeper') {
-                    // 🎯 កំណត់បង្ហាញសម្រាប់ Role STOCKKEEPER ឱ្យបង្ហាញបញ្ជីស្តុក (Master & Stock List) ជាមួយ Scrollable ลงមកក្រោម
+                    // 🎯 Stock Keeper Layout: បង្ហាញ Form បង្កើតទំនិញ និងបង្ហាញ Master List ខាងក្រោមលាតសន្ធឹងยาวចុះមកក្រោម
                     colMasterForm.style.display = 'block';
                     colMasterForm.className = "col-lg-4";
 
@@ -1166,15 +1140,12 @@
                     posCatalogCol.style.display = 'none';
                     posCartCol.style.display = 'none';
                     
-                    colMasterListCardContainer.style.display = 'block';
-                    colMasterListCardContainer.className = "col-12";
+                    rowSectionMasterList.style.display = 'block';
 
                     rowSectionSalesHistory.style.display = 'none';
 
                     colRestockCard.style.display = 'block';
                     colRestockCard.className = "col-lg-4";
-
-                    colAdminMasterListContainer.style.display = 'none';
 
                     colExpenseCard.style.display = 'block';
                     colExpenseCard.className = "col-lg-8";
@@ -1187,7 +1158,7 @@
                     document.getElementById('adminSummaryCards').style.display = 'none';
 
                 } else {
-                    // Admin Layout Setup
+                    // Admin Layout Setup: បង្ហាញគ្រប់មុខងារទាំងអស់ រួមទាំង Master List វែងចុះក្រោម
                     colMasterForm.style.display = 'block';
                     colMasterForm.className = "col-lg-4";
 
@@ -1197,16 +1168,13 @@
                     posCatalogCol.className = "col-lg-6";
                     posCartCol.style.display = 'block';
                     posCartCol.className = "col-lg-6";
-                    colMasterListCardContainer.style.display = 'none';
+                    rowSectionMasterList.style.display = 'block';
 
                     rowSectionSalesHistory.style.display = 'block';
                     document.getElementById('incomeCard').style.display = 'block';
 
                     colRestockCard.style.display = 'block';
                     colRestockCard.className = "col-lg-4";
-
-                    colAdminMasterListContainer.style.display = 'block';
-                    colAdminMasterListContainer.className = "col-lg-8";
 
                     colExpenseCard.style.display = 'block';
                     colExpenseCard.className = "col-lg-8";
@@ -2015,38 +1983,35 @@
             let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
             let isStaff = loggedUser.role === 'staff';
 
-            let tbodyList = ['masterTableBody', 'masterTableBodyAdmin'];
+            let tbody = document.getElementById('masterTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
             
-            tbodyList.forEach(tbodyId => {
-                let tbody = document.getElementById(tbodyId);
-                if(!tbody) return;
-                tbody.innerHTML = '';
-                if (masterItemsList.length > 0) {
-                    masterItemsList.forEach(m => {
-                        let unitLabel = m.unit ? m.unit : 'ដុំ';
-                        let tr = document.createElement('tr');
-                        let actionTd = isStaff ? '' : `
-                            <td class="text-center">
-                                <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditMaster('${m.id}', '${m.category.replace(/'/g, "\\'")}', '${m.item_name.replace(/'/g, "\\'")}', '${m.unit || 'ដុំ'}', ${m.stock_quantity || 0}, ${m.cost_price || 0}, ${m.retail_price || 0}, ${m.wholesale_price || 0})">កែ</button>
-                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteMasterItem('${m.id}', '${m.item_name.replace(/'/g, "\\'")}')">លុប</button>
-                            </td>`;
-                        
-                        tr.innerHTML = `
-                            <td>${m.category}</td>
-                            <td class="fw-bold">${m.item_name}</td>
-                            <td><span class="badge bg-secondary">${unitLabel}</span></td>
-                            <td><span class="badge bg-primary">${m.stock_quantity || 0}</span></td>
-                            <td>$${parseFloat(m.cost_price || 0).toFixed(2)}</td>
-                            <td class="text-success fw-bold">$${parseFloat(m.retail_price || 0).toFixed(2)}</td>
-                            <td class="text-primary fw-bold">$${parseFloat(m.wholesale_price || 0).toFixed(2)}</td>
-                            ${actionTd}
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                } else {
-                    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3">មិនទាន់មានទំនិញក្នុងស្តុកទេ</td></tr>`;
-                }
-            });
+            if (masterItemsList.length > 0) {
+                masterItemsList.forEach(m => {
+                    let unitLabel = m.unit ? m.unit : 'ដុំ';
+                    let tr = document.createElement('tr');
+                    let actionTd = isStaff ? '' : `
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditMaster('${m.id}', '${m.category.replace(/'/g, "\\'")}', '${m.item_name.replace(/'/g, "\\'")}', '${m.unit || 'ដុំ'}', ${m.stock_quantity || 0}, ${m.cost_price || 0}, ${m.retail_price || 0}, ${m.wholesale_price || 0})">កែ</button>
+                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteMasterItem('${m.id}', '${m.item_name.replace(/'/g, "\\'")}')">លុប</button>
+                        </td>`;
+                    
+                    tr.innerHTML = `
+                        <td>${m.category}</td>
+                        <td class="fw-bold">${m.item_name}</td>
+                        <td><span class="badge bg-secondary">${unitLabel}</span></td>
+                        <td><span class="badge bg-primary">${m.stock_quantity || 0}</span></td>
+                        <td>$${parseFloat(m.cost_price || 0).toFixed(2)}</td>
+                        <td class="text-success fw-bold">$${parseFloat(m.retail_price || 0).toFixed(2)}</td>
+                        <td class="text-primary fw-bold">$${parseFloat(m.wholesale_price || 0).toFixed(2)}</td>
+                        ${actionTd}
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3">មិនទាន់មានទំនិញក្នុងស្តុកទេ</td></tr>`;
+            }
         }
 
         function getBase64(file) {
