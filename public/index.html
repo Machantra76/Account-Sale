@@ -128,6 +128,9 @@
                 </div>
             </div>
             <div class="d-flex align-items-center flex-wrap gap-2">
+                <button id="adminActivityLogBtn" onclick="openActivityLogModal()" class="btn btn-outline-primary btn-sm px-3 shadow-sm fw-semibold">
+                    <i class="bi bi-clock-history me-1"></i> សកម្មភាព និងម៉ោងចូល (Activity Logs)
+                </button>
                 <button id="adminInvoiceHistoryBtn" onclick="openInvoiceHistoryModal()" class="btn btn-outline-secondary btn-sm px-3 shadow-sm fw-semibold">
                     <i class="bi bi-receipt me-1"></i> ប្រវត្តិវិក្កយបត្រ (Invoices)
                 </button>
@@ -322,7 +325,7 @@
             </div>
         </div>
 
-        <!-- ជួរទី១.១៖ ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History) បន្ថែម mt-5 ឱ្យធ្លាក់ចុះក្រោមបន្តិច -->
+        <!-- ជួរទី១.១៖ ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History) -->
         <div class="row g-4 mb-4 mt-5" id="rowSectionSalesHistory">
             <div class="col-lg-12">
                 <div id="incomeCard" class="card p-4 shadow-sm bg-white border-start border-success border-4">
@@ -464,6 +467,39 @@
                         </div>
                         <button type="submit" class="btn btn-outline-primary btn-sm w-100 shadow-sm py-2">បង្កើតគណនីថ្មី (Create User)</button>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTIVITY LOG MODAL -->
+    <div class="modal fade" id="activityLogModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold">🕒 កំណត់ហេតុសកម្មភាព និងម៉ោងចូល-ចេញ (Activity Logs & Shift History)</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-muted small">បញ្ជីឈ្មោះបុគ្គលិក ម៉ោងចូល (Login) ម៉ោងចេញ (Logout) និងសកម្មភាពផ្សេងៗក្នុងប្រព័ន្ធ។</p>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle mb-0"[cite: 5]>
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>កាលបរិច្ឆេទ និងម៉ោង (Timestamp)</th>
+                                    <th>ឈ្មោះបុគ្គលិក (Staff Name)</th>
+                                    <th>Username</th>
+                                    <th>តួនាទី (Role)</th>
+                                    <th>សកម្មភាព (Activity / Status)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activityLogTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">បិទ (Close)</button>
                 </div>
             </div>
         </div>
@@ -824,6 +860,7 @@
         let invoiceHistoryModal;
         let editInvoiceModal;
         let editTransactionModal;
+        let activityLogModal;
 
         let defaultUsers = [
             { username: "admin", password: "123", name: "អុចឃី (Admin)", role: "admin" },
@@ -849,13 +886,73 @@
             invoiceHistoryModal = new bootstrap.Modal(document.getElementById('invoiceHistoryModal'));
             editInvoiceModal = new bootstrap.Modal(document.getElementById('editInvoiceModal'));
             editTransactionModal = new bootstrap.Modal(document.getElementById('editTransactionModal'));
+            activityLogModal = new bootstrap.Modal(document.getElementById('activityLogModal'));
             checkLoginState();
         });
 
         function hardResetApp() {
             sessionStorage.removeItem("loggedUserObj");
             localStorage.removeItem("appUsers");
+            localStorage.removeItem("appActivityLogs");
             location.reload();
+        }
+
+        function logActivity(userObj, actionText) {
+            let logs = [];
+            let storedLogs = localStorage.getItem("appActivityLogs");
+            if (storedLogs) {
+                try { logs = JSON.parse(storedLogs); } catch(e) { logs = []; }
+            }
+            logs.push({
+                date: new Date().toISOString(),
+                name: userObj.name,
+                username: userObj.username,
+                role: userObj.role.toUpperCase(),
+                action: actionText
+            });
+            localStorage.setItem("appActivityLogs", JSON.stringify(logs));
+        }
+
+        function openActivityLogModal() {
+            let loggedUserStr = sessionStorage.getItem("loggedUserObj");
+            if (loggedUserStr) {
+                let userObj = JSON.parse(loggedUserStr);
+                if (userObj.role === 'staff' || userObj.role === 'stockkeeper') {
+                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin ប៉ុណ្ណោះ。");
+                    return;
+                }
+            }
+            renderActivityLogTable();
+            activityLogModal.show();
+        }
+
+        function renderActivityLogTable() {
+            let tbody = document.getElementById('activityLogTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            let logs = [];
+            let storedLogs = localStorage.getItem("appActivityLogs");
+            if (storedLogs) {
+                try { logs = JSON.parse(storedLogs); } catch(e) { logs = []; }
+            }
+
+            if (logs.length > 0) {
+                let sortedLogs = [...logs].reverse();
+                sortedLogs.forEach(log => {
+                    let badgeColor = log.action.includes('ចូលប្រព័ន្ធ') ? 'bg-success' : (log.action.includes('ចេញពីប្រព័ន្ធ') ? 'bg-danger' : 'bg-primary');
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${new Date(log.date).toLocaleString()}</td>
+                        <td class="fw-bold">${log.name}</td>
+                        <td><code>${log.username}</code></td>
+                        <td><span class="badge bg-secondary">${log.role}</span></td>
+                        <td><span class="badge ${badgeColor}">${log.action}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">មិនទាន់មានកំណត់ហេតុសកម្មភាពទេ</td></tr>`;
+            }
         }
 
         function openReportModal() {
@@ -943,6 +1040,7 @@
                     colAdminUserCard.style.display = 'none';
 
                     document.getElementById('adminReportBtn').style.display = 'none';
+                    document.getElementById('adminActivityLogBtn').style.display = 'none';
                     document.getElementById('adminInvoiceHistoryBtn').style.display = 'inline-block';
                     document.getElementById('adminSummaryCards').style.display = 'none';
 
@@ -971,6 +1069,7 @@
                     colAdminUserCard.style.display = 'none';
 
                     document.getElementById('adminReportBtn').style.display = 'none';
+                    document.getElementById('adminActivityLogBtn').style.display = 'none';
                     document.getElementById('adminInvoiceHistoryBtn').style.display = 'none';
                     document.getElementById('adminSummaryCards').style.display = 'none';
 
@@ -1003,6 +1102,7 @@
                     colAdminUserCard.className = "col-lg-4";
 
                     document.getElementById('adminReportBtn').style.display = 'inline-block';
+                    document.getElementById('adminActivityLogBtn').style.display = 'inline-block';
                     document.getElementById('adminInvoiceHistoryBtn').style.display = 'inline-block';
                     document.getElementById('adminSummaryCards').style.display = 'flex';
                 }
@@ -1023,6 +1123,7 @@
             let found = users.find(user => user.username === u && user.password === p);
             if (found) {
                 sessionStorage.setItem("loggedUserObj", JSON.stringify(found));
+                logActivity(found, "ចូលប្រព័ន្ធ (Login)");
                 checkLoginState();
             } else {
                 alert("❌ ឈ្មោះអ្នកប្រើប្រាស់ ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវទេ!");
@@ -1030,6 +1131,11 @@
         });
 
         function logout() {
+            let loggedUserStr = sessionStorage.getItem("loggedUserObj");
+            if (loggedUserStr) {
+                let userObj = JSON.parse(loggedUserStr);
+                logActivity(userObj, "ចេញពីប្រព័ន្ធ (Logout)");
+            }
             sessionStorage.removeItem("loggedUserObj");
             checkLoginState();
         }
@@ -1049,6 +1155,12 @@
 
             users.push({ name, username, password, role });
             localStorage.setItem("appUsers", JSON.stringify(users));
+
+            let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+            if(loggedUser.username) {
+                logActivity(loggedUser, `បង្កើតគណនីបុគ្គលិកថ្មី: ${name} (${role})`);
+            }
+
             alert(`✅ បានបង្កើតគណនីសម្រាប់ "${name}" (${role}) ដោយជោគជ័យ!`);
             document.getElementById('createUserForm').reset();
         });
@@ -1424,6 +1536,12 @@
             allInvoicesList.push(invoiceObj);
             saveInvoicesToLocalStorage();
 
+            let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+            if(loggedUser.username) {
+                let totalAmt = currentCart.reduce((sum, i) => sum + (i.quantity * i.unit_price), 0);
+                logActivity(loggedUser, `លក់ទំនិញ (Invoice: ${invoiceId} - សរុប: $${totalAmt.toFixed(2)})`);
+            }
+
             printCartInvoice(currentCart, invoiceId);
             currentCart = [];
             renderCartTable();
@@ -1535,6 +1653,11 @@
             
             allInvoicesList = allInvoicesList.filter(i => i.id !== invId);
             saveInvoicesToLocalStorage();
+
+            let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+            if(loggedUser.username) {
+                logActivity(loggedUser, `លុបវិក្កយបត្រលក់: ${invId}`);
+            }
             
             renderInvoiceHistoryTable();
             loadAppData();
@@ -1700,6 +1823,11 @@
             allInvoicesList[oldInvoiceIndex] = currentEditingInvoice;
             saveInvoicesToLocalStorage();
 
+            let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+            if(loggedUser.username) {
+                logActivity(loggedUser, `កែសម្រួលវិក្កយបត្រលក់: ${invId}`);
+            }
+
             alert(`✅ បានរក្សាទុកការកែប្រែវិក្កយបត្រ ${invId} និងបានធ្វើបច្ចុប្បន្នភាពស្តុកក្នុងឃ្លាំងដោយជោគជ័យ!`);
             editInvoiceModal.hide();
             loadAppData();
@@ -1736,6 +1864,7 @@
             e.preventDefault();
             let selectedId = document.getElementById('restockSelectItem').value;
             let foundItem = masterItemsList.find(i => i.id == selectedId);
+            let restockQty = parseInt(document.getElementById('restockQty').value);
             if (!foundItem) return;
 
             let data = {
@@ -1743,9 +1872,9 @@
                 item_id: foundItem.id,
                 category: foundItem.category,
                 item_name: foundItem.item_name,
-                quantity: parseInt(document.getElementById('restockQty').value),
+                quantity: restockQty,
                 unit_price: parseFloat(document.getElementById('restockPrice').value),
-                amount: parseInt(document.getElementById('restockQty').value) * parseFloat(document.getElementById('restockPrice').value)
+                amount: restockQty * parseFloat(document.getElementById('restockPrice').value)
             };
 
             try {
@@ -1756,6 +1885,11 @@
                 });
                 let result = await res.json();
                 if (result.success) {
+                    let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+                    if(loggedUser.username) {
+                        logActivity(loggedUser, `ទិញស្តុកចូលបន្ថែម: ${foundItem.item_name} (${restockQty} ${foundItem.unit || 'ដុំ'})`);
+                    }
+
                     document.getElementById('restockForm').reset();
                     loadAppData();
                 }
@@ -1781,7 +1915,7 @@
                         let actionTd = isStaff ? '' : `
                             <td class="text-center">
                                 <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditMaster('${m.id}', '${m.category.replace(/'/g, "\\'")}', '${m.item_name.replace(/'/g, "\\'")}', '${m.unit || 'ដុំ'}', ${m.stock_quantity || 0}, ${m.cost_price || 0}, ${m.retail_price || 0}, ${m.wholesale_price || 0})">កែ</button>
-                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteMasterItem('${m.id}')">លុប</button>
+                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteMasterItem('${m.id}', '${m.item_name.replace(/'/g, "\\'")}')">លុប</button>
                             </td>`;
                         
                         tr.innerHTML = `
@@ -1823,10 +1957,11 @@
                 }
             }
 
+            let itemName = document.getElementById('masterItemName').value.trim();
             let data = {
                 type: 'EXPENSE',
                 category: document.getElementById('masterCategory').value.trim(),
-                item_name: document.getElementById('masterItemName').value.trim(),
+                item_name: itemName,
                 image_url: imageUrl,
                 unit: document.getElementById('masterUnit').value,
                 stock_quantity: parseInt(document.getElementById('masterStock').value) || 0,
@@ -1844,6 +1979,11 @@
                 });
                 let result = await res.json();
                 if (result.success) {
+                    let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+                    if(loggedUser.username) {
+                        logActivity(loggedUser, `បង្កើតទំនិញថ្មី (Master): ${itemName}`);
+                    }
+
                     document.getElementById('masterForm').reset();
                     fetchMasterItems();
                 }
@@ -1879,9 +2019,10 @@
                 }
             }
 
+            let itemName = document.getElementById('editMasterItemName').value.trim();
             let data = {
                 category: document.getElementById('editMasterCategory').value.trim(),
-                item_name: document.getElementById('editMasterItemName').value.trim(),
+                item_name: itemName,
                 image_url: imageUrl,
                 unit: document.getElementById('editMasterUnit').value,
                 stock_quantity: parseInt(document.getElementById('editMasterStock').value) || 0,
@@ -1898,6 +2039,11 @@
                 });
                 let result = await res.json();
                 if (result.success) {
+                    let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+                    if(loggedUser.username) {
+                        logActivity(loggedUser, `កែសម្រួលទំនិញស្តុក: ${itemName}`);
+                    }
+
                     editMasterModal.hide();
                     loadAppData();
                 }
@@ -1906,10 +2052,14 @@
             }
         });
 
-        async function deleteMasterItem(id) {
-            if (!confirm("តើបងចង់លុបទំនិញនេះពី Master List មែនទេ?")) return;
+        async function deleteMasterItem(id, itemName) {
+            if (!confirm(`តើបងចង់លុបទំនិញ "${itemName}" ពី Master List មែនទេ?`)) return;
             try {
                 await fetch(`${API_URL}/master-items/${id}`, { method: 'DELETE' });
+                let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+                if(loggedUser.username) {
+                    logActivity(loggedUser, `លុបទំនិញពី Master List: ${itemName}`);
+                }
                 fetchMasterItems();
             } catch (err) {
                 console.error("Error deleting master item:", err);
@@ -2084,9 +2234,10 @@
         document.getElementById('editTransactionForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             let id = document.getElementById('editTxId').value;
+            let itemName = document.getElementById('editTxItemName').value.trim();
             let data = {
                 category: document.getElementById('editTxCategory').value.trim(),
-                item_name: document.getElementById('editTxItemName').value.trim(),
+                item_name: itemName,
                 quantity: parseInt(document.getElementById('editTxQuantity').value) || 1,
                 unit_price: parseFloat(document.getElementById('editTxUnitPrice').value) || 0,
                 amount: (parseInt(document.getElementById('editTxQuantity').value) || 1) * (parseFloat(document.getElementById('editTxUnitPrice').value) || 0)
@@ -2100,6 +2251,11 @@
                 });
                 let result = await res.json();
                 if (result.success) {
+                    let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+                    if(loggedUser.username) {
+                        logActivity(loggedUser, `កែសម្រួលប្រវត្តិប្រតិបត្តិការ: ${itemName}`);
+                    }
+
                     editTransactionModal.hide();
                     loadAppData();
                 } else {
@@ -2352,6 +2508,10 @@
             if (!confirm("តើបងចង់លុបទិន្នន័យនេះមែនទេ? (ស្តុកនឹងត្រូវបង្វិលត្រឡប់ចូលវិញដោយស្វ័យប្រវត្ត)")) return;
             try {
                 await fetch(`${API_URL}/transactions/${id}`, { method: 'DELETE' });
+                let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+                if(loggedUser.username) {
+                    logActivity(loggedUser, `លុបទិន្នន័យ Transaction ID: ${id}`);
+                }
                 loadAppData();
             } catch (err) {
                 console.error("Error deleting transaction:", err);
