@@ -232,6 +232,7 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
         const price = parseFloat(unit_price) || 0;
         const totalAmount = qty * price;
 
+        // Revert old stock impact
         if (oldTx.item_id) {
             if (oldTx.type === 'INCOME') {
                 await client.query(`UPDATE master_items SET stock_quantity = stock_quantity + $1 WHERE id = $2`, [oldTx.quantity, oldTx.item_id]);
@@ -240,6 +241,7 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
             }
         }
 
+        // Apply new stock impact
         if (oldTx.item_id) {
             if (oldTx.type === 'INCOME') {
                 await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [qty, oldTx.item_id]);
@@ -269,7 +271,7 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
 app.get('/api/accounting/summary', async (req, res) => {
     try {
         let txResult = await pool.query("SELECT * FROM transactions WHERE type = 'INCOME'");
-        let masterResult = was = await pool.query("SELECT * FROM master_items");
+        let masterResult = await pool.query("SELECT * FROM master_items");
         
         let totalIncome = 0;
         let totalProfit = 0;
