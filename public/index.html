@@ -173,7 +173,7 @@
         </div>
 
         <div class="row g-4">
-            <!-- LEFT COLUMN (Admin / Stock Staff Forms) -->
+            <!-- LEFT COLUMN (Forms) -->
             <div class="col-lg-4 d-flex flex-column gap-4" id="adminFormsColumn">
                 <!-- Master Item Form -->
                 <div id="adminMasterCard" class="card p-4 shadow-sm bg-white d-flex flex-column" style="height: 620px;">
@@ -1054,30 +1054,42 @@
                 let adminFormsColumn = document.getElementById('adminFormsColumn');
                 let mainTablesColumn = document.getElementById('mainTablesColumn');
 
-                // កំណត់សិទ្ធិលាក់ទាំងស្រុងតាម Role នីមួយៗ
+                let adminMasterCard = document.getElementById('adminMasterCard');
+                let restockCard = document.getElementById('restockCard');
+                let adminUserCard = document.getElementById('adminUserCard');
+                let masterListCard = document.getElementById('masterListCard');
+                let incomeCard = document.getElementById('incomeCard');
+                let expenseCard = document.getElementById('expenseCard');
+                let posAndCartRow = document.getElementById('posAndCartRow');
+
                 if (userObj.role === 'staff') {
+                    // STAFF: បិត/លាក់ Master Items, Restock, Staff Accounts, Master & Stock List ទាំងស្រុង
                     adminFormsColumn.style.display = 'none';
                     mainTablesColumn.className = "col-lg-12 d-flex flex-column gap-4";
 
-                    document.getElementById('posAndCartRow').style.display = 'flex';
+                    posAndCartRow.style.display = 'flex';
+                    masterListCard.style.display = 'none';
+                    incomeCard.style.display = 'none';
+                    expenseCard.style.display = 'none';
+
                     document.getElementById('adminReportBtn').style.display = 'none';
                     document.getElementById('adminActivityBtn').style.display = 'none';
                     document.getElementById('shiftReportBtn').style.display = 'inline-block';
                     document.getElementById('adminInvoiceHistoryBtn').style.display = 'inline-block';
                     document.getElementById('adminSummaryCards').style.display = 'none';
-                    
-                    document.getElementById('masterListCard').style.display = 'none';
-                    document.getElementById('incomeCard').style.display = 'none';
-                    document.getElementById('expenseCard').style.display = 'none';
 
                 } else if (userObj.role === 'stock') {
+                    // STOCK: បិទ Staff Accounts ប៉ុន្តែបើក Master Items, Restock, Master & Stock List
                     adminFormsColumn.style.display = 'flex';
-                    document.getElementById('adminMasterCard').style.display = 'flex';
-                    document.getElementById('restockCard').style.display = 'flex';
-                    document.getElementById('adminUserCard').style.display = 'none'; // បិទ Staff Accounts
+                    adminMasterCard.style.display = 'flex';
+                    restockCard.style.display = 'flex';
+                    adminUserCard.style.display = 'none'; // បិត Staff Accounts
 
                     mainTablesColumn.className = "col-lg-8 d-flex flex-column gap-4";
-                    document.getElementById('posAndCartRow').style.display = 'none';
+                    posAndCartRow.style.display = 'none';
+                    masterListCard.style.display = 'flex';
+                    incomeCard.style.display = 'flex';
+                    expenseCard.style.display = 'flex';
 
                     document.getElementById('adminReportBtn').style.display = 'none';
                     document.getElementById('adminActivityBtn').style.display = 'none';
@@ -1085,28 +1097,24 @@
                     document.getElementById('adminInvoiceHistoryBtn').style.display = 'inline-block';
                     document.getElementById('adminSummaryCards').style.display = 'none';
 
-                    document.getElementById('masterListCard').style.display = 'flex';
-                    document.getElementById('incomeCard').style.display = 'flex';
-                    document.getElementById('expenseCard').style.display = 'flex';
-
                 } else {
+                    // ADMIN: បើកបង្ហាញទាំងអស់
                     adminFormsColumn.style.display = 'flex';
-                    document.getElementById('adminMasterCard').style.display = 'flex';
-                    document.getElementById('restockCard').style.display = 'flex';
-                    document.getElementById('adminUserCard').style.display = 'flex';
+                    adminMasterCard.style.display = 'flex';
+                    restockCard.style.display = 'flex';
+                    adminUserCard.style.display = 'flex';
 
                     mainTablesColumn.className = "col-lg-8 d-flex flex-column gap-4";
-                    document.getElementById('posAndCartRow').style.display = 'flex';
+                    posAndCartRow.style.display = 'flex';
+                    masterListCard.style.display = 'flex';
+                    incomeCard.style.display = 'flex';
+                    expenseCard.style.display = 'flex';
 
                     document.getElementById('adminReportBtn').style.display = 'inline-block';
                     document.getElementById('adminActivityBtn').style.display = 'inline-block';
                     document.getElementById('shiftReportBtn').style.display = 'none';
                     document.getElementById('adminInvoiceHistoryBtn').style.display = 'inline-block';
                     document.getElementById('adminSummaryCards').style.display = 'flex';
-
-                    document.getElementById('masterListCard').style.display = 'flex';
-                    document.getElementById('incomeCard').style.display = 'flex';
-                    document.getElementById('expenseCard').style.display = 'flex';
                 }
 
                 loadAppData();
