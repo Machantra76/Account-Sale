@@ -1883,7 +1883,6 @@
                 let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
                 let isStaff = loggedUser.role === 'staff';
 
-                // 🟢 បែងចែកសិទ្ធិ៖ Staff ឃើញតែវិក្កយបត្រខ្លួនឯង Admin ឃើញទាំងអស់
                 let visibleInvs = allInvoicesList;
                 if (isStaff) {
                     visibleInvs = allInvoicesList.filter(inv => inv.created_by === loggedUser.username);
@@ -2231,10 +2230,10 @@
                 if(incomeTbody) incomeTbody.innerHTML = '';
                 if(expenseTbody) expenseTbody.innerHTML = '';
 
-                // 🟢 បែងចែកប្រវត្តិការលក់៖ Staff ឃើញតែរបស់ខ្លួន Admin ឃើញទាំងអស់
+                // 🟢 កែសម្រួលការទាញយកវិក្កយបត្រ៖ បើជា Staff គឺទាញយក invoice ណាដែល created_by ត្រូវនឹង username គាត់ ឬ គ្មាន created_by
                 let relevantInvoices = allInvoicesList;
                 if (isStaff) {
-                    relevantInvoices = allInvoicesList.filter(inv => inv.created_by === loggedUser.username);
+                    relevantInvoices = allInvoicesList.filter(inv => inv.created_by === loggedUser.username || !inv.created_by);
                 }
 
                 let groupedInvoicesSales = {};
@@ -2242,7 +2241,8 @@
                     relevantInvoices.forEach(inv => {
                         if (inv.items && Array.isArray(inv.items)) {
                             inv.items.forEach(item => {
-                                let key = (item.item_name || "").trim() + "_" + (item.category || "").trim() + "_" + (inv.created_by || "admin");
+                                let creator = inv.created_by || (isStaff ? loggedUser.username : "admin");
+                                let key = (item.item_name || "").trim() + "_" + (item.category || "").trim() + "_" + creator;
                                 let qty = parseInt(item.quantity) || 0;
                                 let price = parseFloat(item.unit_price) || 0;
                                 let totalAmt = qty * price;
@@ -2250,7 +2250,7 @@
                                 if (!groupedInvoicesSales[key]) {
                                     groupedInvoicesSales[key] = {
                                         invoice_id: inv.id,
-                                        created_by: inv.created_by || "admin",
+                                        created_by: creator,
                                         category: item.category || "ទំនិញទូទៅ",
                                         item_name: item.item_name || "មិនស្គាល់ឈ្មោះ",
                                         quantity: 0,
