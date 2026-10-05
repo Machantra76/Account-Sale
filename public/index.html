@@ -137,7 +137,6 @@
                 <button id="adminInvoiceHistoryBtn" onclick="openInvoiceHistoryModal()" class="btn btn-outline-secondary btn-sm px-3 shadow-sm fw-semibold">
                     <i class="bi bi-receipt me-1"></i> ប្រវត្តិវិក្កយបត្រ
                 </button>
-                <!-- 🟢 ប៊ូតុងបើកមើលរបាយការណ៍អ្នកជំពាក់ -->
                 <button onclick="openDebtReportModal()" class="btn btn-outline-warning btn-sm px-3 shadow-sm fw-semibold text-dark">
                     <i class="bi bi-journal-text me-1"></i> របាយការណ៍អតិថិជនជំពាក់
                 </button>
@@ -664,7 +663,7 @@
         </div>
     </div>
 
-    <!-- 🟢 DEBT REPORT MODAL (របាយការណ៍អតិថិជនជំពាក់) -->
+    <!-- DEBT REPORT MODAL -->
     <div class="modal fade" id="debtReportModal" tabindex="-1">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content border-0 shadow-lg rounded-4">
@@ -698,7 +697,7 @@
         </div>
     </div>
 
-    <!-- 🟢 PAY DEBT MODAL (បង់ប្រាក់សងជំពាក់) -->
+    <!-- PAY DEBT MODAL -->
     <div class="modal fade" id="payDebtModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content border-0 shadow-lg rounded-4">
@@ -1132,7 +1131,7 @@
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
                 if (userObj.role === 'stockkeeper') {
-                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Staff ប៉ុណ្ណោះ。");
+                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Staff ប៉ុណ្ណោះ។");
                     return;
                 }
             }
@@ -1141,7 +1140,6 @@
             invoiceHistoryModal.show();
         }
 
-        // 🟢 មុខងារបើកមើលរបាយការណ៍ជំពាក់ (Debts Report)
         async function openDebtReportModal() {
             await renderDebtTable();
             debtReportModal.show();
@@ -1153,7 +1151,7 @@
             tbody.innerHTML = '';
 
             try {
-                let res = await fetch(`${API_BASE}/api/accounting/debts?debt_type=RECEIVABLE`);
+                let res = await fetch(`${API_URL}/debts?debt_type=RECEIVABLE`);
                 let result = await res.json();
 
                 if (result.success && result.data.length > 0) {
@@ -1216,7 +1214,7 @@
             }
 
             try {
-                let res = await fetch(`${API_BASE}/api/accounting/debts/${debtId}/pay`, {
+                let res = await fetch(`${API_URL}/debts/${debtId}/pay`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ paid_amount: payAmount, note: note })
@@ -2050,7 +2048,8 @@
                     due_date: null
                 };
 
-                let debtRes = await fetch(`${API_BASE}/api/accounting/debts`, {
+                // 🟢 បានកែសម្រួល URL ទីនេះឱ្យត្រឹមត្រូវទៅតាម API_URL របស់ Server
+                let debtRes = await fetch(`${API_URL}/debts`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(debtData)
