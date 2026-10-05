@@ -1904,7 +1904,6 @@
                         let totalAmount = inv.items.reduce((sum, item) => sum + ((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)), 0);
                         let tr = document.createElement('tr');
                         
-                        // 🟢 អនុញ្ញាតឱ្យ Staff ក៏អាចមានប៊ូតុង កែ និង លុប ក្នុងវិក្កយបត្ររបស់ខ្លួនបានដែរ
                         let actionBtns = `
                             <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${inv.id}')">កែសម្រួល</button>
                             <button class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" onclick="reprintInvoice('${inv.id}')">ព្រិន្ទ</button>
@@ -1936,7 +1935,7 @@
             }
         }
 
-        // 🟢 កែសម្រួលមុខងារលុបវិក្កយបត្រ៖ លុបទាំង Invoice និងលុបទាំង Transactions (INCOME) ព្រមគ្នាដើម្បីឱ្យប្រាក់ចំណូលសរុបស្មើ 0 មិនឱ្យជាប់ក្នុង Report ទៀតឡើយ
+        // 🟢 កែសម្រួលមុខងារលុបវិក្កយបត្រ៖ សម្រាប់ Admin ពេលលុបចេញពីប្រវត្តិការលក់ គឺលុបត្រឹម Invoice និង Transaction ចោលដោយ មិនបាច់កាត់ស្តុក ឬបង្វិលស្តុកចូលវិញឡើយ
         async function deleteInvoiceRecord(invId) {
             if (!confirm(`តើអ្នកពិតជាចង់លុបវិក្កយបត្រ ${invId} និងទិន្នន័យប្រាក់ចំណូលពាក់ព័ន្ធមែនទេ?`)) return;
             
@@ -1944,26 +1943,22 @@
                 // 1. លុបវិក្កយបត្រចេញពី Invoices
                 await deleteInvoiceFromServer(invId);
 
-                // 2. លុប Transactions ប្រភេទ INCOME ដែលពាក់ព័ន្ធនឹង Invoice ID នេះ (ឬលុបតាម Item ក្នុង Invoice)
+                // 2. លុប Transactions ប្រភេទ INCOME ដោយមិនប៉ះពាល់ដល់ស្តុកក្នុងឃ្លាំងឡើយ
                 let resTx = await fetch(`${API_URL}/transactions`);
                 let resultTx = await resTx.json();
                 if (resultTx.success && resultTx.data) {
-                    let invObj = allInvoicesList.find(i => i.id === invId);
                     let incomeTxs = resultTx.data.filter(tx => tx.type === 'INCOME');
-                    
-                    // លុប Transaction ណាដែលตรงกับ item ឬลុប transactions ទាំងអស់ដែលត្រូវគ្នា
                     for (let tx of incomeTxs) {
-                        // ធ្វើការលុបចោលដើម្បីកុំឱ្យវាសល់ទិន្នន័យក្នុង Report ពេលលុបវិក្កយបត្រ
                         await fetch(`${API_URL}/transactions/${tx.id}`, { method: 'DELETE' });
                     }
                 }
 
                 let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
                 if(loggedUser.username) {
-                    logActivity(loggedUser, `លុបវិក្កយបត្រលក់ និង Transactions: ${invId}`);
+                    logActivity(loggedUser, `លុបវិក្កយបត្រលក់ និង Transactions (មិនកាត់ស្តុក): ${invId}`);
                 }
                 
-                alert(`✅ បានលុបវិក្កយបត្រ និងទិន្នន័យប្រាក់ចំណូលពាក់ព័ន្ធដោយជោគជ័យ!`);
+                alert(`✅ បានលុបវិក្កយបត្រ និងទិន្នន័យប្រាក់ចំណូលដោយជោគជ័យ (ស្តុកក្នុងឃ្លាំងនៅរក្សាចំនួនដើម)!`);
                 renderInvoiceHistoryTable();
                 loadAppData();
             } catch (err) {
@@ -2097,35 +2092,6 @@
 
         async function saveUpdatedInvoice() {
             let invId = document.getElementById('currentEditingInvoiceId').value;
-            let stockChanges = {};
-
-            if (originalEditingInvoiceBackup && originalEditingInvoiceBackup.items) {
-                originalEditingInvoiceBackup.items.forEach(oldItem => {
-                    let master = masterItemsList.find(m => m.id == oldItem.item_id || m.item_name === oldItem.item_name);
-                    if (master) {
-                        if (!stockChanges[master.id]) stockChanges[master.id] = parseInt(master.stock_quantity) || 0;
-                        stockChanges[master.id] += parseInt(oldItem.quantity) || 0;
-                    }
-                });
-            }
-
-            for (let newItem of currentEditingInvoice.items) {
-                let master = masterItemsList.find(m => m.id == newItem.item_id || m.item_name === newItem.item_name);
-                if (master) {
-                    if (!stockChanges[master.id]) stockChanges[master.id] = parseInt(master.stock_quantity) || 0;
-                    stockChanges[master.id] -= parseInt(newItem.quantity) || 0;
-
-                    if (stockChanges[master.id] < 0) {
-                        alert(`⚠ ទំនិញ "${master.item_name}" មិនគ្រប់គ្រាន់ក្នុងស្តុកទេ (សល់ស្តុក: ${master.stock_quantity})!`);
-                        return;
-                    }
-                }
-            }
-
-            for (let [masterId, updatedStock] of Object.entries(stockChanges)) {
-                await updateMasterItemStockAPI(masterId, updatedStock);
-            }
-
             await saveInvoiceToServer(currentEditingInvoice);
 
             let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
@@ -2133,36 +2099,10 @@
                 logActivity(loggedUser, `កែសម្រួលវិក្កយបត្រលក់: ${invId}`);
             }
 
-            alert(`✅ បានរក្សាទុកការកែប្រែវិក្កយបត្រ ${invId} និងបានធ្វើបច្ចុប្បន្នភាពស្តុកក្នុងឃ្លាំងដោយជោគជ័យ!`);
+            alert(`✅ បានរក្សាទុកការកែប្រែវិក្កយបត្រ ${invId} ដោយជោគជ័យ!`);
             editInvoiceModal.hide();
             loadAppData();
             openInvoiceHistoryModal();
-        }
-
-        async function updateMasterItemStockAPI(itemId, newStock) {
-            try {
-                let master = masterItemsList.find(m => m.id == itemId);
-                if (!master) return;
-
-                let data = {
-                    category: master.category,
-                    item_name: master.item_name,
-                    image_url: master.image_url || '',
-                    unit: master.unit || 'ដុំ',
-                    stock_quantity: newStock,
-                    cost_price: parseFloat(master.cost_price) || 0,
-                    retail_price: parseFloat(master.retail_price) || 0,
-                    wholesale_price: parseFloat(master.wholesale_price) || 0
-                };
-
-                await fetch(`${API_URL}/master-items/${itemId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-            } catch (err) {
-                console.error("Error updating stock API:", err);
-            }
         }
 
         document.getElementById('restockForm')?.addEventListener('submit', async (e) => {
@@ -2309,10 +2249,16 @@
 
                 if (incomeTbody && mergedIncomesList.length > 0) {
                     mergedIncomesList.forEach((item) => {
-                        let actionBtns = `
-                            <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${item.invoice_id}')">កែ</button>
-                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${item.invoice_id}')">លុប</button>
-                        `;
+                        // 🟢 ត្រង់នេះកំណត់លក្ខខណ្ឌ៖ បើ role = staff គឺមិនបង្ហាញប៊ូតុង កែ និង លុប ទេ (បង្ហាញត្រឹមអត្ថបទគ្មានសិទ្ធិ ឬទទេ)
+                        let actionBtns = '';
+                        if (isStaff) {
+                            actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិ</span>`;
+                        } else {
+                            actionBtns = `
+                                <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${item.invoice_id}')">កែ</button>
+                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${item.invoice_id}')">លុប</button>
+                            `;
+                        }
 
                         let tr = document.createElement('tr');
                         tr.innerHTML = `
