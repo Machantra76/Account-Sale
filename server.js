@@ -50,9 +50,38 @@ const initTables = async () => {
             amount DECIMAL(10, 2) NOT NULL
         );
     `;
+    const queryUsers = `
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            username VARCHAR(100) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL,
+            role VARCHAR(50) DEFAULT 'staff',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    `;
+    const queryInvoices = `
+        CREATE TABLE IF NOT EXISTS invoices (
+            id VARCHAR(100) PRIMARY KEY,
+            date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            items JSONB NOT NULL
+        );
+    `;
+    const queryLogs = `
+        CREATE TABLE IF NOT EXISTS activity_logs (
+            id SERIAL PRIMARY KEY,
+            date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            username VARCHAR(100) NOT NULL,
+            role VARCHAR(50) NOT NULL,
+            action TEXT NOT NULL
+        );
+    `;
+
     try {
         await pool.query(queryMaster);
         await pool.query(queryTransactions);
+        await pool.query(queryUsers);
+        await pool.query(queryInvoices);
+        await pool.query(queryLogs);
         
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'EXPENSE';`);
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS image_url TEXT;`);
@@ -63,12 +92,112 @@ const initTables = async () => {
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS wholesale_price DECIMAL(10, 2) DEFAULT 0;`);
         await pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS item_id INT;`);
 
+        // បង្កើត Admin លំនាំដើម (Username: admin, Password: 123)
+        await pool.query(`
+            INSERT INTO users (username, password, role) 
+            VALUES ('admin', '123', 'admin')
+            ON CONFLICT (username) DO NOTHING;
+        `);
+
         console.log("Database tables and columns are ready and safe.");
     } catch (err) {
         console.error("Error creating/updating tables:", err);
     }
 };
 initTables();
+
+// AUTH & USERS API
+app.post('/api/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const result = await pool.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password]);
+        if (result.rows.length > 0) {
+            res.json({ success: true, user: result.rows[0] });
+        } else {
+            res.status(401).json({ success: false, error: 'ឈ្មោះអ្នកប្រើប្រាស់ ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ!' });
+        }
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.get('/api/users', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT id, username, role, created_at FROM users ORDER BY id ASC');
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/users', async (req, res) => {
+    try {
+        const { username, password, role } = req.body;
+        const result = await pool.query(
+            'INSERT INTO users (username, password, role) VALUES ($1, $2, $3) RETURNING id, username, role',
+            [username, password, role || 'staff']
+        );
+        res.status(201).json({ success: true, user: result.rows[0] });
+    } catch (err) {
+        res.status(400).json({ success: false, error: err.message });
+    }
+});
+
+// INVOICES API
+app.get('/api/accounting/invoices', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM invoices ORDER BY date DESC');
+        res.json({ success: true, data: result.rows });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.post('/api/accounting/invoices', async (req, res) => {
+    try {
+        const { id, date, items } = req.body;
+        await pool.query(
+            'INSERT INTO invoices (id, date, items) VALUES ($1, $2, $3) ON CONFLICT (id) DO UPDATE SET items = $3, date = $2',
+            [id, date || new Date(), JSON.stringify(items)]
+        );
+        res.json({ success: true, message: 'Saved invoice successfully' });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.delete('/api/accounting/invoices/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await pool.query('DELETE FROM invoices WHERE id = $1', [id]);
+        res.json({ success: true, message: 'Deleted invoice successfully' });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// ACTIVITY LOGS API
+app.get('/api/activity-logs', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM activity_logs ORDER BY date DESC LIMIT 200');
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/activity-logs', async (req, res) => {
+    try {
+        const { username, role, action } = req.body;
+        await pool.query(
+            'INSERT INTO activity_logs (username, role, action) VALUES ($1, $2, $3)',
+            [username, role, action]
+        );
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 // MASTER ITEMS API
 app.get('/api/accounting/master-items', async (req, res) => {
@@ -232,7 +361,6 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
         const price = parseFloat(unit_price) || 0;
         const totalAmount = qty * price;
 
-        // Revert old stock impact
         if (oldTx.item_id) {
             if (oldTx.type === 'INCOME') {
                 await client.query(`UPDATE master_items SET stock_quantity = stock_quantity + $1 WHERE id = $2`, [oldTx.quantity, oldTx.item_id]);
@@ -241,7 +369,6 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
             }
         }
 
-        // Apply new stock impact
         if (oldTx.item_id) {
             if (oldTx.type === 'INCOME') {
                 await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [qty, oldTx.item_id]);
