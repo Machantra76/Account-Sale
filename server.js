@@ -76,20 +76,17 @@ const initTables = async () => {
         );
     `;
 
-    // -------------------------------------------------------------
-    // 🆕 បន្ថែមតារាងថ្មីសម្រាប់គ្រប់គ្រងការជំពាក់ប្រាក់ (AR / AP)
-    // -------------------------------------------------------------
     const queryDebts = `
         CREATE TABLE IF NOT EXISTS debts (
             id SERIAL PRIMARY KEY,
-            debt_type VARCHAR(20) NOT NULL, -- 'RECEIVABLE' (អតិថិជនជំពាក់យើង) ឬ 'PAYABLE' (យើងជំពាក់គេ/Supplier)
-            partner_name VARCHAR(255) NOT NULL, -- ឈ្មោះអតិថិជន ឬ អ្នកផ្គត់ផ្គង់
-            reference_id VARCHAR(100), -- លេខវិក្កយបត្រ ឬ លេខយោង
-            total_amount DECIMAL(10, 2) NOT NULL, -- ទឹកប្រាក់សរុប
-            paid_amount DECIMAL(10, 2) DEFAULT 0, -- ទឹកប្រាក់បានបង់រួច
-            remaining_amount DECIMAL(10, 2) NOT NULL, -- ទឹកប្រាក់នៅសល់ (ជំពាក់)
-            status VARCHAR(50) DEFAULT 'UNPAID', -- 'UNPAID', 'PARTIAL', 'PAID'
-            due_date TIMESTAMP, -- កាលបរិច្ឆេទកំណត់ត្រូវសង
+            debt_type VARCHAR(20) NOT NULL,
+            partner_name VARCHAR(255) NOT NULL,
+            reference_id VARCHAR(100),
+            total_amount DECIMAL(10, 2) NOT NULL,
+            paid_amount DECIMAL(10, 2) DEFAULT 0,
+            remaining_amount DECIMAL(10, 2) NOT NULL,
+            status VARCHAR(50) DEFAULT 'UNPAID',
+            due_date TIMESTAMP,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     `;
@@ -110,8 +107,6 @@ const initTables = async () => {
         await pool.query(queryUsers);
         await pool.query(queryInvoices);
         await pool.query(queryLogs);
-        
-        // 🆕 បង្កើតតារាង Debts និង Debt Payments
         await pool.query(queryDebts);
         await pool.query(queryDebtPayments);
         
@@ -124,7 +119,6 @@ const initTables = async () => {
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS wholesale_price DECIMAL(10, 2) DEFAULT 0;`);
         await pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS item_id INT;`);
 
-        // បង្កើត Admin លំនាំដើម (Username: admin, Password: 123)
         await pool.query(`
             INSERT INTO users (username, password, role) 
             VALUES ('admin', '123', 'admin')
@@ -198,6 +192,7 @@ app.post('/api/accounting/invoices', async (req, res) => {
     }
 });
 
+// 🟢 កែសម្រួល៖ លុប Invoice ចោលសុទ្ធសាធ ដោយមិនប៉ះពាល់ស្តុកក្នុងឃ្លាំង
 app.delete('/api/accounting/invoices/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -426,11 +421,7 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
     }
 });
 
-// -------------------------------------------------------------
-// 🆕 DEBTS API (Accounts Receivable & Accounts Payable)
-// -------------------------------------------------------------
-
-// 1. ទាញយកបញ្ជីការជំពាក់ទាំងអស់ (អាច Filter តាម debt_type: RECEIVABLE ឬ PAYABLE បាន)
+// DEBTS API
 app.get('/api/accounting/debts', async (req, res) => {
     try {
         const { debt_type } = req.query;
@@ -450,7 +441,6 @@ app.get('/api/accounting/debts', async (req, res) => {
     }
 });
 
-// 2. បង្កើតកំណត់ត្រាជំពាក់ថ្មី (ពេលលក់ជំពាក់ ឬទិញជំពាក់)
 app.post('/api/accounting/debts', async (req, res) => {
     try {
         const { debt_type, partner_name, reference_id, total_amount, due_date } = req.body;
@@ -469,7 +459,6 @@ app.post('/api/accounting/debts', async (req, res) => {
     }
 });
 
-// 3. បង់ប្រាក់សង (Payment) លើការជំពាក់ណាមួយ
 app.post('/api/accounting/debts/:id/pay', async (req, res) => {
     const client = await pool.connect();
     try {
@@ -494,13 +483,11 @@ app.post('/api/accounting/debts/:id/pay', async (req, res) => {
             newStatus = 'PAID';
         }
 
-        // កត់ត្រាប្រវត្តិការបង់ប្រាក់
         await client.query(
             'INSERT INTO debt_payments (debt_id, paid_amount, note) VALUES ($1, $2, $3)',
             [id, payAmount, note || '']
         );
 
-        // ធ្វើបច្ចុប្បន្នភាពតារាង debts
         let updateRes = await client.query(
             `UPDATE debts SET paid_amount = $1, remaining_amount = $2, status = $3 WHERE id = $4 RETURNING *;`,
             [newPaidAmount, newRemaining, newStatus, id]
@@ -516,7 +503,6 @@ app.post('/api/accounting/debts/:id/pay', async (req, res) => {
     }
 });
 
-// 4. លុបកំណត់ត្រាជំពាក់
 app.delete('/api/accounting/debts/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -568,24 +554,14 @@ app.get('/api/accounting/summary', async (req, res) => {
     }
 });
 
+// 🟢 កែសម្រួល៖ លុប Transaction ចោលសុទ្ធសាធ ដោយមិនបាច់យកទៅបូក/ដកស្តុកក្នុង master_items វិញទេ
 app.delete('/api/accounting/transactions/:id', async (req, res) => {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
         const { id } = req.params;
 
-        let txData = await client.query('SELECT * FROM transactions WHERE id = $1', [id]);
-        if (txData.rows.length > 0) {
-            let tx = txData.rows[0];
-            if (tx.item_id) {
-                if (tx.type === 'INCOME') {
-                    await client.query(`UPDATE master_items SET stock_quantity = stock_quantity + $1 WHERE id = $2`, [tx.quantity, tx.item_id]);
-                } else if (tx.type === 'EXPENSE') {
-                    await client.query(`UPDATE master_items SET stock_quantity = stock_quantity - $1 WHERE id = $2`, [tx.quantity, tx.item_id]);
-                }
-            }
-            await client.query('DELETE FROM transactions WHERE id = $1', [id]);
-        }
+        await client.query('DELETE FROM transactions WHERE id = $1', [id]);
 
         await client.query('COMMIT');
         res.json({ success: true, message: "Transaction deleted successfully!" });
