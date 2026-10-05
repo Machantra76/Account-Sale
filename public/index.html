@@ -79,6 +79,11 @@
             background-color: #f8fafc !important;
             border-bottom: 2px solid #e2e8f0;
         }
+        /* កែសម្រួលប្រអប់ Scroll របស់ Master & Stock List ឱ្យស្មើប្រអប់ខាងឆ្វេងសម្រាប់ Stockkeeper */
+        #masterListCard .table-responsive {
+            max-height: 480px !important;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body class="py-4">
@@ -298,7 +303,7 @@
                             <h5 class="text-secondary fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
                                 <i class="bi bi-archive-fill"></i> បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)
                             </h5>
-                            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                            <div class="table-responsive">
                                 <table class="table table-sm table-hover align-middle mb-0">
                                     <thead class="table-light sticky-top">
                                         <tr>
@@ -631,7 +636,6 @@
                     </div>
                 </div>
                 <div class="modal-footer bg-light">
-                    <!-- ប៊ូតុង Save PDF និង Print ដែល STOCKKEEPER និង ADMIN អាចប្រើប្រាស់បាន -->
                     <button type="button" class="btn btn-outline-primary px-4 fw-bold" onclick="printReportSection()">🖨 បោះពុម្ព (Print)</button>
                     <button type="button" class="btn btn-danger px-4 fw-bold" onclick="downloadPDFReport()">📥 រក្សាទុក PDF (Save PDF)</button>
                     <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">បិទ (Close)</button>
@@ -1031,7 +1035,6 @@
             let loggedUserStr = sessionStorage.getItem("loggedUserObj");
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
-                // អនុញ្ញាតឱ្យ Stock Keeper និង Admin អាចបើកមើល Report បាន
                 if (userObj.role === 'staff') {
                     alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Stock Keeper ប៉ុណ្ណោះ។");
                     return;
@@ -1141,7 +1144,6 @@
 
                     colAdminUserCard.style.display = 'none';
 
-                    // ➡ បើកប៊ូតុង Reports ឱ្យ Stockkeeper អាចមើល/ព្រិន្ទ/Save PDF របាយការណ៍ស្តុក និងការទិញចូលបាន
                     document.getElementById('adminReportBtn').style.display = 'inline-block';
                     document.getElementById('adminActivityLogBtn').style.display = 'none';
                     document.getElementById('adminInvoiceHistoryBtn').style.display = 'none';
@@ -2335,7 +2337,6 @@
             let userObj = loggedUserStr ? JSON.parse(loggedUserStr) : {};
             let isStockKeeper = userObj.role === 'stockkeeper';
 
-            // ប្រសិនបើជា Stockkeeper អាចលាក់ផ្នែកចំណូល និងចំណេញសុទ្ធក្នុង Report Modal ចេញ
             let reportCardIncomeCol = document.getElementById('reportCardIncomeCol');
             let reportCardProfitCol = document.getElementById('reportCardProfitCol');
             let reportSalesSectionWrapper = document.getElementById('reportSalesSectionWrapper');
