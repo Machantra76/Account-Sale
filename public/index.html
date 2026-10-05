@@ -1392,7 +1392,7 @@
                 }
             } catch (err) {
                 console.error("Error updating master item:", err);
-                alert("❌ មានបញ្ហាក្នុងការភ្ជាប់ទៅកាន់ Server!");
+                alert("❌ មានបញ្ហាក្នុងการភ្ជាប់ទៅកាន់ Server!");
             }
         });
 
@@ -1883,7 +1883,6 @@
                 let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
                 let isStaff = loggedUser.role === 'staff';
 
-                // 🟢 កំណត់ព្រំដែនដាច់ពីគ្នា៖ Staff ឃើញតែ Invoice របស់ខ្លួនឯង Admin ឃើញទាំងអស់
                 let visibleInvs = allInvoicesList;
                 if (isStaff) {
                     visibleInvs = allInvoicesList.filter(inv => {
@@ -2268,7 +2267,7 @@
                 if(incomeTbody) incomeTbody.innerHTML = '';
                 if(expenseTbody) expenseTbody.innerHTML = '';
 
-                // 🟢 កំណត់ព្រំដែនដាច់ពីគ្នា៖ Staff ឃើញតែប្រវត្តិលក់របស់ខ្លួនឯង Admin ឃើញទាំងអស់
+                // 🟢 កំណត់ព្រំដែនដាច់ពីគ្នា៖ Staff ឃើញតែ Invoice របស់ខ្លួនឯង Admin ឃើញទាំងអស់
                 let relevantInvoices = allInvoicesList;
                 if (isStaff) {
                     relevantInvoices = allInvoicesList.filter(inv => {
@@ -2311,6 +2310,28 @@
                                 }
                             });
                         }
+                    });
+                }
+
+                // 🟢 បន្ថែម Logic ជំនួយ៖ បើ Staff អត់ទាន់មាន Invoices តែមាន Transactions ផ្ទាល់ខ្លួន គឺទាញយកមកបង្ហាញក្នុង Sales History ផ្ទាល់តែម្តង
+                if (isStaff && Object.keys(groupedInvoicesSales).length === 0 && allTransactionsList.length > 0) {
+                    let staffTxs = allTransactionsList.filter(tx => tx.type === 'INCOME' && (tx.username || "").trim().toLowerCase() === (loggedUser.username || "").trim().toLowerCase());
+                    staffTxs.forEach(tx => {
+                        let key = (tx.item_name || "").trim() + "_" + (tx.category || "").trim();
+                        let qty = parseInt(tx.quantity) || 0;
+                        let price = parseFloat(tx.unit_price) || 0;
+                        let totalAmt = parseFloat(tx.amount || (qty * price));
+
+                        groupedInvoicesSales[key] = {
+                            invoice_id: tx.id,
+                            created_by: loggedUser.username,
+                            category: tx.category || "ទំនិញទូទៅ",
+                            item_name: tx.item_name || "មិនស្គាល់ឈ្មោះ",
+                            quantity: qty,
+                            total_amount: totalAmt,
+                            unit_price: price,
+                            latest_date: tx.date
+                        };
                     });
                 }
 
