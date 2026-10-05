@@ -1904,7 +1904,6 @@
                         let totalAmount = inv.items.reduce((sum, item) => sum + ((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)), 0);
                         let tr = document.createElement('tr');
                         
-                        // 🟢 ទាំង Admin និង Staff អាចចុចប៊ូតុង កែសម្រួល ព្រិន្ទ និង លុប ក្នុងប្រវត្តិវិក្កយបត្របាន
                         let actionBtns = `
                             <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${inv.id}')">កែសម្រួល</button>
                             <button class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" onclick="reprintInvoice('${inv.id}')">ព្រិន្ទ</button>
@@ -1936,11 +1935,13 @@
             }
         }
 
-        // 🟢 លុបវិក្កយបត្រ (លុបត្រឹម Invoice ដោយមិនប៉ះពាល់ដល់ស្តុកក្នុងឃ្លាំង)
+        // 🟢 កែសម្រួលមុខងារលុបវិក្កយបត្រ៖ ពេល Admin លុប គឺលុប Invoice ចោល ហើយកាត់ស្តុកចុះមកវិញភ្លាម (Neutralize) ដើម្បីកុំឱ្យ Server បង្វិលស្តុកចូលក្នុងឃ្លាំងវិញ
         async function deleteInvoiceRecord(invId) {
             if (!confirm(`តើអ្នកពិតជាចង់លុបវិក្កយបត្រ ${invId} និងទិន្នន័យប្រាក់ចំណូលពាក់ព័ន្ធមែនទេ?`)) return;
             
             try {
+                let invToDelete = allInvoicesList.find(i => i.id === invId);
+
                 await deleteInvoiceFromServer(invId);
 
                 let resTx = await fetch(`${API_URL}/transactions`);
@@ -1952,17 +1953,31 @@
                     }
                 }
 
+                // បើ Server បង្វិលស្តុកចូលវិញដោយស្វ័យប្រវត្តពេលលុប Invoice យើងធ្វើការកាត់ស្តុកចុះមកវិញភ្លាម ដើម្បីឱ្យស្តុកនៅដដែល
+                if (invToDelete && invToDelete.items) {
+                    await fetchMasterItems();
+                    for (let item of invToDelete.items) {
+                        let master = masterItemsList.find(m => m.id == item.item_id || m.item_name === item.item_name);
+                        if (master) {
+                            let currentStock = parseInt(master.stock_quantity) || 0;
+                            let newStock = currentStock - (parseInt(item.quantity) || 0);
+                            if (newStock < 0) newStock = 0;
+                            await updateMasterItemStockAPI(master.id, newStock);
+                        }
+                    }
+                }
+
                 let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
                 if(loggedUser.username) {
-                    logActivity(loggedUser, `លុបវិក្កយបត្រលក់ និង Transactions (មិនកាត់ស្តុក): ${invId}`);
+                    logActivity(loggedUser, `លុបវិក្កយបត្រលក់ (មិនបង្វិលស្តុកចូលវិញ): ${invId}`);
                 }
                 
-                alert(`✅ បានលុបវិក្កយបត្រដោយជោគជ័យ!`);
+                alert(`✅ បានលុបវិក្កយបត្រដោយជោគជ័យ (ស្តុកក្នុងឃ្លាំងនៅរក្សាចំនួនដើម)!`);
                 renderInvoiceHistoryTable();
                 loadAppData();
             } catch (err) {
                 console.error("Error deleting invoice and transactions:", err);
-                alert("❌ មានបញ្ហាក្នុងการលុបទិន្នន័យ!");
+                alert("❌ មានបញ្ហាក្នុងការលុបទិន្នន័យ!");
             }
         }
 
