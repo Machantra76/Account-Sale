@@ -1883,33 +1883,49 @@
                 let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
                 let isStaff = loggedUser.role === 'staff';
 
+                // 🟢 កែសម្រួលការទាញយកវិក្កយបត្រសម្រាប់ Staff៖ បើជា Staff គឺបង្ហាញ invoice ណាដែល created_by ត្រូវគ្នា ឬ គ្មាន created_by
                 let visibleInvs = allInvoicesList;
                 if (isStaff) {
-                    visibleInvs = allInvoicesList.filter(inv => inv.created_by === loggedUser.username);
+                    visibleInvs = allInvoicesList.filter(inv => {
+                        let creator = (inv.created_by || "").trim().toLowerCase();
+                        let currentU = (loggedUser.username || "").trim().toLowerCase();
+                        return creator === currentU || !inv.created_by;
+                    });
                 }
 
                 let sortedInv = [...visibleInvs].reverse();
                 
                 let filteredInvs = sortedInv.filter(inv => {
                     if (!selectedCategoryFilter) return true;
-                    return inv.items.some(item => item.category === selectedCategoryFilter);
+                    return inv.items && inv.items.some(item => item.category === selectedCategoryFilter);
                 });
 
                 if (filteredInvs.length > 0) {
                     filteredInvs.forEach((inv) => {
-                        let totalAmount = inv.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
+                        let totalAmount = inv.items.reduce((sum, item) => sum + ((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)), 0);
                         let tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td class="fw-bold text-primary">${inv.id}</td>
-                            <td>${new Date(inv.date).toLocaleString()}</td>
-                            <td><span class="badge bg-light text-dark border">${inv.created_by || 'admin'}</span></td>
-                            <td><span class="badge bg-secondary">${inv.items.length} មុខទំនិញ</span></td>
-                            <td class="text-success fw-bold">$${totalAmount.toFixed(2)}</td>
-                            <td class="text-center">
+                        
+                        let actionBtns = '';
+                        if (!isStaff) {
+                            actionBtns = `
                                 <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${inv.id}')">កែសម្រួល</button>
                                 <button class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" onclick="reprintInvoice('${inv.id}')">ព្រិន្ទ</button>
                                 <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${inv.id}')">លុប</button>
-                            </td>
+                            `;
+                        } else {
+                            actionBtns = `
+                                <button class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" onclick="reprintInvoice('${inv.id}')">ព្រិន្ទ</button>
+                                <span class="text-muted small">គ្មានសិទ្ធិកែ/លុប</span>
+                            `;
+                        }
+
+                        tr.innerHTML = `
+                            <td class="fw-bold text-primary">${inv.id}</td>
+                            <td>${new Date(inv.date).toLocaleString()}</td>
+                            <td><span class="badge bg-light text-dark border">${inv.created_by || loggedUser.username || 'staff'}</span></td>
+                            <td><span class="badge bg-secondary">${inv.items.length} មុខទំនិញ</span></td>
+                            <td class="text-success fw-bold">$${totalAmount.toFixed(2)}</td>
+                            <td class="text-center">${actionBtns}</td>
                         `;
                         tbody.appendChild(tr);
                     });
@@ -2230,10 +2246,13 @@
                 if(incomeTbody) incomeTbody.innerHTML = '';
                 if(expenseTbody) expenseTbody.innerHTML = '';
 
-                // 🟢 កែសម្រួលការទាញយកវិក្កយបត្រ៖ បើជា Staff គឺទាញយក invoice ណាដែល created_by ត្រូវនឹង username គាត់ ឬ គ្មាន created_by
                 let relevantInvoices = allInvoicesList;
                 if (isStaff) {
-                    relevantInvoices = allInvoicesList.filter(inv => inv.created_by === loggedUser.username || !inv.created_by);
+                    relevantInvoices = allInvoicesList.filter(inv => {
+                        let creator = (inv.created_by || "").trim().toLowerCase();
+                        let currentU = (loggedUser.username || "").trim().toLowerCase();
+                        return creator === currentU || !inv.created_by;
+                    });
                 }
 
                 let groupedInvoicesSales = {};
