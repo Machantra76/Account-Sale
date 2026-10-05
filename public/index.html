@@ -1131,7 +1131,7 @@
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
                 if (userObj.role === 'stockkeeper') {
-                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Staff ប៉ុណ្ណោះ។");
+                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Staff ប៉ុណ្ណោះ。");
                     return;
                 }
             }
@@ -2040,15 +2040,18 @@
 
                 await saveInvoiceToServer(invoiceObj);
 
+                // 🟢 បានបន្ថែម field paid_amount, remaining_amount, និង status ឱ្យត្រូវនឹង Backend
                 let debtData = {
                     debt_type: 'RECEIVABLE',
                     partner_name: partnerName.trim(),
                     reference_id: invoiceId,
                     total_amount: grandTotal,
+                    paid_amount: 0,
+                    remaining_amount: grandTotal,
+                    status: 'UNPAID',
                     due_date: null
                 };
 
-                // 🟢 បានកែសម្រួល URL ទីនេះឱ្យត្រឹមត្រូវទៅតាម API_URL របស់ Server
                 let debtRes = await fetch(`${API_URL}/debts`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
