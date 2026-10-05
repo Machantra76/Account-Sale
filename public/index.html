@@ -132,10 +132,14 @@
             </div>
             <div class="d-flex align-items-center flex-wrap gap-2">
                 <button id="adminActivityLogBtn" onclick="openActivityLogModal()" class="btn btn-outline-primary btn-sm px-3 shadow-sm fw-semibold">
-                    <i class="bi bi-clock-history me-1"></i> សកម្មភាព និងវេនការងារ (Activity & Shift)
+                    <i class="bi bi-clock-history me-1"></i> សកម្មភាព និងវេនការងារ
                 </button>
                 <button id="adminInvoiceHistoryBtn" onclick="openInvoiceHistoryModal()" class="btn btn-outline-secondary btn-sm px-3 shadow-sm fw-semibold">
-                    <i class="bi bi-receipt me-1"></i> ប្រវត្តិវិក្កយបត្រ (Invoices)
+                    <i class="bi bi-receipt me-1"></i> ប្រវត្តិវិក្កយបត្រ
+                </button>
+                <!-- 🟢 ប៊ូតុងបើកមើលរបាយការណ៍អ្នកជំពាក់ -->
+                <button onclick="openDebtReportModal()" class="btn btn-outline-warning btn-sm px-3 shadow-sm fw-semibold text-dark">
+                    <i class="bi bi-journal-text me-1"></i> របាយការណ៍អតិថិជនជំពាក់
                 </button>
                 <button id="adminReportBtn" onclick="openReportModal()" class="btn btn-primary btn-sm px-3 shadow-sm fw-semibold">
                     <i class="bi bi-graph-up-arrow me-1"></i> របាយការណ៍ (Reports)
@@ -293,7 +297,6 @@
                                 <button class="btn btn-success shadow-sm w-100 fw-bold py-2 mb-2" onclick="checkoutAndPrintInvoice()" style="font-size: 15px;">
                                     <i class="bi bi-printer-fill me-1"></i> បញ្ចប់ការលក់ និងព្រិន្ទ (Checkout & Print)
                                 </button>
-                                <!-- 🟢 ប៊ូតុងលក់ជំពាក់ (Credit Sale) -->
                                 <button class="btn btn-warning shadow-sm w-100 fw-bold py-2 text-dark" onclick="checkoutAsCreditSale()" style="font-size: 15px;">
                                     <i class="bi bi-person-exclamation me-1"></i> លក់ជំពាក់ (Credit Sale)
                                 </button>
@@ -661,6 +664,73 @@
         </div>
     </div>
 
+    <!-- 🟢 DEBT REPORT MODAL (របាយការណ៍អតិថិជនជំពាក់) -->
+    <div class="modal fade" id="debtReportModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title fw-bold">📑 របាយការណ៍អតិថិជនជំពាក់ប្រាក់ (Accounts Receivable Report)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle mb-0">
+                            <thead class="table-warning">
+                                <tr>
+                                    <th>កាលបរិច្ឆេទ (Date)</th>
+                                    <th>ឈ្មោះអតិថិជន (Partner Name)</th>
+                                    <th>លេខវិក្កយបត្រយោង (Ref ID)</th>
+                                    <th>ទឹកប្រាក់សរុប ($)</th>
+                                    <th>បានបង់រួច ($)</th>
+                                    <th>នៅសល់ជំពាក់ ($)</th>
+                                    <th>ស្ថានភាព (Status)</th>
+                                    <th class="text-center">សកម្មភាព (Actions)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="debtTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">បិទ (Close)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🟢 PAY DEBT MODAL (បង់ប្រាក់សងជំពាក់) -->
+    <div class="modal fade" id="payDebtModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold fs-6">💵 កត់ត្រាការបង់ប្រាក់សងជំពាក់ (Record Payment)</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="payDebtForm">
+                        <input type="hidden" id="payDebtId">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">ឈ្មោះអតិថិជន</label>
+                            <input type="text" class="form-control bg-light" id="payDebtPartnerName" readonly>
+                        </div>
+                        <div class="mb-3">
+                            ទឹកប្រាក់នៅសល់សរុប៖ <span class="fw-bold text-danger" id="payDebtRemainingDisplay">$0.00</span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">ចំនួនទឹកប្រាក់ត្រូវបង់បន្ថែម ($ Paid Amount)</label>
+                            <input type="number" step="0.01" class="form-control" id="payDebtAmountInput" placeholder="0.00" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">កំណត់សម្គាល់ (Note)</label>
+                            <input type="text" class="form-control" id="payDebtNoteInput" placeholder="ឧ. បង់សងជាសាច់ប្រាក់...">
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 shadow-sm py-2 fw-bold">បញ្ជាក់ការបង់ប្រាក់ (Confirm Payment)</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- INVOICE HISTORY MODAL -->
     <div class="modal fade" id="invoiceHistoryModal" tabindex="-1">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
@@ -906,6 +976,8 @@
         let editInvoiceModal;
         let editTransactionModal;
         let activityLogModal;
+        let debtReportModal;
+        let payDebtModal;
 
         document.addEventListener("DOMContentLoaded", () => {
             editMasterModal = new bootstrap.Modal(document.getElementById('editMasterModal'));
@@ -915,6 +987,8 @@
             editInvoiceModal = new bootstrap.Modal(document.getElementById('editInvoiceModal'));
             editTransactionModal = new bootstrap.Modal(document.getElementById('editTransactionModal'));
             activityLogModal = new bootstrap.Modal(document.getElementById('activityLogModal'));
+            debtReportModal = new bootstrap.Modal(document.getElementById('debtReportModal'));
+            payDebtModal = new bootstrap.Modal(document.getElementById('payDebtModal'));
             checkLoginState();
         });
 
@@ -1058,7 +1132,7 @@
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
                 if (userObj.role === 'stockkeeper') {
-                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Staff ប៉ុណ្ណោះ។");
+                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Staff ប៉ុណ្ណោះ。");
                     return;
                 }
             }
@@ -1066,6 +1140,107 @@
             renderInvoiceHistoryTable();
             invoiceHistoryModal.show();
         }
+
+        // 🟢 មុខងារបើកមើលរបាយការណ៍ជំពាក់ (Debts Report)
+        async function openDebtReportModal() {
+            await renderDebtTable();
+            debtReportModal.show();
+        }
+
+        async function renderDebtTable() {
+            let tbody = document.getElementById('debtTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            try {
+                let res = await fetch(`${API_BASE}/api/accounting/debts?debt_type=RECEIVABLE`);
+                let result = await res.json();
+
+                if (result.success && result.data.length > 0) {
+                    result.data.forEach(debt => {
+                        let statusBadge = '';
+                        if (debt.status === 'PAID') {
+                            statusBadge = `<span class="badge bg-success">បានសងាច់ (PAID)</span>`;
+                        } else if (debt.status === 'PARTIAL') {
+                            statusBadge = `<span class="badge bg-warning text-dark">សងខ្លះ (PARTIAL)</span>`;
+                        } else {
+                            statusBadge = `<span class="badge bg-danger">មិនទាន់បង់ (UNPAID)</span>`;
+                        }
+
+                        let payBtn = debt.status !== 'PAID' ? 
+                            `<button class="btn btn-sm btn-success py-0 px-2 fw-semibold" onclick="openPayDebtModal('${debt.id}', '${debt.partner_name}', ${debt.remaining_amount})">បង់ប្រាក់សង</button>` : 
+                            `<span class="text-muted small">រួចរាល់</span>`;
+
+                        let tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${new Date(debt.created_at).toLocaleDateString()}</td>
+                            <td class="fw-bold">${debt.partner_name}</td>
+                            <td><code>${debt.reference_id || '-'}</code></td>
+                            <td>$${parseFloat(debt.total_amount).toFixed(2)}</td>
+                            <td class="text-success">$${parseFloat(debt.paid_amount).toFixed(2)}</td>
+                            <td class="text-danger fw-bold">$${parseFloat(debt.remaining_amount).toFixed(2)}</td>
+                            <td>${statusBadge}</td>
+                            <td class="text-center">${payBtn}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3">មិនមានទិន្នន័យអតិថិជនជំពាក់ប្រាក់ទេ</td></tr>`;
+                }
+            } catch (err) {
+                console.error("Error fetching debts:", err);
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-3">កំហុសក្នុងការទាញទិន្នន័យជំពាក់</td></tr>`;
+            }
+        }
+
+        function openPayDebtModal(id, partnerName, remainingAmount) {
+            document.getElementById('payDebtId').value = id;
+            document.getElementById('payDebtPartnerName').value = partnerName;
+            document.getElementById('payDebtRemainingDisplay').innerText = `$${parseFloat(remainingAmount).toFixed(2)}`;
+            document.getElementById('payDebtAmountInput').value = '';
+            document.getElementById('payDebtNoteInput').value = '';
+            
+            debtReportModal.hide();
+            payDebtModal.show();
+        }
+
+        document.getElementById('payDebtForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let debtId = document.getElementById('payDebtId').value;
+            let payAmount = parseFloat(document.getElementById('payDebtAmountInput').value) || 0;
+            let note = document.getElementById('payDebtNoteInput').value.trim();
+
+            if (payAmount <= 0) {
+                alert("⚠ សូមបញ្ចូលចំនួនទឹកប្រាក់ឱ្យបានត្រឹមត្រូវ!");
+                return;
+            }
+
+            try {
+                let res = await fetch(`${API_BASE}/api/accounting/debts/${debtId}/pay`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paid_amount: payAmount, note: note })
+                });
+                let result = await res.json();
+
+                if (res.ok && result.success) {
+                    let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+                    if (loggedUser.username) {
+                        logActivity(loggedUser, `បង់ប្រាក់សងជំពាក់ (Debt ID: ${debtId} - ចំនួន: $${payAmount.toFixed(2)})`);
+                    }
+
+                    alert("✅ បានកត់ត្រាការបង់ប្រាក់សងជំពាក់ដោយជោគជ័យ!");
+                    payDebtModal.hide();
+                    openDebtReportModal();
+                    loadAppData();
+                } else {
+                    alert(`❌ ${result.error || 'កំហុសក្នុងការកត់ត្រាការបង់ប្រាក់!'}`);
+                }
+            } catch (err) {
+                console.error("Error paying debt:", err);
+                alert("❌ មានបញ្ហាក្នុងការភ្ជាប់ទៅកាន់ Server!");
+            }
+        });
 
         function populateInvoiceCategoryFilter() {
             let filterSelect = document.getElementById('invoiceCategoryFilter');
@@ -1263,7 +1438,6 @@
             }
         });
 
-        // 🟢 បង្កើតមុខទំនិញថ្មី (Master Items)
         document.getElementById('masterForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -1821,7 +1995,6 @@
             loadAppData();
         }
 
-        // 🟢 មុខងារលក់ជំពាក់ (Credit Sale)
         async function checkoutAsCreditSale() {
             if (currentCart.length === 0) {
                 alert("Cart គ្មានទំនិញទេ! សូមបន្ថែមទំនិញសិន។");
@@ -1848,7 +2021,6 @@
             };
 
             try {
-                // 1. កាត់ស្តុក និងកត់ត្រា Transactions ប្រភេទ INCOME ធម្មតា
                 for (let item of currentCart) {
                     let newData = {
                         type: 'INCOME',
@@ -1868,10 +2040,8 @@
                     });
                 }
 
-                // 2. រក្សាទុកវិក្កយបត្រ
                 await saveInvoiceToServer(invoiceObj);
 
-                // 3. បញ្ជូនទិន្នន័យចូលទៅកាន់ API debts (Accounts Receivable) ថាអតិថិជនជំពាក់
                 let debtData = {
                     debt_type: 'RECEIVABLE',
                     partner_name: partnerName.trim(),
@@ -2029,7 +2199,6 @@
             }
         }
 
-        // 🟢 លុបវិក្កយបត្រ (សម្រាប់ Admin ប៉ុណ្ណោះ ដោយមិនប៉ះពាល់ដល់ស្តុកក្នុងឃ្លាំង)
         async function deleteInvoiceRecord(invId) {
             let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
             if (loggedUser.role !== 'admin') {
