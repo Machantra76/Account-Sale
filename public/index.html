@@ -1392,7 +1392,7 @@
                 }
             } catch (err) {
                 console.error("Error updating master item:", err);
-                alert("❌ មានបញ្ហាក្នុងการភ្ជាប់ទៅកាន់ Server!");
+                alert("❌ មានបញ្ហាក្នុងការភ្ជាប់ទៅកាន់ Server!");
             }
         });
 
@@ -1888,7 +1888,7 @@
                     visibleInvs = allInvoicesList.filter(inv => {
                         let creator = (inv.created_by || "").trim().toLowerCase();
                         let currentU = (loggedUser.username || "").trim().toLowerCase();
-                        return creator === currentU;
+                        return creator === currentU || !inv.created_by;
                     });
                 }
 
@@ -1904,16 +1904,24 @@
                         let totalAmount = inv.items.reduce((sum, item) => sum + ((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)), 0);
                         let tr = document.createElement('tr');
                         
-                        let actionBtns = `
-                            <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${inv.id}')">កែសម្រួល</button>
-                            <button class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" onclick="reprintInvoice('${inv.id}')">ព្រិន្ទ</button>
-                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${inv.id}')">លុប</button>
-                        `;
+                        let actionBtns = '';
+                        if (!isStaff) {
+                            actionBtns = `
+                                <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${inv.id}')">កែសម្រួល</button>
+                                <button class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" onclick="reprintInvoice('${inv.id}')">ព្រិន្ទ</button>
+                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${inv.id}')">លុប</button>
+                            `;
+                        } else {
+                            actionBtns = `
+                                <button class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" onclick="reprintInvoice('${inv.id}')">ព្រិន្ទ</button>
+                                <span class="text-muted small">គ្មានសិទ្ធិកែ/លុប</span>
+                            `;
+                        }
 
                         tr.innerHTML = `
                             <td class="fw-bold text-primary">${inv.id}</td>
                             <td>${new Date(inv.date).toLocaleString()}</td>
-                            <td><span class="badge bg-light text-dark border">${inv.created_by || 'staff'}</span></td>
+                            <td><span class="badge bg-light text-dark border">${inv.created_by || loggedUser.username || 'staff'}</span></td>
                             <td><span class="badge bg-secondary">${inv.items.length} មុខទំនិញ</span></td>
                             <td class="text-success fw-bold">$${totalAmount.toFixed(2)}</td>
                             <td class="text-center">${actionBtns}</td>
@@ -1935,12 +1943,11 @@
             }
         }
 
+        // 🟢 កែសម្រួលមុខងារលុបវិក្កយបត្រ៖ លុបទាំង Invoice និងលុបទាំង Transactions (INCOME) ព្រមគ្នាដើម្បីឱ្យប្រាក់ចំណូលសរុបស្មើ 0
         async function deleteInvoiceRecord(invId) {
             if (!confirm(`តើអ្នកពិតជាចង់លុបវិក្កយបត្រ ${invId} និងទិន្នន័យប្រាក់ចំណូលពាក់ព័ន្ធមែនទេ?`)) return;
             
             try {
-                let invToDelete = allInvoicesList.find(i => i.id === invId);
-
                 await deleteInvoiceFromServer(invId);
 
                 let resTx = await fetch(`${API_URL}/transactions`);
@@ -1952,25 +1959,12 @@
                     }
                 }
 
-                if (invToDelete && invToDelete.items) {
-                    await fetchMasterItems();
-                    for (let item of invToDelete.items) {
-                        let master = masterItemsList.find(m => m.id == item.item_id || m.item_name === item.item_name);
-                        if (master) {
-                            let currentStock = parseInt(master.stock_quantity) || 0;
-                            let newStock = currentStock - (parseInt(item.quantity) || 0);
-                            if (newStock < 0) newStock = 0;
-                            await updateMasterItemStockAPI(master.id, newStock);
-                        }
-                    }
-                }
-
                 let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
                 if(loggedUser.username) {
-                    logActivity(loggedUser, `លុបវិក្កយបត្រលក់ (មិនបង្វិលស្តុកចូលវិញ): ${invId}`);
+                    logActivity(loggedUser, `លុបវិក្កយបត្រលក់ និង Transactions: ${invId}`);
                 }
                 
-                alert(`✅ បានលុបវិក្កយបត្រដោយជោគជ័យ!`);
+                alert(`✅ បានលុបវិក្កយបត្រ និងទិន្នន័យប្រាក់ចំណូលពាក់ព័ន្ធដោយជោគជ័យ!`);
                 renderInvoiceHistoryTable();
                 loadAppData();
             } catch (err) {
@@ -2137,10 +2131,10 @@
 
             let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
             if(loggedUser.username) {
-                logActivity(loggedUser, `កែសម្រួលវិក្កយបត្រលក់ និងកាត់ស្តុក: ${invId}`);
+                logActivity(loggedUser, `កែសម្រួលវិក្កយបត្រលក់: ${invId}`);
             }
 
-            alert(`✅ បានរក្សាទុកការកែប្រែវិក្កយបត្រ ${invId} និងបានកាត់/បង្វិលស្តុកក្នុងឃ្លាំងដោយជោគជ័យ!`);
+            alert(`✅ បានរក្សាទុកការកែប្រែវិក្កយបត្រ ${invId} និងបានធ្វើបច្ចុប្បន្នភាពស្តុកក្នុងឃ្លាំងដោយជោគជ័យ!`);
             editInvoiceModal.hide();
             loadAppData();
             openInvoiceHistoryModal();
@@ -2267,13 +2261,12 @@
                 if(incomeTbody) incomeTbody.innerHTML = '';
                 if(expenseTbody) expenseTbody.innerHTML = '';
 
-                // 🟢 កំណត់ព្រំដែនដាច់ពីគ្នា៖ Staff ឃើញតែ Invoice របស់ខ្លួនឯង Admin ឃើញទាំងអស់
                 let relevantInvoices = allInvoicesList;
                 if (isStaff) {
                     relevantInvoices = allInvoicesList.filter(inv => {
                         let creator = (inv.created_by || "").trim().toLowerCase();
                         let currentU = (loggedUser.username || "").trim().toLowerCase();
-                        return creator === currentU;
+                        return creator === currentU || !inv.created_by;
                     });
                 }
 
@@ -2313,40 +2306,18 @@
                     });
                 }
 
-                // 🟢 បន្ថែម Logic ជំនួយ៖ បើ Staff អត់ទាន់មាន Invoices តែមាន Transactions ផ្ទាល់ខ្លួន គឺទាញយកមកបង្ហាញក្នុង Sales History ផ្ទាល់តែម្តង
-                if (isStaff && Object.keys(groupedInvoicesSales).length === 0 && allTransactionsList.length > 0) {
-                    let staffTxs = allTransactionsList.filter(tx => tx.type === 'INCOME' && (tx.username || "").trim().toLowerCase() === (loggedUser.username || "").trim().toLowerCase());
-                    staffTxs.forEach(tx => {
-                        let key = (tx.item_name || "").trim() + "_" + (tx.category || "").trim();
-                        let qty = parseInt(tx.quantity) || 0;
-                        let price = parseFloat(tx.unit_price) || 0;
-                        let totalAmt = parseFloat(tx.amount || (qty * price));
-
-                        groupedInvoicesSales[key] = {
-                            invoice_id: tx.id,
-                            created_by: loggedUser.username,
-                            category: tx.category || "ទំនិញទូទៅ",
-                            item_name: tx.item_name || "មិនស្គាល់ឈ្មោះ",
-                            quantity: qty,
-                            total_amount: totalAmt,
-                            unit_price: price,
-                            latest_date: tx.date
-                        };
-                    });
-                }
-
                 let mergedIncomesList = Object.values(groupedInvoicesSales);
 
                 if (incomeTbody && mergedIncomesList.length > 0) {
                     mergedIncomesList.forEach((item) => {
                         let actionBtns = '';
-                        if (isStaff) {
-                            actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិ</span>`;
-                        } else {
+                        if (!isStaff) {
                             actionBtns = `
                                 <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${item.invoice_id}')">កែ</button>
                                 <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${item.invoice_id}')">លុប</button>
                             `;
+                        } else {
+                            actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិ</span>`;
                         }
 
                         let tr = document.createElement('tr');
