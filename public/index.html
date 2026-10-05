@@ -1425,31 +1425,36 @@
             fetchSummary();
         }
 
+        // 🟢 ជួសជុលការទាញយក Invoices ជាមួយ LocalStorage Fallback ធានាមិនឱ្យទិន្នន័យបាត់ឡើយ
         async function fetchInvoicesFromServer() {
             try {
                 let res = await fetch(`${API_URL}/invoices`);
                 let result = await res.json();
-                if (result.success) {
+                if (result.success && result.data) {
                     allInvoicesList = result.data;
                 } else {
-                    allInvoicesList = [];
+                    throw new Error("API invoices empty");
                 }
             } catch (err) {
-                console.error("Error fetching invoices:", err);
-                allInvoicesList = [];
+                console.warn("Using localStorage fallback for invoices:", err);
+                let localInv = localStorage.getItem("pos_local_invoices");
+                allInvoicesList = localInv ? JSON.parse(localInv) : [];
             }
         }
 
         async function saveInvoiceToServer(invoiceObj) {
             try {
-                await fetch(`${API_URL}/invoices`, {
+                let res = await fetch(`${API_URL}/invoices`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(invoiceObj)
                 });
+                if (!res.ok) throw new Error("Server invoice save failed");
                 await fetchInvoicesFromServer();
             } catch (err) {
-                console.error("Error saving invoice to server:", err);
+                console.warn("Saving invoice to localStorage fallback:", err);
+                allInvoicesList.push(invoiceObj);
+                localStorage.setItem("pos_local_invoices", JSON.stringify(allInvoicesList));
             }
         }
 
@@ -1458,7 +1463,8 @@
                 await fetch(`${API_URL}/invoices/${invId}`, { method: 'DELETE' });
                 await fetchInvoicesFromServer();
             } catch (err) {
-                console.error("Error deleting invoice from server:", err);
+                allInvoicesList = allInvoicesList.filter(i => i.id !== invId);
+                localStorage.setItem("pos_local_invoices", JSON.stringify(allInvoicesList));
             }
         }
 
@@ -2248,7 +2254,6 @@
             });
         }
 
-        // 🟢 កែសម្រួលថ្មី៖ ទាញយកទិន្នន័យការលក់ចេញសរុប (Sales Transactions History) ដោយផ្ទាល់ពី Transactions (`INCOME`) តែម្តង ដើម្បីភាពរហ័ស និងជាក់លាក់
         async function fetchTransactions() {
             try {
                 let res = await fetch(`${API_URL}/transactions`);
@@ -2268,16 +2273,14 @@
                 if(incomeTbody) incomeTbody.innerHTML = '';
                 if(expenseTbody) expenseTbody.innerHTML = '';
 
-                // ទាញយក Transactions ប្រភេទ INCOME ទាំងអស់
                 let allIncomeTxs = (result.success && result.data) ? result.data.filter(tx => tx.type === 'INCOME') : [];
 
-                // បើជា Staff គឺត្រងយកតែរបស់ខ្លួនឯង (ផ្អែកលើ username) តែបើ Admin គឺយកទាំងអស់
                 let visibleIncomeTxs = allIncomeTxs;
                 if (isStaff) {
                     let currentU = (loggedUser.username || "").trim().toLowerCase();
                     visibleIncomeTxs = allIncomeTxs.filter(tx => {
                         let txUser = (tx.username || "").trim().toLowerCase();
-                        return txUser === currentU || txUser === ""; // ករណីគ្មាន username ផ្ដល់ជូនតាមបَណ្ដោះអាសន្ន
+                        return txUser === currentU || txUser === "";
                     });
                 }
 
