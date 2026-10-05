@@ -1054,7 +1054,7 @@
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
                 if (userObj.role === 'stockkeeper') {
-                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Staff ប៉ុណ្ណោះ។");
+                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Staff ប៉ុណ្ណោះ。");
                     return;
                 }
             }
@@ -1392,7 +1392,7 @@
                 }
             } catch (err) {
                 console.error("Error updating master item:", err);
-                alert("❌ មានបញ្ហាក្នុងการភ្ជាប់ទៅកាន់ Server!");
+                alert("❌ មានបញ្ហាក្នុងការភ្ជាប់ទៅកាន់ Server!");
             }
         });
 
@@ -2248,6 +2248,7 @@
             });
         }
 
+        // 🟢 កែសម្រួលថ្មី៖ ទាញយកទិន្នន័យការលក់ចេញសរុប (Sales Transactions History) ដោយផ្ទាល់ពី Transactions (`INCOME`) តែម្តង ដើម្បីភាពរហ័ស និងជាក់លាក់
         async function fetchTransactions() {
             try {
                 let res = await fetch(`${API_URL}/transactions`);
@@ -2267,75 +2268,52 @@
                 if(incomeTbody) incomeTbody.innerHTML = '';
                 if(expenseTbody) expenseTbody.innerHTML = '';
 
-                // 🟢 កំណត់ព្រំដែនដាច់ពីគ្នា៖ Staff ឃើញតែ Invoice របស់ខ្លួនឯង Admin ឃើញទាំងអស់
-                let relevantInvoices = allInvoicesList;
+                // ទាញយក Transactions ប្រភេទ INCOME ទាំងអស់
+                let allIncomeTxs = (result.success && result.data) ? result.data.filter(tx => tx.type === 'INCOME') : [];
+
+                // បើជា Staff គឺត្រងយកតែរបស់ខ្លួនឯង (ផ្អែកលើ username) តែបើ Admin គឺយកទាំងអស់
+                let visibleIncomeTxs = allIncomeTxs;
                 if (isStaff) {
-                    relevantInvoices = allInvoicesList.filter(inv => {
-                        let creator = (inv.created_by || "").trim().toLowerCase();
-                        let currentU = (loggedUser.username || "").trim().toLowerCase();
-                        return creator === currentU;
+                    let currentU = (loggedUser.username || "").trim().toLowerCase();
+                    visibleIncomeTxs = allIncomeTxs.filter(tx => {
+                        let txUser = (tx.username || "").trim().toLowerCase();
+                        return txUser === currentU || txUser === ""; // ករណីគ្មាន username ផ្ដល់ជូនតាមបَណ្ដោះអាសន្ន
                     });
                 }
 
-                let groupedInvoicesSales = {};
-                if (relevantInvoices && relevantInvoices.length > 0) {
-                    relevantInvoices.forEach(inv => {
-                        if (inv.items && Array.isArray(inv.items)) {
-                            inv.items.forEach(item => {
-                                let creator = inv.created_by || (isStaff ? loggedUser.username : "admin");
-                                let key = (item.item_name || "").trim() + "_" + (item.category || "").trim() + "_" + creator;
-                                let qty = parseInt(item.quantity) || 0;
-                                let price = parseFloat(item.unit_price) || 0;
-                                let totalAmt = qty * price;
-
-                                if (!groupedInvoicesSales[key]) {
-                                    groupedInvoicesSales[key] = {
-                                        invoice_id: inv.id,
-                                        created_by: creator,
-                                        category: item.category || "ទំនិញទូទៅ",
-                                        item_name: item.item_name || "មិនស្គាល់ឈ្មោះ",
-                                        quantity: 0,
-                                        total_amount: 0,
-                                        unit_price: price,
-                                        latest_date: inv.date
-                                    };
-                                }
-                                groupedInvoicesSales[key].quantity += qty;
-                                groupedInvoicesSales[key].total_amount += totalAmt;
-                                groupedInvoicesSales[key].unit_price = groupedInvoicesSales[key].quantity > 0 ? (groupedInvoicesSales[key].total_amount / groupedInvoicesSales[key].quantity) : price;
-
-                                if (inv.date && new Date(inv.date) > new Date(groupedInvoicesSales[key].latest_date)) {
-                                    groupedInvoicesSales[key].latest_date = inv.date;
-                                    groupedInvoicesSales[key].invoice_id = inv.id;
-                                }
-                            });
-                        }
-                    });
-                }
-
-                // 🟢 បន្ថែម Logic ជំនួយ៖ បើ Staff អត់ទាន់មាន Invoices តែមាន Transactions ផ្ទាល់ខ្លួន គឺទាញយកមកបង្ហាញក្នុង Sales History ផ្ទាល់តែម្តង
-                if (isStaff && Object.keys(groupedInvoicesSales).length === 0 && allTransactionsList.length > 0) {
-                    let staffTxs = allTransactionsList.filter(tx => tx.type === 'INCOME' && (tx.username || "").trim().toLowerCase() === (loggedUser.username || "").trim().toLowerCase());
-                    staffTxs.forEach(tx => {
-                        let key = (tx.item_name || "").trim() + "_" + (tx.category || "").trim();
+                let groupedSalesMap = {};
+                if (visibleIncomeTxs.length > 0) {
+                    visibleIncomeTxs.forEach(tx => {
+                        let creator = tx.username || (isStaff ? loggedUser.username : "admin");
+                        let key = (tx.item_name || "").trim() + "_" + (tx.category || "").trim() + "_" + creator;
                         let qty = parseInt(tx.quantity) || 0;
                         let price = parseFloat(tx.unit_price) || 0;
                         let totalAmt = parseFloat(tx.amount || (qty * price));
 
-                        groupedInvoicesSales[key] = {
-                            invoice_id: tx.id,
-                            created_by: loggedUser.username,
-                            category: tx.category || "ទំនិញទូទៅ",
-                            item_name: tx.item_name || "មិនស្គាល់ឈ្មោះ",
-                            quantity: qty,
-                            total_amount: totalAmt,
-                            unit_price: price,
-                            latest_date: tx.date
-                        };
+                        if (!groupedSalesMap[key]) {
+                            groupedSalesMap[key] = {
+                                tx_id: tx.id,
+                                created_by: creator,
+                                category: tx.category || "ទំនិញទូទៅ",
+                                item_name: tx.item_name || "មិនស្គាល់ឈ្មោះ",
+                                quantity: 0,
+                                total_amount: 0,
+                                unit_price: price,
+                                latest_date: tx.date
+                            };
+                        }
+                        groupedSalesMap[key].quantity += qty;
+                        groupedSalesMap[key].total_amount += totalAmt;
+                        groupedSalesMap[key].unit_price = groupedSalesMap[key].quantity > 0 ? (groupedSalesMap[key].total_amount / groupedSalesMap[key].quantity) : price;
+
+                        if (tx.date && new Date(tx.date) > new Date(groupedSalesMap[key].latest_date)) {
+                            groupedSalesMap[key].latest_date = tx.date;
+                            groupedSalesMap[key].tx_id = tx.id;
+                        }
                     });
                 }
 
-                let mergedIncomesList = Object.values(groupedInvoicesSales);
+                let mergedIncomesList = Object.values(groupedSalesMap);
 
                 if (incomeTbody && mergedIncomesList.length > 0) {
                     mergedIncomesList.forEach((item) => {
@@ -2344,8 +2322,7 @@
                             actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិ</span>`;
                         } else {
                             actionBtns = `
-                                <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${item.invoice_id}')">កែ</button>
-                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${item.invoice_id}')">លុប</button>
+                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteTransaction('${item.tx_id}')">លុប</button>
                             `;
                         }
 
