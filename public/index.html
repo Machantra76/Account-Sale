@@ -24,6 +24,7 @@
             background-color: var(--bg-body); 
             font-family: 'Kantumruy Pro', 'Battambang', sans-serif; 
             color: #1e293b;
+            letter-spacing: -0.01em;
         }
         h1, h2, h3, h4, h5, h6, .card-title, label, th, .btn { 
             font-family: 'Kantumruy Pro', 'Battambang', sans-serif; 
@@ -33,6 +34,12 @@
             border: 1px solid #e2e8f0; 
             box-shadow: var(--card-shadow);
             background: #ffffff;
+            transition: all 0.2s ease;
+        }
+        .card-summary { 
+            border-radius: 18px; 
+            color: white; 
+            border: none; 
         }
         .form-control, .form-select {
             border-radius: 12px;
@@ -40,22 +47,37 @@
             border-color: #cbd5e1;
             font-size: 14px;
         }
+        .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+            border-color: var(--primary-color);
+        }
         .btn {
             border-radius: 12px;
             padding: 0.6rem 1.2rem;
             font-weight: 600;
             font-size: 14px;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
         }
         #appContainer, #loginContainer {
             display: none;
         }
         .pos-item-card {
+            transition: transform 0.2s, box-shadow 0.2s;
             cursor: pointer;
-            transition: transform 0.2s;
         }
         .pos-item-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -5px rgba(0,0,0,0.1);
             border-color: var(--success-color) !important;
+        }
+        .table th {
+            font-weight: 600;
+            color: #475569;
+            background-color: #f8fafc !important;
+            border-bottom: 2px solid #e2e8f0;
         }
     </style>
 </head>
@@ -69,17 +91,24 @@
                     <i class="bi bi-shield-lock-fill"></i>
                 </div>
                 <h3 class="fw-bold text-dark fs-4">🔐 ចូលប្រើប្រាស់ប្រព័ន្ធ</h3>
+                <p class="text-muted small">System Login & Security Authentication</p>
             </div>
             <form id="loginForm">
                 <div class="mb-3">
                     <label class="form-label small text-muted fw-bold">ឈ្មោះអ្នកប្រើប្រាស់ (Username)</label>
-                    <input type="text" class="form-control" id="loginUsername" placeholder="បញ្ចូលឈ្មោះ..." required>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 rounded-start-3"><i class="bi bi-person"></i></span>
+                        <input type="text" class="form-control border-start-0" id="loginUsername" placeholder="បញ្ចូលឈ្មោះ..." required>
+                    </div>
                 </div>
                 <div class="mb-4">
                     <label class="form-label small text-muted fw-bold">ពាក្យសម្ងាត់ (Password)</label>
-                    <input type="password" class="form-control" id="loginPassword" placeholder="បញ្ចូលពាក្យសម្ងាត់..." required>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 rounded-start-3"><i class="bi bi-key"></i></span>
+                        <input type="password" class="form-control border-start-0" id="loginPassword" placeholder="បញ្ចូលពាក្យសម្ងាត់..." required>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">ចូលគណនី (Login)</button>
+                <button type="submit" class="btn btn-primary w-100 py-2 shadow-sm fw-bold">ចូលគណនី (Login)</button>
             </form>
         </div>
     </div>
@@ -94,100 +123,309 @@
                 </div>
                 <div>
                     <h2 class="text-dark fw-bold m-0 fs-5">ប្រព័ន្ធគ្រប់គ្រងការលក់ និងស្តុក</h2>
+                    <span class="text-muted" style="font-size: 12px;">POS & Inventory Management System</span>
                 </div>
             </div>
             <div class="d-flex align-items-center flex-wrap gap-2">
-                <button onclick="openInvoiceHistoryModal()" class="btn btn-outline-secondary btn-sm px-3 fw-semibold">
+                <button id="adminActivityLogBtn" onclick="openActivityLogModal()" class="btn btn-outline-primary btn-sm px-3 shadow-sm fw-semibold">
+                    <i class="bi bi-clock-history me-1"></i> សកម្មភាព និងវេនការងារ (Activity & Shift)
+                </button>
+                <button id="adminInvoiceHistoryBtn" onclick="openInvoiceHistoryModal()" class="btn btn-outline-secondary btn-sm px-3 shadow-sm fw-semibold">
                     <i class="bi bi-receipt me-1"></i> ប្រវត្តិវិក្កយបត្រ (Invoices)
                 </button>
-                <span id="welcomeUser" class="fw-semibold text-secondary px-2 py-1 bg-light rounded-3"></span>
-                <button onclick="logout()" class="btn btn-outline-danger btn-sm px-3">ចេញ (Logout)</button>
+                <button id="adminReportBtn" onclick="openReportModal()" class="btn btn-primary btn-sm px-3 shadow-sm fw-semibold">
+                    <i class="bi bi-graph-up-arrow me-1"></i> របាយការណ៍ (Reports)
+                </button>
+                <div class="vr mx-1"></div>
+                <span id="welcomeUser" class="fw-semibold text-secondary px-2 py-1 bg-light rounded-3" style="font-size: 13px;"></span>
+                <button onclick="logout()" class="btn btn-outline-danger btn-sm px-3">
+                    <i class="bi bi-box-arrow-right me-1"></i> ចេញ (Logout)
+                </button>
             </div>
         </div>
 
-        <!-- POS & CART SECTION -->
-        <div class="row g-4 mb-4">
-            <!-- ផ្នែកបង្កើតទំនិញ Master -->
+        <!-- CARDS SUMMARY -->
+        <div id="adminSummaryCards" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card bg-success card-summary p-4 shadow-sm position-relative overflow-hidden">
+                    <div class="position-absolute end-0 top-0 p-3 text-white-50 opacity-25" style="font-size: 3.5rem;"><i class="bi bi-cash-stack"></i></div>
+                    <h6 class="text-white-50 mb-1 fw-semibold small">ប្រាក់ចំណូលសរុប (Total Sales Income)</h6>
+                    <h3 id="lblTotalIncome" class="fw-bold m-0">$0.00</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-secondary card-summary p-4 shadow-sm position-relative overflow-hidden">
+                    <div class="position-absolute end-0 top-0 p-3 text-white-50 opacity-25" style="font-size: 3.5rem;"><i class="bi bi-box-seam"></i></div>
+                    <h6 class="text-white-50 mb-1 fw-semibold small">ទំហំទិញស្តុកសរុប (Total Inventory Value)</h6>
+                    <h3 id="lblTotalExpense" class="fw-bold m-0">$0.00</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-primary card-summary p-4 shadow-sm position-relative overflow-hidden">
+                    <div class="position-absolute end-0 top-0 p-3 text-white-50 opacity-25" style="font-size: 3.5rem;"><i class="bi bi-graph-up"></i></div>
+                    <h6 class="text-white-50 mb-1 fw-semibold small">ប្រាក់ចំណេញសុទ្ធពីការលក់ (Net Profit)</h6>
+                    <h3 id="lblNetProfit" class="fw-bold m-0">$0.00</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- ជួរទី១៖ Master Form & POS Catalog/Cart -->
+        <div class="row g-4 mb-4" id="rowSection1">
             <div class="col-lg-4" id="colMasterForm">
-                <div class="card p-4 shadow-sm bg-white h-100">
-                    <h5 class="mb-3 text-dark fw-bold fs-6 border-bottom pb-2">📦 បង្កើតមុខទំនិញ (Master Items)</h5>
+                <div id="adminMasterCard" class="card p-4 shadow-sm bg-white h-100">
+                    <h5 class="mb-3 text-dark fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
+                        <i class="bi bi-gear-fill text-primary"></i> បង្កើតមុខទំនិញ និងកំណត់តម្លៃ (Master Items)
+                    </h5>
                     <form id="masterForm">
-                        <div class="mb-2">
+                        <div class="mb-3">
                             <label class="form-label small text-muted fw-bold">Category (ក្រុមទំនិញ)</label>
-                            <input type="text" class="form-control form-control-sm" id="masterCategory" placeholder="ឧ. ភេសជ្ជៈ" required>
+                            <input type="text" class="form-control form-control-sm" id="masterCategory" placeholder="ឧ. ភេសជ្ជៈ, ស្រាបៀរ..." required>
                         </div>
-                        <div class="mb-2">
-                            <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ</label>
-                            <input type="text" class="form-control form-control-sm" id="masterItemName" placeholder="ឧ. កូកាកូឡា" required>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ (Item Name)</label>
+                            <input type="text" class="form-control form-control-sm" id="masterItemName" placeholder="ឧ. កូកាកូឡា, ទីហ្គឺរ..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">រូបភាពទំនិញ (Image File)</label>
+                            <input type="file" class="form-control form-control-sm" id="masterImageFile" accept="image/*">
                         </div>
                         <div class="row">
-                            <div class="col-6 mb-2">
-                                <label class="form-label small text-muted fw-bold">ស្តុកដំបូង</label>
-                                <input type="number" class="form-control form-control-sm" id="masterStock" value="100" min="0" required>
-                            </div>
-                            <div class="col-6 mb-2">
-                                <label class="form-label small text-muted fw-bold">ឯកតា</label>
-                                <select class="form-select form-select-sm" id="masterUnit">
+                            <div class="col-6 mb-3">
+                                <label class="form-label small text-muted fw-bold">ឯកតា (Unit)</label>
+                                <select class="form-select form-select-sm" id="masterUnit" required>
                                     <option value="ដប">ដប</option>
                                     <option value="កំប៉ុង">កំប៉ុង</option>
                                     <option value="កេស">កេស</option>
+                                    <option value="ដុំ">ដុំ</option>
                                 </select>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label small text-muted fw-bold">ស្តុកដំបូង (Initial Qty)</label>
+                                <input type="number" class="form-control form-control-sm" id="masterStock" value="0" min="0" required>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-6 mb-3">
-                                <label class="form-label small text-muted fw-bold">តម្លៃដើម ($)</label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" id="masterCostPrice" value="0.50" required>
+                                <label class="form-label small text-muted fw-bold">តម្លៃដើម ($ Cost)</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" id="masterCostPrice" placeholder="0.00" required>
                             </div>
                             <div class="col-6 mb-3">
-                                <label class="form-label small text-muted fw-bold">តម្លៃលក់រាយ ($)</label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" id="masterRetailPrice" value="1.00" required>
+                                <label class="form-label small text-muted fw-bold">តម្លៃលក់រាយ ($ Retail)</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" id="masterRetailPrice" placeholder="0.00" required>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-dark btn-sm w-100 py-2">💾 រក្សាទុកទំនិញ</button>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">តម្លៃលក់ដុំ ($ Wholesale)</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm" id="masterWholesalePrice" placeholder="0.00" required>
+                        </div>
+                        <button type="submit" class="btn btn-dark btn-sm w-100 shadow-sm py-2">
+                            <i class="bi bi-plus-circle me-1"></i> រក្សាទុកទំនិញចូលបញ្ជី (Save Item)
+                        </button>
                     </form>
                 </div>
             </div>
-
-            <!-- ផ្នែកជ្រើសរើសទំនិញលក់ និងកន្រ្តក -->
-            <div class="col-lg-8" id="colPosArea">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="card p-3 shadow-sm h-100 border-success border-2">
-                            <h6 class="text-success fw-bold mb-2">🛒 ជ្រើសរើសទំនិញលក់ (POS Catalog)</h6>
+            
+            <div id="colPosCartArea" class="col-lg-8">
+                <div class="row g-3 h-100" id="posCartSubRow">
+                    <div class="col-lg-6" id="posCatalogCol">
+                        <div id="posGridCard" class="card p-3 shadow-sm h-100 bg-white border-success border-2">
+                            <h6 class="text-success fw-bold mb-2 fs-6 d-flex align-items-center gap-1">
+                                <i class="bi bi-grid-3x3-gap-fill"></i> ជ្រើសរើសទំនិញ (POS Catalog)
+                            </h6>
                             <div class="mb-2">
                                 <select class="form-select form-select-sm" id="posSelectCategory" onchange="renderPosImageGrid()">
                                     <option value="">-- គ្រប់ Category ទាំងអស់ --</option>
                                 </select>
                             </div>
-                            <div id="posImageGrid" class="row g-2" style="max-height: 350px; overflow-y: auto;"></div>
+                            <div id="posImageGrid" class="row g-2" style="max-height: 420px; overflow-y: auto;">
+                                <p class="text-muted text-center py-3">សូមជ្រើសរើស Category ដើម្បីបង្ហាញរូបភាពទំនិញ</p>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card p-3 shadow-sm h-100 border-success border-2 d-flex flex-column">
-                            <h6 class="text-success fw-bold mb-2">🛍 វិក្កយបត្របច្ចុប្បន្ន (Current Cart)</h6>
-                            <div class="table-responsive flex-grow-1" style="max-height: 200px; overflow-y: auto;">
-                                <table class="table table-sm align-middle mb-0" style="font-size: 13px;">
-                                    <thead>
-                                        <tr>
-                                            <th>ទំនិញ</th>
-                                            <th>ចំនួន</th>
-                                            <th>តម្លៃ</th>
-                                            <th>សរុប</th>
-                                            <th>លុប</th>
+                    <div class="col-lg-6" id="posCartCol">
+                        <div id="currentCartCard" class="card p-3 shadow-sm h-100 bg-white border-success border-2 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="text-success fw-bold m-0 fs-5 d-flex align-items-center gap-1">
+                                    <i class="bi bi-cart-fill"></i> វិក្កយបត្របច្ចុប្បន្ន (Current Cart)
+                                </h6>
+                                <button class="btn btn-sm btn-outline-secondary py-1 px-3" onclick="clearCurrentCart()" style="font-size: 13px;">សម្អាត (Clear)</button>
+                            </div>
+                            <div class="row g-2 align-items-center mb-2 bg-light p-2 rounded-3 border">
+                                <div class="col-6">
+                                    <label class="form-label text-muted fw-bold mb-0" style="font-size: 13px;">💱 ១ដុល្លារ = រៀល:</label>
+                                </div>
+                                <div class="col-6">
+                                    <input type="number" class="form-control form-control-sm fw-bold" id="exchangeRateInput" value="4000" oninput="renderCartTable()" style="font-size: 14px;">
+                                </div>
+                            </div>
+                            <div class="table-responsive flex-grow-1" style="max-height: 220px; overflow-y: auto;">
+                                <table class="table table-sm table-hover align-middle mb-0" style="font-size: 14px;">
+                                    <thead class="table-light sticky-top">
+                                        <tr style="font-size: 13px;">
+                                            <th>ទំនិញ (Item)</th>
+                                            <th>ចំនួន (Qty)</th>
+                                            <th>តម្លៃ (Price)</th>
+                                            <th>សរុប (Total)</th>
+                                            <th class="text-center">លុប</th>
                                         </tr>
                                     </thead>
                                     <tbody id="cartTableBody"></tbody>
                                 </table>
                             </div>
                             <div class="mt-auto pt-2 border-top">
-                                <h6 class="text-success fw-bold mb-2" id="cartGrandTotalLabel">សរុប: $0.00</h6>
-                                <button class="btn btn-success w-100 fw-bold py-2 shadow-sm" onclick="checkoutAndPrintInvoice()">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="text-success fw-bold m-0" id="cartGrandTotalLabel" style="font-size: 16px;">សរុប: $0.00 / 0 រៀល</h5>
+                                </div>
+                                <button class="btn btn-success shadow-sm w-100 fw-bold py-2" onclick="checkoutAndPrintInvoice()" style="font-size: 15px;">
                                     <i class="bi bi-printer-fill me-1"></i> បញ្ចប់ការលក់ និងព្រិន្ទ (Checkout & Print)
                                 </button>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ជួរទី២៖ ប្រវត្តិការលក់ចេញសរុប -->
+        <div class="row g-4 mb-4 mt-5" id="rowSectionSalesHistory">
+            <div class="col-lg-12">
+                <div id="incomeCard" class="card p-4 shadow-sm bg-white border-start border-success border-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <h5 class="text-success fw-bold fs-6 m-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-cash-coin"></i> ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History)
+                        </h5>
+                    </div>
+                    <div class="table-responsive" style="max-height: 230px; overflow-y: auto;">
+                        <table class="table table-striped table-hover align-middle mb-0">
+                            <thead class="table-success sticky-top">
+                                <tr>
+                                    <th>កាលបរិច្ឆេទ (Date)</th>
+                                    <th>អ្នកលក់ (Staff/User)</th>
+                                    <th>Category</th>
+                                    <th>ទំនិញ (Item)</th>
+                                    <th>ចំនួនលក់ (Qty)</th>
+                                    <th>តម្លៃលក់ (Price)</th>
+                                    <th>សរុប ($ Total)</th>
+                                    <th class="text-center">សកម្មភាព</th>
+                                </tr>
+                            </thead>
+                            <tbody id="incomeTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ជួរទី៣៖ Restock Form & Purchase Transactions -->
+        <div class="row g-4 mb-4" id="rowSection2">
+            <div class="col-lg-4" id="colRestockCard">
+                <div id="restockCard" class="card p-4 shadow-sm bg-white h-100">
+                    <h5 class="mb-3 text-danger fw-bold fs-6 border-bottom pb-2 d-flex align-items-center gap-2">
+                        <i class="bi bi-box-arrow-in-down"></i> ទិញស្តុកចូលបន្ថែម (Restock Inventory)
+                    </h5>
+                    <form id="restockForm">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">ជ្រើសរើស Category</label>
+                            <select class="form-select" id="restockSelectCategory" onchange="filterRestockItemsByCategory()">
+                                <option value="">-- គ្រប់ Category ទាំងអស់ --</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">ឈ្មោះទំនិញ (Item Name)</label>
+                            <select class="form-select" id="restockSelectItem" required>
+                                <option value="">-- ជ្រើសរើសទំនិញ --</option>
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label small text-muted fw-bold">ចំនួន (Qty)</label>
+                                <input type="number" class="form-control" id="restockQty" value="1" min="1" required>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label small text-muted fw-bold">តម្លៃទិញ ($)</label>
+                                <input type="number" step="0.01" class="form-control" id="restockPrice" placeholder="0.00" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100 shadow-sm py-2">បញ្ជាក់ការទិញស្តុកចូល (Restock)</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="col-lg-8" id="colExpenseCard">
+                <div id="expenseCard" class="card p-4 shadow-sm bg-white border-start border-danger border-4 h-100">
+                    <h5 class="mb-3 text-danger fw-bold fs-6 d-flex align-items-center gap-2">
+                        <i class="bi bi-receipt-cutoff"></i> ប្រវត្តិការទិញស្តុកចូល (Purchase Transactions)
+                    </h5>
+                    <div class="table-responsive" style="max-height: 230px; overflow-y: auto;">
+                        <table class="table table-striped table-hover align-middle mb-0">
+                            <thead class="table-danger sticky-top">
+                                <tr>
+                                    <th>កាលបរិច្ឆេទ</th>
+                                    <th>Category</th>
+                                    <th>ឈ្មោះទំនិញ</th>
+                                    <th>ចំនួនទិញ</th>
+                                    <th>តម្លៃទិញ</th>
+                                    <th>សរុប ($)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expenseTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ជួរទី៤៖ Master List & User Creation -->
+        <div class="row g-4 mb-4" id="rowSection3">
+            <div class="col-lg-8" id="colAdminMasterListContainer">
+                <div id="adminMasterListCard" class="card p-4 shadow-sm bg-white h-100">
+                    <h5 class="text-secondary fw-bold fs-6 mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-archive-fill"></i> បញ្ជីស្តុកទំនិញក្នុងឃ្លាំង (Master & Stock List)
+                    </h5>
+                    <div class="table-responsive" style="max-height: 230px; overflow-y: auto;">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>Category</th>
+                                    <th>ឈ្មោះទំនិញ</th>
+                                    <th>ឯកតា</th>
+                                    <th>ស្តុកសល់</th>
+                                    <th>តម្លៃដើម ($)</th>
+                                    <th>លក់រាយ ($)</th>
+                                    <th>លក់ដុំ ($)</th>
+                                    <th class="text-center">សកម្មភាព</th>
+                                </tr>
+                            </thead>
+                            <tbody id="masterTableBodyAdmin"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4" id="colAdminUserCard">
+                <div id="adminUserCard" class="card p-4 shadow-sm bg-white border-top border-primary border-4 h-100">
+                    <h5 class="mb-3 text-primary fw-bold fs-6 d-flex align-items-center gap-2">
+                        <i class="bi bi-person-plus-fill"></i> បង្កើតគណនីបុគ្គលិក (Staff Accounts)
+                    </h5>
+                    <form id="createUserForm">
+                        <div class="mb-2">
+                            <label class="form-label small text-muted fw-bold">Username</label>
+                            <input type="text" class="form-control form-control-sm" id="newUserUsername" placeholder="ឧ. sokha" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small text-muted fw-bold">Password</label>
+                            <input type="password" class="form-control form-control-sm" id="newUserPassword" placeholder="ពាក្យសម្ងាត់..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">តួនាទី (Role)</label>
+                            <select class="form-select form-select-sm" id="newUserRole" required>
+                                <option value="staff">Staff (បុគ្គលិកលក់ - POS Only)</option>
+                                <option value="stockkeeper">Stock Keeper (អ្នកកាន់ស្តុក)</option>
+                                <option value="admin">Admin (អភិបាល - Full Access)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-outline-primary btn-sm w-100 shadow-sm py-2">បង្កើតគណនីថ្មី (Create User)</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -218,8 +456,8 @@
                         </table>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">បិទ</button>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">បិទ (Close)</button>
                 </div>
             </div>
         </div>
@@ -252,13 +490,24 @@
             document.getElementById('appContainer').style.display = 'block';
             document.getElementById('welcomeUser').innerText = `👤 ${userObj.username} (${userObj.role.toUpperCase()})`;
 
-            // កំណត់ការបង្ហាញតាម Role
+            let colMasterForm = document.getElementById('colMasterForm');
+            let colPosCartArea = document.getElementById('colPosCartArea');
+            let colAdminMasterListContainer = document.getElementById('colAdminMasterListContainer');
+            let colAdminUserCard = document.getElementById('colAdminUserCard');
+            let colRestockCard = document.getElementById('colRestockCard');
+
             if (userObj.role === 'staff') {
-                document.getElementById('colMasterForm').style.display = 'none';
-                document.getElementById('colPosArea').className = 'col-lg-12';
+                if(colMasterForm) colMasterForm.style.display = 'none';
+                if(colPosCartArea) colPosCartArea.className = 'col-lg-12';
+                if(colAdminMasterListContainer) colAdminMasterListContainer.style.display = 'none';
+                if(colAdminUserCard) colAdminUserCard.style.display = 'none';
+                if(colRestockCard) colRestockCard.style.display = 'none';
             } else {
-                document.getElementById('colMasterForm').style.display = 'block';
-                document.getElementById('colPosArea').className = 'col-lg-8';
+                if(colMasterForm) colMasterForm.style.display = 'block';
+                if(colPosCartArea) colPosCartArea.className = 'col-lg-8';
+                if(colAdminMasterListContainer) colAdminMasterListContainer.style.display = 'block';
+                if(colAdminUserCard) colAdminUserCard.style.display = 'block';
+                if(colRestockCard) colRestockCard.style.display = 'block';
             }
 
             loadAppData();
@@ -283,7 +532,7 @@
                     alert(`❌ ${data.error || 'ឈ្មោះអ្នកប្រើប្រាស់ ឬពាក្យសម្ងាត់មិនត្រឹមត្រូវ!'}`);
                 }
             } catch (err) {
-                alert("❌ មានបញ្ហាក្នុងการភ្ជាប់ទៅកាន់ Server!");
+                alert("❌ មានបញ្ហាក្នុងការភ្ជាប់ទៅកាន់ Server!");
             }
         });
 
@@ -295,6 +544,8 @@
         async function loadAppData() {
             await fetchMasterItems();
             await fetchInvoicesFromServer();
+            await fetchTransactions();
+            fetchSummary();
         }
 
         async function fetchMasterItems() {
@@ -304,7 +555,7 @@
                 if (result.success) {
                     masterItemsList = result.data;
                     populateCategories();
-                    renderPosImageGrid();
+                    renderMasterTable();
                 }
             } catch (err) {
                 console.error("Error fetching master items:", err);
@@ -312,19 +563,32 @@
         }
 
         function populateCategories() {
-            let select = document.getElementById('posSelectCategory');
-            if(!select) return;
-            select.innerHTML = '<option value="">-- គ្រប់ Category ទាំងអស់ --</option>';
+            let posSelect = document.getElementById('posSelectCategory');
+            let restockSelect = document.getElementById('restockSelectCategory');
+
+            if(posSelect) posSelect.innerHTML = '<option value="">-- គ្រប់ Category ទាំងអស់ --</option>';
+            if(restockSelect) restockSelect.innerHTML = '<option value="">-- គ្រប់ Category ទាំងអស់ --</option>';
+
             let categories = [...new Set(masterItemsList.map(i => i.category))];
             categories.forEach(cat => {
-                let opt = document.createElement('option');
-                opt.value = cat;
-                opt.textContent = cat;
-                select.appendChild(opt);
+                if(posSelect) {
+                    let opt1 = document.createElement('option');
+                    opt1.value = cat;
+                    opt1.textContent = cat;
+                    posSelect.appendChild(opt1);
+                }
+                if(restockSelect) {
+                    let opt2 = document.createElement('option');
+                    opt2.value = cat;
+                    opt2.textContent = cat;
+                    restockSelect.appendChild(opt2);
+                }
             });
+            renderPosImageGrid();
+            filterRestockItemsByCategory();
         }
 
-        document.getElementById('masterForm').addEventListener('submit', async (e) => {
+        document.getElementById('masterForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             let newItem = {
                 category: document.getElementById('masterCategory').value.trim(),
@@ -333,8 +597,8 @@
                 unit: document.getElementById('masterUnit').value,
                 cost_price: parseFloat(document.getElementById('masterCostPrice').value) || 0,
                 retail_price: parseFloat(document.getElementById('masterRetailPrice').value) || 0,
-                wholesale_price: parseFloat(document.getElementById('masterRetailPrice').value) || 0,
-                image_url: 'https://via.placeholder.com/150?text=Item'
+                wholesale_price: parseFloat(document.getElementById('masterWholesalePrice').value) || 0,
+                image_url: ''
             };
 
             try {
@@ -344,17 +608,18 @@
                     body: JSON.stringify(newItem)
                 });
                 if(res.ok) {
-                    fetchMasterItems();
+                    loadAppData();
                     document.getElementById('masterForm').reset();
                     alert("✅ បានរក្សាទុកទំនិញចូល Server ជោគជ័យ!");
                 }
             } catch (err) {
-                alert("❌ មានបញ្ហាក្នុងการបញ្ជូនទិន្នន័យទៅ Server!");
+                alert("❌ មានបញ្ហាក្នុងការបញ្ជូនទិន្នន័យទៅ Server!");
             }
         });
 
         function renderPosImageGrid() {
             let grid = document.getElementById('posImageGrid');
+            if(!grid) return;
             let selectedCat = document.getElementById('posSelectCategory').value;
             grid.innerHTML = '';
 
@@ -392,7 +657,8 @@
                     item_name: item.item_name,
                     category: item.category,
                     quantity: 1,
-                    unit_price: parseFloat(item.retail_price)
+                    unit_price: parseFloat(item.retail_price),
+                    unit: item.unit || 'ដុំ'
                 });
             }
             renderCartTable();
@@ -400,6 +666,7 @@
 
         function renderCartTable() {
             let tbody = document.getElementById('cartTableBody');
+            if(!tbody) return;
             tbody.innerHTML = '';
             let grandTotal = 0;
 
@@ -412,15 +679,26 @@
                     <td>${item.quantity}</td>
                     <td>$${item.unit_price.toFixed(2)}</td>
                     <td class="text-success fw-bold">$${total.toFixed(2)}</td>
-                    <td><button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="removeFromCart(${index})">×</button></td>
+                    <td class="text-center"><button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="removeFromCart(${index})">×</button></td>
                 `;
                 tbody.appendChild(tr);
             });
-            document.getElementById('cartGrandTotalLabel').innerText = `សរុប: $${grandTotal.toFixed(2)}`;
+
+            let exchangeRate = parseFloat(document.getElementById('exchangeRateInput')?.value) || 4000;
+            let grandTotalRiel = grandTotal * exchangeRate;
+            let totalLabel = document.getElementById('cartGrandTotalLabel');
+            if(totalLabel) {
+                totalLabel.innerHTML = `សរុប: <span class="text-success">$${grandTotal.toFixed(2)}</span> / <span class="text-primary">${grandTotalRiel.toLocaleString()}រៀល</span>`;
+            }
         }
 
         function removeFromCart(index) {
             currentCart.splice(index, 1);
+            renderCartTable();
+        }
+
+        function clearCurrentCart() {
+            currentCart = [];
             renderCartTable();
         }
 
@@ -450,6 +728,23 @@
                 items: JSON.parse(JSON.stringify(currentCart))
             };
 
+            for (let item of currentCart) {
+                let txData = {
+                    type: 'INCOME',
+                    item_id: item.item_id,
+                    category: item.category,
+                    item_name: item.item_name,
+                    quantity: item.quantity,
+                    unit_price: item.unit_price,
+                    amount: item.quantity * item.unit_price
+                };
+                await fetch(`${API_URL}/transactions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(txData)
+                });
+            }
+
             try {
                 let res = await fetch(`${API_URL}/invoices`, {
                     method: 'POST',
@@ -458,38 +753,26 @@
                 });
 
                 if (res.ok) {
-                    alert(`✅ បញ្ចប់ការលក់ និងរក្សាទុកក្នុង Server ជោគជ័យ! លេខវិក្កយបត្រ: ${invoiceObj.id}`);
+                    alert(`✅ បញ្ចប់ការលក់ជោគជ័យ! លេខវិក្កយបត្រ: ${invoiceObj.id}`);
                     currentCart = [];
                     renderCartTable();
-                    await fetchInvoicesFromServer();
+                    loadAppData();
                 } else {
                     alert("❌ Server បដិសេធការរក្សាទុក Invoice!");
                 }
             } catch (err) {
-                alert("❌ មានបញ្ហាក្នុងการតភ្ជាប់ទៅកាន់ Server API!");
+                alert("❌ មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ Server API!");
             }
         }
 
         async function openInvoiceHistoryModal() {
             await fetchInvoicesFromServer();
             let tbody = document.getElementById('invoiceHistoryTableBody');
+            if(!tbody) return;
             tbody.innerHTML = '';
 
-            let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
-            let isStaff = loggedUser.role === 'staff';
-
-            // 🟢 កែសម្រួលត្រង់នេះ៖ បើជា Staff ឱ្យបង្ហាញវិក្កយបត្រទូទៅ ឬរបស់ខ្លួនឯង (អាចដក condition ចោលបើចង់ឱ្យ Staff មើលឃើញទាំងអស់)
-            let visibleInvs = allInvoicesList;
-            if (isStaff) {
-                let currentU = (loggedUser.username || "").trim().toLowerCase();
-                visibleInvs = allInvoicesList.filter(inv => {
-                    let creator = (inv.created_by || "").trim().toLowerCase();
-                    return !creator || creator === currentU; // បើ creator គ្មានឈ្មោះ ឬត្រូវគ្នា គឺបង្ហាញឱ្យឃើញ
-                });
-            }
-
-            if (visibleInvs.length > 0) {
-                let sorted = [...visibleInvs].reverse();
+            if (allInvoicesList.length > 0) {
+                let sorted = [...allInvoicesList].reverse();
                 sorted.forEach(inv => {
                     let totalAmt = inv.items.reduce((sum, i) => sum + (i.quantity * i.unit_price), 0);
                     let tr = document.createElement('tr');
@@ -512,16 +795,154 @@
         }
 
         async function deleteInvoice(id) {
-            if (!confirm(`តើអ្នកពិតជាចង់លុបវិក្កយបត្រ ${id} ពី Server មែនទេ?`)) return;
+            if (!confirm(`តើអ្នកពិតជាចង់លុបវិក្កយបត្រ ${id} មែនទេ?`)) return;
             try {
                 let res = await fetch(`${API_URL}/invoices/${id}`, { method: 'DELETE' });
                 if (res.ok) {
                     await openInvoiceHistoryModal();
+                    loadAppData();
                 }
             } catch (err) {
                 alert("❌ កំហុសក្នុងការលុប!");
             }
         }
+
+        function filterRestockItemsByCategory() {
+            let cat = document.getElementById('restockSelectCategory').value;
+            let itemSelect = document.getElementById('restockSelectItem');
+            if(!itemSelect) return;
+            itemSelect.innerHTML = '<option value="">-- ជ្រើសរើសទំនិញ --</option>';
+            let filtered = cat ? masterItemsList.filter(i => i.category === cat) : masterItemsList;
+            filtered.forEach(i => {
+                let opt = document.createElement('option');
+                opt.value = i.id;
+                opt.textContent = `${i.item_name} (${i.category}) - ស្តុកសល់: ${i.stock_quantity}`;
+                itemSelect.appendChild(opt);
+            });
+        }
+
+        document.getElementById('restockForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let itemId = document.getElementById('restockSelectItem').value;
+            let found = masterItemsList.find(i => i.id == itemId);
+            if (!found) return;
+            let qty = parseInt(document.getElementById('restockQty').value) || 1;
+            let price = parseFloat(document.getElementById('restockPrice').value) || 0;
+
+            let data = {
+                type: 'EXPENSE',
+                item_id: found.id,
+                category: found.category,
+                item_name: found.item_name,
+                quantity: qty,
+                unit_price: price,
+                amount: qty * price
+            };
+
+            let res = await fetch(`${API_URL}/transactions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if(res.ok) {
+                document.getElementById('restockForm').reset();
+                loadAppData();
+                alert("✅ ទិញស្តុកចូលបន្ថែមជោគជ័យ!");
+            }
+        });
+
+        async function fetchTransactions() {
+            try {
+                let res = await fetch(`${API_URL}/transactions`);
+                let result = await res.json();
+                if(result.success) {
+                    let txs = result.data;
+                    let incomeBody = document.getElementById('incomeTableBody');
+                    let expenseBody = document.getElementById('expenseTableBody');
+
+                    if(incomeBody) {
+                        incomeBody.innerHTML = '';
+                        let incomes = txs.filter(t => t.type === 'INCOME');
+                        incomes.forEach(t => {
+                            incomeBody.innerHTML += `<tr>
+                                <td>${new Date(t.date).toLocaleDateString()}</td>
+                                <td><span class="badge bg-light text-dark border">admin</span></td>
+                                <td>${t.category}</td>
+                                <td class="fw-bold">${t.item_name}</td>
+                                <td>${t.quantity}</td>
+                                <td>$${parseFloat(t.unit_price).toFixed(2)}</td>
+                                <td class="text-success fw-bold">$${parseFloat(t.amount).toFixed(2)}</td>
+                                <td class="text-center"><button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="deleteTx('${t.id}')">លុប</button></td>
+                            </tr>`;
+                        });
+                    }
+
+                    if(expenseBody) {
+                        expenseBody.innerHTML = '';
+                        let expenses = txs.filter(t => t.type === 'EXPENSE');
+                        expenses.forEach(t => {
+                            expenseBody.innerHTML += `<tr>
+                                <td>${new Date(t.date).toLocaleDateString()}</td>
+                                <td>${t.category}</td>
+                                <td class="fw-bold">${t.item_name}</td>
+                                <td>${t.quantity}</td>
+                                <td>$${parseFloat(t.unit_price).toFixed(2)}</td>
+                                <td class="text-danger fw-bold">$${parseFloat(t.amount).toFixed(2)}</td>
+                            </tr>`;
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error("Error transactions:", err);
+            }
+        }
+
+        async function deleteTx(id) {
+            if(!confirm("តើបងចង់លុបទិន្នន័យនេះមែនទេ?")) return;
+            await fetch(`${API_URL}/transactions/${id}`, { method: 'DELETE' });
+            loadAppData();
+        }
+
+        function renderMasterTable() {
+            let tbody = document.getElementById('masterTableBodyAdmin');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            masterItemsList.forEach(m => {
+                tbody.innerHTML += `<tr>
+                    <td>${m.category}</td>
+                    <td class="fw-bold">${m.item_name}</td>
+                    <td>${m.unit || 'ដុំ'}</td>
+                    <td><span class="badge bg-primary">${m.stock_quantity}</span></td>
+                    <td>$${parseFloat(m.cost_price).toFixed(2)}</td>
+                    <td>$${parseFloat(m.retail_price).toFixed(2)}</td>
+                    <td>$${parseFloat(m.wholesale_price).toFixed(2)}</td>
+                    <td class="text-center"><button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="deleteMaster('${m.id}')">លុប</button></td>
+                </tr>`;
+            });
+        }
+
+        async function deleteMaster(id) {
+            if(!confirm("តើចង់លុបទំនិញនេះមែនទេ?")) return;
+            await fetch(`${API_URL}/master-items/${id}`, { method: 'DELETE' });
+            loadAppData();
+        }
+
+        async function fetchSummary() {
+            try {
+                let res = await fetch(`${API_URL}/summary`);
+                let data = await res.json();
+                if(data.success) {
+                    document.getElementById('lblTotalIncome').innerText = `$${data.summary.total_income.toFixed(2)}`;
+                    document.getElementById('lblTotalExpense').innerText = `$${data.summary.total_purchase_value.toFixed(2)}`;
+                    document.getElementById('lblNetProfit').innerText = `$${data.summary.net_profit.toFixed(2)}`;
+                }
+            } catch (err) {
+                console.error("Summary error:", err);
+            }
+        }
+
+        function openActivityLogModal() { alert("មុខងារ Activity Log"); }
+        function openReportModal() { alert("មុខងារ Reports"); }
     </script>
 </body>
 </html>
