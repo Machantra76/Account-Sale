@@ -1883,12 +1883,13 @@
                 let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
                 let isStaff = loggedUser.role === 'staff';
 
+                // 🟢 កំណត់ព្រំដែនដាច់ពីគ្នា៖ Staff ឃើញតែ Invoice របស់ខ្លួនឯង Admin ឃើញទាំងអស់
                 let visibleInvs = allInvoicesList;
                 if (isStaff) {
                     visibleInvs = allInvoicesList.filter(inv => {
                         let creator = (inv.created_by || "").trim().toLowerCase();
                         let currentU = (loggedUser.username || "").trim().toLowerCase();
-                        return creator === currentU || !inv.created_by;
+                        return creator === currentU;
                     });
                 }
 
@@ -1913,7 +1914,7 @@
                         tr.innerHTML = `
                             <td class="fw-bold text-primary">${inv.id}</td>
                             <td>${new Date(inv.date).toLocaleString()}</td>
-                            <td><span class="badge bg-light text-dark border">${inv.created_by || loggedUser.username || 'staff'}</span></td>
+                            <td><span class="badge bg-light text-dark border">${inv.created_by || 'staff'}</span></td>
                             <td><span class="badge bg-secondary">${inv.items.length} មុខទំនិញ</span></td>
                             <td class="text-success fw-bold">$${totalAmount.toFixed(2)}</td>
                             <td class="text-center">${actionBtns}</td>
@@ -1935,7 +1936,6 @@
             }
         }
 
-        // 🟢 កែសម្រួលមុខងារលុបវិក្កយបត្រ៖ ពេល Admin លុប គឺលុប Invoice ចោល ហើយកាត់ស្តុកចុះមកវិញភ្លាម (Neutralize) ដើម្បីកុំឱ្យ Server បង្វិលស្តុកចូលក្នុងឃ្លាំងវិញ
         async function deleteInvoiceRecord(invId) {
             if (!confirm(`តើអ្នកពិតជាចង់លុបវិក្កយបត្រ ${invId} និងទិន្នន័យប្រាក់ចំណូលពាក់ព័ន្ធមែនទេ?`)) return;
             
@@ -1953,7 +1953,6 @@
                     }
                 }
 
-                // បើ Server បង្វិលស្តុកចូលវិញដោយស្វ័យប្រវត្តពេលលុប Invoice យើងធ្វើការកាត់ស្តុកចុះមកវិញភ្លាម ដើម្បីឱ្យស្តុកនៅដដែល
                 if (invToDelete && invToDelete.items) {
                     await fetchMasterItems();
                     for (let item of invToDelete.items) {
@@ -1972,7 +1971,7 @@
                     logActivity(loggedUser, `លុបវិក្កយបត្រលក់ (មិនបង្វិលស្តុកចូលវិញ): ${invId}`);
                 }
                 
-                alert(`✅ បានលុបវិក្កយបត្រដោយជោគជ័យ (ស្តុកក្នុងឃ្លាំងនៅរក្សាចំនួនដើម)!`);
+                alert(`✅ បានលុបវិក្កយបត្រដោយជោគជ័យ!`);
                 renderInvoiceHistoryTable();
                 loadAppData();
             } catch (err) {
@@ -2104,12 +2103,10 @@
             renderEditInvoiceItemsTable();
         }
 
-        // 🟢 កែសម្រួលវិក្កយបត្រ៖ គណនាបន្ថែម/បន្ថយស្តុកក្នុងឃ្លាំងស្វ័យប្រវត្តិ (ទាំង admin និង staff)
         async function saveUpdatedInvoice() {
             let invId = document.getElementById('currentEditingInvoiceId').value;
             let stockChanges = {};
 
-            // 1. យកស្តុកចាស់ត្រឡប់ចូលឃ្លាំងវិញជាបណ្តោះអាសន្នសិន
             if (originalEditingInvoiceBackup && originalEditingInvoiceBackup.items) {
                 originalEditingInvoiceBackup.items.forEach(oldItem => {
                     let master = masterItemsList.find(m => m.id == oldItem.item_id || m.item_name === oldItem.item_name);
@@ -2120,7 +2117,6 @@
                 });
             }
 
-            // 2. ដកចំនួនស្តុកថ្មីចេញពីឃ្លាំងតាមចំនួនដែលបានកែសម្រួល
             for (let newItem of currentEditingInvoice.items) {
                 let master = masterItemsList.find(m => m.id == newItem.item_id || m.item_name === newItem.item_name);
                 if (master) {
@@ -2134,12 +2130,10 @@
                 }
             }
 
-            // 3. ធ្វើបច្ចុប្បន្នភាពស្តុកក្នុង Database
             for (let [masterId, updatedStock] of Object.entries(stockChanges)) {
                 await updateMasterItemStockAPI(masterId, updatedStock);
             }
 
-            // 4. រក្សាទុក Invoice ថ្មី
             await saveInvoiceToServer(currentEditingInvoice);
 
             let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
@@ -2274,12 +2268,13 @@
                 if(incomeTbody) incomeTbody.innerHTML = '';
                 if(expenseTbody) expenseTbody.innerHTML = '';
 
+                // 🟢 កំណត់ព្រំដែនដាច់ពីគ្នា៖ Staff ឃើញតែប្រវត្តិលក់របស់ខ្លួនឯង Admin ឃើញទាំងអស់
                 let relevantInvoices = allInvoicesList;
                 if (isStaff) {
                     relevantInvoices = allInvoicesList.filter(inv => {
                         let creator = (inv.created_by || "").trim().toLowerCase();
                         let currentU = (loggedUser.username || "").trim().toLowerCase();
-                        return creator === currentU || !inv.created_by;
+                        return creator === currentU;
                     });
                 }
 
