@@ -349,6 +349,7 @@
                                 <thead class="table-success sticky-top">
                                     <tr>
                                         <th>កាលបរិច្ឆេទ (Date)</th>
+                                        <th>អ្នកលក់ (Staff/User)</th>
                                         <th>Category</th>
                                         <th>ទំនិញ (Item)</th>
                                         <th>ចំនួនលក់ (Qty)</th>
@@ -679,6 +680,7 @@
                                 <tr>
                                     <th>លេខវិក្កយបត្រ (Invoice ID)</th>
                                     <th>កាលបរិច្ឆេទ (Date)</th>
+                                    <th>អ្នកលក់ (Staff)</th>
                                     <th>ចំនួនមុខទំនិញ (Items Count)</th>
                                     <th>ទឹកប្រាក់សរុប ($ Total)</th>
                                     <th class="text-center">សកម្មភាព (Actions)</th>
@@ -1257,7 +1259,7 @@
             }
         });
 
-        // 🟢 កូដសម្រាប់បង្កើតមុខទំនិញថ្មី (Master Items)
+        // 🟢 បង្កើតមុខទំនិញថ្មី (Master Items)
         document.getElementById('masterForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -1319,7 +1321,6 @@
             }
         });
 
-        // 🟢 កូដសម្រាប់បើក Modal កែប្រែទំនិញស្តុក
         function openEditMaster(id, category, itemName, unit, stock, cost, retail, wholesale) {
             document.getElementById('editMasterId').value = id;
             document.getElementById('editMasterCategory').value = category;
@@ -1332,7 +1333,6 @@
             editMasterModal.show();
         }
 
-        // 🟢 កូដសម្រាប់បញ្ជូនការកែប្រែទំនិញស្តុក (PUT)
         document.getElementById('editMasterForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             let id = document.getElementById('editMasterId').value;
@@ -1396,7 +1396,6 @@
             }
         });
 
-        // 🟢 កូដសម្រាប់លុបទំនិញស្តុក
         async function deleteMasterItem(id, itemName) {
             if (!confirm(`តើអ្នកពិតជាចង់លុបទំនិញ "${itemName}" ចេញពីស្តុកមែនទេ?`)) return;
 
@@ -1771,16 +1770,21 @@
                 return;
             }
 
+            let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+            let currentUsername = loggedUser.username || "admin";
+
             let invoiceId = 'INV-' + Date.now();
             let invoiceObj = {
                 id: invoiceId,
                 date: new Date().toISOString(),
+                created_by: currentUsername, // 🟢 កត់ត្រាថាអ្នកណាជាអ្នកលក់
                 items: JSON.parse(JSON.stringify(currentCart))
             };
 
             for (let item of currentCart) {
                 let newData = {
                     type: 'INCOME',
+                    username: currentUsername, // 🟢 បញ្ចូល Username អ្នកលក់ក្នុង Transaction
                     item_id: item.item_id,
                     category: item.category,
                     item_name: item.item_name,
@@ -1802,7 +1806,6 @@
 
             await saveInvoiceToServer(invoiceObj);
 
-            let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
             if(loggedUser.username) {
                 let totalAmt = currentCart.reduce((sum, i) => sum + (i.quantity * i.unit_price), 0);
                 logActivity(loggedUser, `លក់ទំនិញ (Invoice: ${invoiceId} - សរុប: $${totalAmt.toFixed(2)})`);
@@ -1877,7 +1880,16 @@
             await fetchInvoicesFromServer();
 
             if (allInvoicesList.length > 0) {
-                let sortedInv = [...allInvoicesList].reverse();
+                let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+                let isStaff = loggedUser.role === 'staff';
+
+                // 🟢 បែងចែកសិទ្ធិ៖ Staff ឃើញតែវិក្កយបត្រខ្លួនឯង Admin ឃើញទាំងអស់
+                let visibleInvs = allInvoicesList;
+                if (isStaff) {
+                    visibleInvs = allInvoicesList.filter(inv => inv.created_by === loggedUser.username);
+                }
+
+                let sortedInv = [...visibleInvs].reverse();
                 
                 let filteredInvs = sortedInv.filter(inv => {
                     if (!selectedCategoryFilter) return true;
@@ -1891,6 +1903,7 @@
                         tr.innerHTML = `
                             <td class="fw-bold text-primary">${inv.id}</td>
                             <td>${new Date(inv.date).toLocaleString()}</td>
+                            <td><span class="badge bg-light text-dark border">${inv.created_by || 'admin'}</span></td>
                             <td><span class="badge bg-secondary">${inv.items.length} មុខទំនិញ</span></td>
                             <td class="text-success fw-bold">$${totalAmount.toFixed(2)}</td>
                             <td class="text-center">
@@ -1902,10 +1915,10 @@
                         tbody.appendChild(tr);
                     });
                 } else {
-                    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">មិនមានប្រវត្តិវិក្កយបត្រក្នុង Category នេះទេ</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">មិនមានប្រវត្តិវិក្កយបត្រទេ</td></tr>`;
                 }
             } else {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3">មិនទាន់មានប្រវត្តិវិក្កយបត្រទេ</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-3">មិនទាន់មានប្រវត្តិវិក្កយបត្រទេ</td></tr>`;
             }
         }
 
@@ -2218,12 +2231,18 @@
                 if(incomeTbody) incomeTbody.innerHTML = '';
                 if(expenseTbody) expenseTbody.innerHTML = '';
 
+                // 🟢 បែងចែកប្រវត្តិការលក់៖ Staff ឃើញតែរបស់ខ្លួន Admin ឃើញទាំងអស់
+                let relevantInvoices = allInvoicesList;
+                if (isStaff) {
+                    relevantInvoices = allInvoicesList.filter(inv => inv.created_by === loggedUser.username);
+                }
+
                 let groupedInvoicesSales = {};
-                if (allInvoicesList && allInvoicesList.length > 0) {
-                    allInvoicesList.forEach(inv => {
+                if (relevantInvoices && relevantInvoices.length > 0) {
+                    relevantInvoices.forEach(inv => {
                         if (inv.items && Array.isArray(inv.items)) {
                             inv.items.forEach(item => {
-                                let key = (item.item_name || "").trim() + "_" + (item.category || "").trim();
+                                let key = (item.item_name || "").trim() + "_" + (item.category || "").trim() + "_" + (inv.created_by || "admin");
                                 let qty = parseInt(item.quantity) || 0;
                                 let price = parseFloat(item.unit_price) || 0;
                                 let totalAmt = qty * price;
@@ -2231,6 +2250,7 @@
                                 if (!groupedInvoicesSales[key]) {
                                     groupedInvoicesSales[key] = {
                                         invoice_id: inv.id,
+                                        created_by: inv.created_by || "admin",
                                         category: item.category || "ទំនិញទូទៅ",
                                         item_name: item.item_name || "មិនស្គាល់ឈ្មោះ",
                                         quantity: 0,
@@ -2269,6 +2289,7 @@
                         let tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td>${item.latest_date ? new Date(item.latest_date).toLocaleDateString() : '-'}</td>
+                            <td><span class="badge bg-light text-dark border">${item.created_by}</span></td>
                             <td><span class="badge bg-secondary">${item.category}</span></td>
                             <td class="fw-bold">${item.item_name}</td>
                             <td><span class="badge bg-success">${item.quantity}</span></td>
@@ -2279,7 +2300,7 @@
                         incomeTbody.appendChild(tr);
                     });
                 } else if (incomeTbody) {
-                    incomeTbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការលក់នៅឡើយទេ</td></tr>`;
+                    incomeTbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3">មិនទាន់មានទិន្នន័យការលក់នៅឡើយទេ</td></tr>`;
                 }
 
                 if (result.success && allTransactionsList.length > 0) {
