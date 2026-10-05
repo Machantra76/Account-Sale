@@ -76,12 +76,44 @@ const initTables = async () => {
         );
     `;
 
+    // -------------------------------------------------------------
+    // 🆕 បន្ថែមតារាងថ្មីសម្រាប់គ្រប់គ្រងការជំពាក់ប្រាក់ (AR / AP)
+    // -------------------------------------------------------------
+    const queryDebts = `
+        CREATE TABLE IF NOT EXISTS debts (
+            id SERIAL PRIMARY KEY,
+            debt_type VARCHAR(20) NOT NULL, -- 'RECEIVABLE' (អតិថិជនជំពាក់យើង) ឬ 'PAYABLE' (យើងជំពាក់គេ/Supplier)
+            partner_name VARCHAR(255) NOT NULL, -- ឈ្មោះអតិថិជន ឬ អ្នកផ្គត់ផ្គង់
+            reference_id VARCHAR(100), -- លេខវិក្កយបត្រ ឬ លេខយោង
+            total_amount DECIMAL(10, 2) NOT NULL, -- ទឹកប្រាក់សរុប
+            paid_amount DECIMAL(10, 2) DEFAULT 0, -- ទឹកប្រាក់បានបង់រួច
+            remaining_amount DECIMAL(10, 2) NOT NULL, -- ទឹកប្រាក់នៅសល់ (ជំពាក់)
+            status VARCHAR(50) DEFAULT 'UNPAID', -- 'UNPAID', 'PARTIAL', 'PAID'
+            due_date TIMESTAMP, -- កាលបរិច្ឆេទកំណត់ត្រូវសង
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    `;
+
+    const queryDebtPayments = `
+        CREATE TABLE IF NOT EXISTS debt_payments (
+            id SERIAL PRIMARY KEY,
+            debt_id INT REFERENCES debts(id) ON DELETE CASCADE,
+            payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            paid_amount DECIMAL(10, 2) NOT NULL,
+            note TEXT
+        );
+    `;
+
     try {
         await pool.query(queryMaster);
         await pool.query(queryTransactions);
         await pool.query(queryUsers);
         await pool.query(queryInvoices);
         await pool.query(queryLogs);
+        
+        // 🆕 បង្កើតតារាង Debts និង Debt Payments
+        await pool.query(queryDebts);
+        await pool.query(queryDebtPayments);
         
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'EXPENSE';`);
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS image_url TEXT;`);
@@ -143,7 +175,7 @@ app.post('/api/users', async (req, res) => {
     }
 });
 
-// INVOICES API (សម្រាប់គ្រប់គ្រងប្រវត្តិវិក្កយបត្រ)
+// INVOICES API
 app.get('/api/accounting/invoices', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM invoices ORDER BY date DESC');
@@ -391,6 +423,107 @@ app.put('/api/accounting/transactions/:id', async (req, res) => {
         res.status(400).json({ success: false, error: err.message });
     } finally {
         client.release();
+    }
+});
+
+// -------------------------------------------------------------
+// 🆕 DEBTS API (Accounts Receivable & Accounts Payable)
+// -------------------------------------------------------------
+
+// 1. ទាញយកបញ្ជីការជំពាក់ទាំងអស់ (អាច Filter តាម debt_type: RECEIVABLE ឬ PAYABLE បាន)
+app.get('/api/accounting/debts', async (req, res) => {
+    try {
+        const { debt_type } = req.query;
+        let query = 'SELECT * FROM debts';
+        let params = [];
+        
+        if (debt_type) {
+            query += ' WHERE debt_type = $1';
+            params.push(debt_type.toUpperCase());
+        }
+        query += ' ORDER BY created_at DESC';
+
+        let result = await pool.query(query, params);
+        res.json({ success: true, data: result.rows });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// 2. បង្កើតកំណត់ត្រាជំពាក់ថ្មី (ពេលលក់ជំពាក់ ឬទិញជំពាក់)
+app.post('/api/accounting/debts', async (req, res) => {
+    try {
+        const { debt_type, partner_name, reference_id, total_amount, due_date } = req.body;
+        const type = debt_type ? debt_type.toUpperCase() : 'RECEIVABLE';
+        const total = parseFloat(total_amount) || 0;
+
+        const query = `
+            INSERT INTO debts (debt_type, partner_name, reference_id, total_amount, paid_amount, remaining_amount, status, due_date)
+            VALUES ($1, $2, $3, $4, 0, $5, 'UNPAID', $6) RETURNING *;
+        `;
+        let result = await pool.query(query, [type, partner_name, reference_id || '', total, total, due_date || null]);
+        
+        res.status(201).json({ success: true, message: "Debt record created successfully!", data: result.rows[0] });
+    } catch (err) {
+        res.status(400).json({ success: false, error: err.message });
+    }
+});
+
+// 3. បង់ប្រាក់សង (Payment) លើការជំពាក់ណាមួយ
+app.post('/api/accounting/debts/:id/pay', async (req, res) => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const { id } = req.params;
+        const { paid_amount, note } = req.body;
+        const payAmount = parseFloat(paid_amount) || 0;
+
+        let debtRes = await client.query('SELECT * FROM debts WHERE id = $1', [id]);
+        if (debtRes.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ success: false, error: "Debt record not found!" });
+        }
+
+        let debt = debtRes.rows[0];
+        let newPaidAmount = parseFloat(debt.paid_amount) + payAmount;
+        let newRemaining = parseFloat(debt.total_amount) - newPaidAmount;
+        
+        let newStatus = 'PARTIAL';
+        if (newRemaining <= 0) {
+            newRemaining = 0;
+            newStatus = 'PAID';
+        }
+
+        // កត់ត្រាប្រវត្តិការបង់ប្រាក់
+        await client.query(
+            'INSERT INTO debt_payments (debt_id, paid_amount, note) VALUES ($1, $2, $3)',
+            [id, payAmount, note || '']
+        );
+
+        // ធ្វើបច្ចុប្បន្នភាពតារាង debts
+        let updateRes = await client.query(
+            `UPDATE debts SET paid_amount = $1, remaining_amount = $2, status = $3 WHERE id = $4 RETURNING *;`,
+            [newPaidAmount, newRemaining, newStatus, id]
+        );
+
+        await client.query('COMMIT');
+        res.json({ success: true, message: "Payment recorded successfully!", data: updateRes.rows[0] });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        res.status(400).json({ success: false, error: err.message });
+    } finally {
+        client.release();
+    }
+});
+
+// 4. លុបកំណត់ត្រាជំពាក់
+app.delete('/api/accounting/debts/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await pool.query('DELETE FROM debts WHERE id = $1', [id]);
+        res.json({ success: true, message: "Debt record deleted successfully!" });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
     }
 });
 
