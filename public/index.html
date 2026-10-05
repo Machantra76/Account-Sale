@@ -290,8 +290,12 @@
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <h5 class="text-success fw-bold m-0" id="cartGrandTotalLabel" style="font-size: 16px;">សរុប: $0.00 / 0 រៀល</h5>
                                 </div>
-                                <button class="btn btn-success shadow-sm w-100 fw-bold py-2" onclick="checkoutAndPrintInvoice()" style="font-size: 15px;">
+                                <button class="btn btn-success shadow-sm w-100 fw-bold py-2 mb-2" onclick="checkoutAndPrintInvoice()" style="font-size: 15px;">
                                     <i class="bi bi-printer-fill me-1"></i> បញ្ចប់ការលក់ និងព្រិន្ទ (Checkout & Print)
+                                </button>
+                                <!-- 🟢 ប៊ូតុងលក់ជំពាក់ (Credit Sale) -->
+                                <button class="btn btn-warning shadow-sm w-100 fw-bold py-2 text-dark" onclick="checkoutAsCreditSale()" style="font-size: 15px;">
+                                    <i class="bi bi-person-exclamation me-1"></i> លក់ជំពាក់ (Credit Sale)
                                 </button>
                             </div>
                         </div>
@@ -987,8 +991,8 @@
                 let staffSalesMap = {};
 
                 logs.forEach(log => {
-                    if (log.action && log.action.includes("លក់ទំនិញ (Invoice:")) {
-                        let match = log.action.match(/Invoice:\s*(INV-\d+)/);
+                    if (log.action && (log.action.includes("លក់ទំនិញ (Invoice:") || log.action.includes("លក់ជំពាក់ (Invoice:"))) {
+                        let match = log.action.match(/Invoice:\s*(INV-[\d-]+)/);
                         if (match) {
                             let invId = match[1];
                             let invObj = allInvoicesList.find(i => i.id === invId);
@@ -1817,6 +1821,93 @@
             loadAppData();
         }
 
+        // 🟢 មុខងារលក់ជំពាក់ (Credit Sale)
+        async function checkoutAsCreditSale() {
+            if (currentCart.length === 0) {
+                alert("Cart គ្មានទំនិញទេ! សូមបន្ថែមទំនិញសិន។");
+                return;
+            }
+
+            let partnerName = prompt("សូមបញ្ចូលឈ្មោះអតិថិជនដែលសុំជំពាក់ប្រាក់:");
+            if (!partnerName || partnerName.trim() === "") {
+                alert("⚠ សូមបញ្ជាក់ឈ្មោះអតិថិជនឱ្យបានត្រឹមត្រូវ!");
+                return;
+            }
+
+            let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+            let currentUsername = loggedUser.username || "admin";
+
+            let invoiceId = 'INV-CR-' + Date.now();
+            let grandTotal = currentCart.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
+
+            let invoiceObj = {
+                id: invoiceId,
+                date: new Date().toISOString(),
+                created_by: currentUsername,
+                items: JSON.parse(JSON.stringify(currentCart))
+            };
+
+            try {
+                // 1. កាត់ស្តុក និងកត់ត្រា Transactions ប្រភេទ INCOME ធម្មតា
+                for (let item of currentCart) {
+                    let newData = {
+                        type: 'INCOME',
+                        username: currentUsername,
+                        item_id: item.item_id,
+                        category: item.category,
+                        item_name: item.item_name,
+                        quantity: item.quantity,
+                        unit_price: item.unit_price,
+                        amount: item.quantity * item.unit_price
+                    };
+
+                    await fetch(`${API_URL}/transactions`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newData)
+                    });
+                }
+
+                // 2. រក្សាទុកវិក្កយបត្រ
+                await saveInvoiceToServer(invoiceObj);
+
+                // 3. បញ្ជូនទិន្នន័យចូលទៅកាន់ API debts (Accounts Receivable) ថាអតិថិជនជំពាក់
+                let debtData = {
+                    debt_type: 'RECEIVABLE',
+                    partner_name: partnerName.trim(),
+                    reference_id: invoiceId,
+                    total_amount: grandTotal,
+                    due_date: null
+                };
+
+                let debtRes = await fetch(`${API_BASE}/api/accounting/debts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(debtData)
+                });
+
+                if (debtRes.ok) {
+                    if (loggedUser.username) {
+                        logActivity(loggedUser, `លក់ជំពាក់ (Invoice: ${invoiceId} - អតិថិជន: ${partnerName} - សរុប: $${grandTotal.toFixed(2)})`);
+                    }
+
+                    alert(`✅ បានកត់ត្រាការលក់ជំពាក់សម្រាប់ "${partnerName}" ជោគជ័យ! (ទឹកប្រាក់សរុប: $${grandTotal.toFixed(2)})`);
+                    
+                    printCartInvoice(currentCart, invoiceId);
+
+                    currentCart = [];
+                    renderCartTable();
+                    loadAppData();
+                } else {
+                    alert("❌ មានបញ្ហាក្នុងការបង្កើតកំណត់ត្រាជំពាក់!");
+                }
+
+            } catch (err) {
+                console.error("Error during credit sale checkout:", err);
+                alert("❌ មានបញ្ហាក្នុងការភ្ជាប់ទៅកាន់ Server!");
+            }
+        }
+
         function printCartInvoice(items, invoiceId = 'INV-NEW') {
             let exchangeRate = parseFloat(document.getElementById('exchangeRateInput')?.value) || 4000;
             let printWindow = window.open('', '_blank', 'height=700,width=450');
@@ -1905,7 +1996,6 @@
                         let totalAmount = inv.items.reduce((sum, item) => sum + ((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)), 0);
                         let tr = document.createElement('tr');
                         
-                        // 🟢 កំណត់សិទ្ធិ៖ មានតែ Admin ប៉ុណ្ណោះដែលអាចចុចប៊ូតុង លុប បាន (Staff មិនអាចលុបបានទេ)
                         let deleteBtn = isAdmin ? `<button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${inv.id}')">លុប</button>` : '';
 
                         let actionBtns = `
@@ -1939,11 +2029,11 @@
             }
         }
 
-        // 🟢 លុបវិក្កយបត្រ (សម្រាប់ Role = Admin ប៉ុណ្ណោះ ដោយមិនប៉ះពាល់ដល់ស្តុកក្នុងឃ្លាំង)
+        // 🟢 លុបវិក្កយបត្រ (សម្រាប់ Admin ប៉ុណ្ណោះ ដោយមិនប៉ះពាល់ដល់ស្តុកក្នុងឃ្លាំង)
         async function deleteInvoiceRecord(invId) {
             let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
             if (loggedUser.role !== 'admin') {
-                alert("⚠ សូមអភ័យទោស! មានតែ Admin ប៉ុណ្ណោះដែលមានសិទ្ធិលុបវិក្កយបត្រនេះ។");
+                alert("⚠ សូមអភ័យទោស! មានតែ Admin ប៉ុណ្ណោះដែលមានសិទ្ធិលុបវិក្កយបត្រនេះ。");
                 return;
             }
 
