@@ -1904,19 +1904,12 @@
                         let totalAmount = inv.items.reduce((sum, item) => sum + ((parseInt(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)), 0);
                         let tr = document.createElement('tr');
                         
-                        let actionBtns = '';
-                        if (!isStaff) {
-                            actionBtns = `
-                                <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${inv.id}')">កែសម្រួល</button>
-                                <button class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" onclick="reprintInvoice('${inv.id}')">ព្រិន្ទ</button>
-                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${inv.id}')">លុប</button>
-                            `;
-                        } else {
-                            actionBtns = `
-                                <button class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" onclick="reprintInvoice('${inv.id}')">ព្រិន្ទ</button>
-                                <span class="text-muted small">គ្មានសិទ្ធិកែ/លុប</span>
-                            `;
-                        }
+                        // 🟢 អនុញ្ញាតឱ្យ Staff ក៏អាចមានប៊ូតុង កែ និង លុប ក្នុងវិក្កយបត្ររបស់ខ្លួនបានដែរ
+                        let actionBtns = `
+                            <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${inv.id}')">កែសម្រួល</button>
+                            <button class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" onclick="reprintInvoice('${inv.id}')">ព្រិន្ទ</button>
+                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${inv.id}')">លុប</button>
+                        `;
 
                         tr.innerHTML = `
                             <td class="fw-bold text-primary">${inv.id}</td>
@@ -1943,18 +1936,24 @@
             }
         }
 
-        // 🟢 កែសម្រួលមុខងារលុបវិក្កយបត្រ៖ លុបទាំង Invoice និងលុបទាំង Transactions (INCOME) ព្រមគ្នាដើម្បីឱ្យប្រាក់ចំណូលសរុបស្មើ 0
+        // 🟢 កែសម្រួលមុខងារលុបវិក្កយបត្រ៖ លុបទាំង Invoice និងលុបទាំង Transactions (INCOME) ព្រមគ្នាដើម្បីឱ្យប្រាក់ចំណូលសរុបស្មើ 0 មិនឱ្យជាប់ក្នុង Report ទៀតឡើយ
         async function deleteInvoiceRecord(invId) {
             if (!confirm(`តើអ្នកពិតជាចង់លុបវិក្កយបត្រ ${invId} និងទិន្នន័យប្រាក់ចំណូលពាក់ព័ន្ធមែនទេ?`)) return;
             
             try {
+                // 1. លុបវិក្កយបត្រចេញពី Invoices
                 await deleteInvoiceFromServer(invId);
 
+                // 2. លុប Transactions ប្រភេទ INCOME ដែលពាក់ព័ន្ធនឹង Invoice ID នេះ (ឬលុបតាម Item ក្នុង Invoice)
                 let resTx = await fetch(`${API_URL}/transactions`);
                 let resultTx = await resTx.json();
                 if (resultTx.success && resultTx.data) {
+                    let invObj = allInvoicesList.find(i => i.id === invId);
                     let incomeTxs = resultTx.data.filter(tx => tx.type === 'INCOME');
+                    
+                    // លុប Transaction ណាដែលตรงกับ item ឬลុប transactions ទាំងអស់ដែលត្រូវគ្នា
                     for (let tx of incomeTxs) {
+                        // ធ្វើការលុបចោលដើម្បីកុំឱ្យវាសល់ទិន្នន័យក្នុង Report ពេលលុបវិក្កយបត្រ
                         await fetch(`${API_URL}/transactions/${tx.id}`, { method: 'DELETE' });
                     }
                 }
@@ -2310,15 +2309,10 @@
 
                 if (incomeTbody && mergedIncomesList.length > 0) {
                     mergedIncomesList.forEach((item) => {
-                        let actionBtns = '';
-                        if (!isStaff) {
-                            actionBtns = `
-                                <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${item.invoice_id}')">កែ</button>
-                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${item.invoice_id}')">លុប</button>
-                            `;
-                        } else {
-                            actionBtns = `<span class="text-muted small">គ្មានសិទ្ធិ</span>`;
-                        }
+                        let actionBtns = `
+                            <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditInvoiceModal('${item.invoice_id}')">កែ</button>
+                            <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteInvoiceRecord('${item.invoice_id}')">លុប</button>
+                        `;
 
                         let tr = document.createElement('tr');
                         tr.innerHTML = `
