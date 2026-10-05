@@ -79,7 +79,6 @@
             background-color: #f8fafc !important;
             border-bottom: 2px solid #e2e8f0;
         }
-        /* កែសម្រួលប្រអប់ Scroll របស់ Master & Stock List ឱ្យស្មើប្រអប់ខាងឆ្វេងសម្រាប់ Stockkeeper */
         #masterListCard .table-responsive {
             max-height: 480px !important;
             overflow-y: auto;
@@ -326,28 +325,41 @@
             </div>
         </div>
 
-        <!-- ជួរទី១៖ ប្រវត្តិការលក់ចេញសរុប -->
+        <!-- ជួរទី១៖ ប្រវត្តិការលក់ចេញសរុប (មានប៊ូតុង Print និង Save PDF សម្រាប់ Staff និង Admin) -->
         <div class="row g-4 mb-4 mt-5" id="rowSectionSalesHistory">
             <div class="col-lg-12">
                 <div id="incomeCard" class="card p-4 shadow-sm bg-white border-start border-success border-4">
-                    <h5 class="mb-3 text-success fw-bold fs-6 d-flex align-items-center gap-2">
-                        <i class="bi bi-cash-coin"></i> ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History)
-                    </h5>
-                    <div class="table-responsive" style="max-height: 230px; overflow-y: auto;">
-                        <table class="table table-striped table-hover align-middle mb-0">
-                            <thead class="table-success sticky-top">
-                                <tr>
-                                    <th>កាលបរិច្ឆេទ (Date)</th>
-                                    <th>Category</th>
-                                    <th>ទំនិញ (Item)</th>
-                                    <th>ចំនួនលក់ (Qty)</th>
-                                    <th>តម្លៃលក់ (Price)</th>
-                                    <th>សរុប ($ Total)</th>
-                                    <th class="text-center">សកម្មភាព (Actions)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="incomeTableBody"></tbody>
-                        </table>
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <h5 class="text-success fw-bold fs-6 m-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-cash-coin"></i> ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History)
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary fw-bold px-3 py-1" onclick="printSalesHistorySection()">🖨 បោះពុម្ព (Print)</button>
+                            <button type="button" class="btn btn-sm btn-danger fw-bold px-3 py-1" onclick="downloadPDFSalesHistory()">📥 រក្សាទុក PDF (Save PDF)</button>
+                        </div>
+                    </div>
+
+                    <div id="printableSalesHistoryArea">
+                        <div class="text-center mb-3 d-none print-sales-header">
+                            <h4 class="fw-bold text-dark">ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History)</h4>
+                            <p class="small text-muted">កាលបរិច្ឆេទ: ទូទាំងប្រវត្តិ</p>
+                        </div>
+                        <div class="table-responsive" style="max-height: 230px; overflow-y: auto;">
+                            <table class="table table-striped table-hover align-middle mb-0">
+                                <thead class="table-success sticky-top">
+                                    <tr>
+                                        <th>កាលបរិច្ឆេទ (Date)</th>
+                                        <th>Category</th>
+                                        <th>ទំនិញ (Item)</th>
+                                        <th>ចំនួនលក់ (Qty)</th>
+                                        <th>តម្លៃលក់ (Price)</th>
+                                        <th>សរុប ($ Total)</th>
+                                        <th class="text-center">សកម្មភាព (Actions)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="incomeTableBody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -900,11 +912,6 @@
             checkLoginState();
         });
 
-        function hardResetApp() {
-            sessionStorage.removeItem("loggedUserObj");
-            location.reload();
-        }
-
         async function logActivity(userObj, actionText) {
             try {
                 await fetch(`${API_BASE}/api/activity-logs`, {
@@ -975,7 +982,6 @@
                     tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">មិនមានកំណត់ហេតុសកម្មភាពក្នុងចន្លោះពេលនេះទេ</td></tr>`;
                 }
 
-                // Shift Sales Summary
                 let resUsers = await fetch(`${API_BASE}/api/users`);
                 let users = await resUsers.json();
                 let staffSalesMap = {};
@@ -1254,11 +1260,11 @@
             }
         });
 
-        function loadAppData() {
-            fetchMasterItems();
+        async function loadAppData() {
+            await fetchInvoicesFromServer();
+            await fetchMasterItems();
+            await fetchTransactions();
             fetchSummary();
-            fetchTransactions();
-            fetchInvoicesFromServer();
         }
 
         async function fetchInvoicesFromServer() {
@@ -1396,6 +1402,39 @@
                 `;
                 gridContainer.appendChild(col);
             });
+        }
+
+        function addGridItemToCart(itemId) {
+            let found = masterItemsList.find(i => i.id == itemId);
+            if (!found) return;
+
+            let priceTypeSelect = document.getElementById(`priceType_${itemId}`);
+            let priceType = priceTypeSelect ? priceTypeSelect.value : 'retail';
+            let unitPrice = priceType === 'wholesale' ? (parseFloat(found.wholesale_price) || 0) : (parseFloat(found.retail_price) || 0);
+
+            let existingIndex = currentCart.findIndex(i => i.item_id == found.id && i.price_type === priceType);
+            if (existingIndex > -1) {
+                if (currentCart[existingIndex].quantity + 1 > found.stock_quantity) {
+                    alert(`⚠ ស្តុកក្នុងឃ្លាំងនៅសល់តែ ${found.stock_quantity} ប៉ុណ្ណោះ!`);
+                    return;
+                }
+                currentCart[existingIndex].quantity += 1;
+            } else {
+                if (1 > found.stock_quantity) {
+                    alert(`⚠ ស្តុកក្នុងឃ្លាំងអស់ហើយ!`);
+                    return;
+                }
+                currentCart.push({
+                    item_id: found.id,
+                    category: found.category,
+                    item_name: found.item_name,
+                    unit: found.unit || 'ដុំ',
+                    quantity: 1,
+                    unit_price: unitPrice,
+                    price_type: priceType
+                });
+            }
+            renderCartTable();
         }
 
         function onRestockCategoryChanged() {
@@ -2001,139 +2040,8 @@
             });
         }
 
-        function getBase64(file) {
-            return new Promise((resolve, reject) => {
-                let reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
-        }
-
-        document.getElementById('masterForm')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            let imageFile = document.getElementById('masterImageFile').files[0];
-            let imageUrl = '';
-            if (imageFile) {
-                try {
-                    imageUrl = await getBase64(imageFile);
-                } catch (err) {
-                    console.error("Error reading file:", err);
-                }
-            }
-
-            let itemName = document.getElementById('masterItemName').value.trim();
-            let data = {
-                type: 'EXPENSE',
-                category: document.getElementById('masterCategory').value.trim(),
-                item_name: itemName,
-                image_url: imageUrl,
-                unit: document.getElementById('masterUnit').value,
-                stock_quantity: parseInt(document.getElementById('masterStock').value) || 0,
-                cost_price: parseFloat(document.getElementById('masterCostPrice').value) || 0,
-                retail_price: parseFloat(document.getElementById('masterRetailPrice').value) || 0,
-                wholesale_price: parseFloat(document.getElementById('masterWholesalePrice').value) || 0,
-                amount: (parseInt(document.getElementById('masterStock').value) || 0) * (parseFloat(document.getElementById('masterCostPrice').value) || 0)
-            };
-
-            try {
-                let res = await fetch(`${API_URL}/master-items`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                let result = await res.json();
-                if (result.success) {
-                    let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
-                    if(loggedUser.username) {
-                        logActivity(loggedUser, `បង្កើតទំនិញថ្មី (Master): ${itemName}`);
-                    }
-
-                    document.getElementById('masterForm').reset();
-                    fetchMasterItems();
-                }
-            } catch (err) {
-                console.error("Error creating master item:", err);
-            }
-        });
-
-        function openEditMaster(id, cat, name, unit, stock, cost, retail, wholesale) {
-            document.getElementById('editMasterId').value = id;
-            document.getElementById('editMasterCategory').value = cat;
-            document.getElementById('editMasterItemName').value = name;
-            document.getElementById('editMasterUnit').value = unit;
-            document.getElementById('editMasterStock').value = stock;
-            document.getElementById('editMasterCostPrice').value = cost;
-            document.getElementById('editMasterRetailPrice').value = retail;
-            document.getElementById('editMasterWholesalePrice').value = wholesale;
-            editMasterModal.show();
-        }
-
-        document.getElementById('editMasterForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            let id = document.getElementById('editMasterId').value;
-            let imageFile = document.getElementById('editMasterImageFile').files[0];
-            let existingItem = masterItemsList.find(i => i.id == id);
-            let imageUrl = existingItem ? existingItem.image_url : '';
-
-            if (imageFile) {
-                try {
-                    imageUrl = await getBase64(imageFile);
-                } catch (err) {
-                    console.error("Error reading file:", err);
-                }
-            }
-
-            let itemName = document.getElementById('editMasterItemName').value.trim();
-            let data = {
-                category: document.getElementById('editMasterCategory').value.trim(),
-                item_name: itemName,
-                image_url: imageUrl,
-                unit: document.getElementById('editMasterUnit').value,
-                stock_quantity: parseInt(document.getElementById('editMasterStock').value) || 0,
-                cost_price: parseFloat(document.getElementById('editMasterCostPrice').value) || 0,
-                retail_price: parseFloat(document.getElementById('editMasterRetailPrice').value) || 0,
-                wholesale_price: parseFloat(document.getElementById('editMasterWholesalePrice').value) || 0
-            };
-
-            try {
-                let res = await fetch(`${API_URL}/master-items/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                let result = await res.json();
-                if (result.success) {
-                    let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
-                    if(loggedUser.username) {
-                        logActivity(loggedUser, `កែសម្រួលទំនិញស្តុក: ${itemName}`);
-                    }
-
-                    editMasterModal.hide();
-                    loadAppData();
-                }
-            } catch (err) {
-                console.error("Error updating master item:", err);
-            }
-        });
-
-        async function deleteMasterItem(id, itemName) {
-            if (!confirm(`តើបងចង់លុបទំនិញ "${itemName}" ពី Master List មែនទេ?`)) return;
-            try {
-                await fetch(`${API_URL}/master-items/${id}`, { method: 'DELETE' });
-                let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
-                if(loggedUser.username) {
-                    logActivity(loggedUser, `លុបទំនិញពី Master List: ${itemName}`);
-                }
-                fetchMasterItems();
-            } catch (err) {
-                console.error("Error deleting master item:", err);
-            }
-        }
-
         async function fetchTransactions() {
             try {
-                await fetchInvoicesFromServer();
                 let res = await fetch(`${API_URL}/transactions`);
                 let result = await res.json();
                 
@@ -2592,6 +2500,42 @@
 
             html2pdf().from(element).set(opt).save().then(() => {
                 headerEl.classList.add('d-none');
+            });
+        }
+
+        function printSalesHistorySection() {
+            let printContent = document.getElementById('printableSalesHistoryArea').innerHTML;
+            let printWindow = window.open('', '_blank', 'height=800,width=900');
+            printWindow.document.write('<html><head><title>ប្រវត្តិការលក់ចេញសរុប</title>');
+            printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">');
+            printWindow.document.write('<style>body { font-family: "Kantumruy Pro", sans-serif; padding: 20px; color: #000000; } table { font-size: 12px; width: 100%; }</style>');
+            printWindow.document.write('</head><body>');
+            printWindow.document.write('<h3 class="text-center mb-4 fw-bold">ប្រវត្តិការលក់ចេញសរុប (Sales Transactions History)</h3>');
+            printWindow.document.write(printContent);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 600);
+        }
+
+        function downloadPDFSalesHistory() {
+            let element = document.getElementById('printableSalesHistoryArea');
+            let headerEl = element.querySelector('.print-sales-header');
+            if(headerEl) headerEl.classList.remove('d-none');
+
+            let opt = {
+                margin:       0.5,
+                filename:     `Sales_Transactions_History_${new Date().toISOString().split('T')[0]}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().from(element).set(opt).save().then(() => {
+                if(headerEl) headerEl.classList.add('d-none');
             });
         }
 
