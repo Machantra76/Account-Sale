@@ -1041,7 +1041,7 @@
             if (loggedUserStr) {
                 let userObj = JSON.parse(loggedUserStr);
                 if (userObj.role === 'staff') {
-                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Stock Keeper ប៉ុណ្ណោះ។");
+                    alert("⚠ សូមអភ័យទោស! មុខងារនេះសម្រាប់តែ Admin និង Stock Keeper ប៉ុណ្ណោះ。");
                     return;
                 }
             }
@@ -1777,14 +1777,14 @@
             let invoiceObj = {
                 id: invoiceId,
                 date: new Date().toISOString(),
-                created_by: currentUsername, // 🟢 កត់ត្រាថាអ្នកណាជាអ្នកលក់
+                created_by: currentUsername,
                 items: JSON.parse(JSON.stringify(currentCart))
             };
 
             for (let item of currentCart) {
                 let newData = {
                     type: 'INCOME',
-                    username: currentUsername, // 🟢 បញ្ចូល Username អ្នកលក់ក្នុង Transaction
+                    username: currentUsername,
                     item_id: item.item_id,
                     category: item.category,
                     item_name: item.item_name,
@@ -1883,7 +1883,6 @@
                 let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
                 let isStaff = loggedUser.role === 'staff';
 
-                // 🟢 កែសម្រួលការទាញយកវិក្កយបត្រសម្រាប់ Staff៖ បើជា Staff គឺបង្ហាញ invoice ណាដែល created_by ត្រូវគ្នា ឬ គ្មាន created_by
                 let visibleInvs = allInvoicesList;
                 if (isStaff) {
                     visibleInvs = allInvoicesList.filter(inv => {
@@ -1944,18 +1943,34 @@
             }
         }
 
+        // 🟢 កែសម្រួលមុខងារលុបវិក្កយបត្រ៖ លុបទាំង Invoice និងលុបទាំង Transactions (INCOME) ព្រមគ្នាដើម្បីឱ្យប្រាក់ចំណូលសរុបស្មើ 0
         async function deleteInvoiceRecord(invId) {
-            if (!confirm(`តើអ្នកពិតជាចង់លុបវិក្កយបត្រ ${invId} មែនទេ?`)) return;
+            if (!confirm(`តើអ្នកពិតជាចង់លុបវិក្កយបត្រ ${invId} និងទិន្នន័យប្រាក់ចំណូលពាក់ព័ន្ធមែនទេ?`)) return;
             
-            await deleteInvoiceFromServer(invId);
+            try {
+                await deleteInvoiceFromServer(invId);
 
-            let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
-            if(loggedUser.username) {
-                logActivity(loggedUser, `លុបវិក្កយបត្រលក់: ${invId}`);
+                let resTx = await fetch(`${API_URL}/transactions`);
+                let resultTx = await resTx.json();
+                if (resultTx.success && resultTx.data) {
+                    let incomeTxs = resultTx.data.filter(tx => tx.type === 'INCOME');
+                    for (let tx of incomeTxs) {
+                        await fetch(`${API_URL}/transactions/${tx.id}`, { method: 'DELETE' });
+                    }
+                }
+
+                let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+                if(loggedUser.username) {
+                    logActivity(loggedUser, `លុបវិក្កយបត្រលក់ និង Transactions: ${invId}`);
+                }
+                
+                alert(`✅ បានលុបវិក្កយបត្រ និងទិន្នន័យប្រាក់ចំណូលពាក់ព័ន្ធដោយជោគជ័យ!`);
+                renderInvoiceHistoryTable();
+                loadAppData();
+            } catch (err) {
+                console.error("Error deleting invoice and transactions:", err);
+                alert("❌ មានបញ្ហាក្នុងការលុបទិន្នន័យ!");
             }
-            
-            renderInvoiceHistoryTable();
-            loadAppData();
         }
 
         let currentEditingInvoice = null;
