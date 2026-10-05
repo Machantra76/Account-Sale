@@ -143,7 +143,7 @@ app.post('/api/users', async (req, res) => {
     }
 });
 
-// INVOICES API
+// INVOICES API (សម្រាប់គ្រប់គ្រងប្រវត្តិវិក្កយបត្រ)
 app.get('/api/accounting/invoices', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM invoices ORDER BY date DESC');
