@@ -325,7 +325,7 @@
             </div>
         </div>
 
-        <!-- ជួរទី១៖ ប្រវត្តិការលក់ចេញសរុប (មានប៊ូតុង Print និង Save PDF សម្រាប់ Staff និង Admin) -->
+        <!-- ជួរទី១៖ ប្រវត្តិការលក់ចេញសរុប -->
         <div class="row g-4 mb-4 mt-5" id="rowSectionSalesHistory">
             <div class="col-lg-12">
                 <div id="incomeCard" class="card p-4 shadow-sm bg-white border-start border-success border-4">
@@ -973,7 +973,7 @@
                         tr.innerHTML = `
                             <td>${new Date(log.date).toLocaleString()}</td>
                             <td><code>${log.username}</code></td>
-                            <td><span class="badge bg-secondary">${log.role}</span></td>
+                            <td><span class="badge bg-secondary">${log.role || 'STAFF'}</span></td>
                             <td><span class="badge ${badgeColor}">${log.action}</span></td>
                         `;
                         tbody.appendChild(tr);
@@ -982,36 +982,32 @@
                     tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">មិនមានកំណត់ហេតុសកម្មភាពក្នុងចន្លោះពេលនេះទេ</td></tr>`;
                 }
 
-                let resUsers = await fetch(`${API_BASE}/api/users`);
-                let users = await resUsers.json();
                 let staffSalesMap = {};
 
-                users.forEach(u => {
-                    staffSalesMap[u.username] = {
-                        username: u.username,
-                        invoiceCount: 0,
-                        totalSales: 0
-                    };
-                });
-
                 logs.forEach(log => {
-                    if (log.action.includes("លក់ទំនិញ (Invoice:")) {
+                    if (log.action && log.action.includes("លក់ទំនិញ (Invoice:")) {
                         let match = log.action.match(/Invoice:\s*(INV-\d+)/);
                         if (match) {
                             let invId = match[1];
                             let invObj = allInvoicesList.find(i => i.id === invId);
                             if (invObj) {
                                 let invTotal = invObj.items.reduce((sum, i) => sum + (i.quantity * i.unit_price), 0);
-                                if (staffSalesMap[log.username]) {
-                                    staffSalesMap[log.username].invoiceCount += 1;
-                                    staffSalesMap[log.username].totalSales += invTotal;
+                                let uName = log.username || 'unknown';
+                                if (!staffSalesMap[uName]) {
+                                    staffSalesMap[uName] = {
+                                        username: uName,
+                                        invoiceCount: 0,
+                                        totalSales: 0
+                                    };
                                 }
+                                staffSalesMap[uName].invoiceCount += 1;
+                                staffSalesMap[uName].totalSales += invTotal;
                             }
                         }
                     }
                 });
 
-                let summaryList = Object.values(staffSalesMap).filter(s => s.totalSales > 0 || s.invoiceCount > 0);
+                let summaryList = Object.values(staffSalesMap);
                 if (summaryList.length > 0) {
                     summaryList.forEach(item => {
                         let tr = document.createElement('tr');
@@ -1027,6 +1023,7 @@
                 }
             } catch (err) {
                 console.error("Error loading activity logs:", err);
+                shiftTbody.innerHTML = `<tr><td colspan="3" class="text-center text-danger py-3">កំហុសក្នុងការទាញទិន្នន័យ Activity Logs</td></tr>`;
             }
         }
 
