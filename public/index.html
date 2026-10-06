@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="km">
 <head>
@@ -2466,43 +2467,44 @@
             }
         });
 
-        function renderMasterTable() {
-            let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
-            let isStaff = loggedUser.role === 'staff';
+       function renderMasterTable() {
+    let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+    let isStaff = loggedUser.role === 'staff';
 
-            let tbodyList = ['masterTableBody', 'masterTableBodyAdmin'];
-            
-            tbodyList.forEach(tbodyId => {
-                let tbody = document.getElementById(tbodyId);
-                if(!tbody) return;
-                tbody.innerHTML = '';
-                if (masterItemsList.length > 0) {
-                    masterItemsList.forEach(m => {
-                        let unitLabel = m.unit ? m.unit : 'ដុំ';
-                        let tr = document.createElement('tr');
-                        let actionTd = isStaff ? '' : `
-                            <td class="text-center">
-                                <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditMaster('${m.id}', '${m.category.replace(/'/g, "\\'")}', '${m.item_name.replace(/'/g, "\\'")}', '${m.unit || 'ដុំ'}', ${m.stock_quantity || 0}, ${m.cost_price || 0}, ${m.retail_price || 0}, ${m.wholesale_price || 0})">កែ</button>
-                                <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteMasterItem('${m.id}', '${m.item_name.replace(/'/g, "\\'")}')">លុប</button>
-                            </td>`;
-                        
-                        tr.innerHTML = `
-                            <td>${m.category}</td>
-                            <td class="fw-bold">${m.item_name}</td>
-                            <td><span class="badge bg-secondary">${unitLabel}</span></td>
-                            <td><span class="badge bg-primary">${m.stock_quantity || 0}</span></td>
-                            <td>$${parseFloat(m.cost_price || 0).toFixed(2)}</td>
-                            <td class="text-success fw-bold">$${parseFloat(m.retail_price || 0).toFixed(2)}</td>
-                            <td class="text-primary fw-bold">$${parseFloat(m.wholesale_price || 0).toFixed(2)}</td>
-                            ${actionTd}
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                } else {
-                    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3">មិនទាន់មានទំនិញក្នុងស្តុកទេ</td></tr>`;
-                }
+    let tbodyList = ['masterTableBody', 'masterTableBodyAdmin'];
+    
+    tbodyList.forEach(tbodyId => {
+        let tbody = document.getElementById(tbodyId);
+        if(!tbody) return;
+        tbody.innerHTML = '';
+        if (masterItemsList.length > 0) {
+            masterItemsList.forEach(m => {
+                let unitLabel = m.unit ? m.unit : 'ដុំ';
+                let tr = document.createElement('tr');
+                let actionTd = isStaff ? '' : `
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary py-0 px-2 me-1" onclick="openEditMaster('${m.id}', '${m.category.replace(/'/g, "\\'")}', '${m.item_name.replace(/'/g, "\\'")}', '${m.unit || 'ដុំ'}', ${m.stock_quantity || 0}, ${m.cost_price || 0}, ${m.retail_price || 0}, ${m.wholesale_price || 0})">កែ</button>
+                        <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deleteMasterItem('${m.id}', '${m.item_name.replace(/'/g, "\\'")}')">លុប</button>
+                    </td>
+                `;
+
+                tr.innerHTML = `
+                    <td><span class="badge bg-light text-secondary border">${m.category}</span></td>
+                    <td class="fw-bold">${m.item_name}</td>
+                    <td>${unitLabel}</td>
+                    <td><span class="badge bg-secondary">${m.stock_quantity}</span></td>
+                    <td>$${parseFloat(m.cost_price || 0).toFixed(2)}</td>
+                    <td class="text-success">$${parseFloat(m.retail_price || 0).toFixed(2)}</td>
+                    <td class="text-primary">$${parseFloat(m.wholesale_price || 0).toFixed(2)}</td>
+                    ${actionTd}
+                `;
+                tbody.appendChild(tr);
             });
+        } else {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3">មិនមានទំនិញក្នុងស្តុកទេ</td></tr>`;
         }
+    });
+}
 
         async function fetchTransactions() {
             try {
