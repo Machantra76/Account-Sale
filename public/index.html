@@ -2040,15 +2040,12 @@
 
                 await saveInvoiceToServer(invoiceObj);
 
-                // 🟢 បានបន្ថែម field paid_amount, remaining_amount, និង status ឱ្យត្រូវនឹង Backend
+                // 🟢 កែតម្រូវ URL និងទម្រង់ទិន្នន័យឱ្យត្រូវទៅនឹង Backend `/debts`
                 let debtData = {
                     debt_type: 'RECEIVABLE',
                     partner_name: partnerName.trim(),
                     reference_id: invoiceId,
                     total_amount: grandTotal,
-                    paid_amount: 0,
-                    remaining_amount: grandTotal,
-                    status: 'UNPAID',
                     due_date: null
                 };
 
@@ -2058,7 +2055,9 @@
                     body: JSON.stringify(debtData)
                 });
 
-                if (debtRes.ok) {
+                let debtResult = await debtRes.json();
+
+                if (debtRes.ok && debtResult.success) {
                     if (loggedUser.username) {
                         logActivity(loggedUser, `លក់ជំពាក់ (Invoice: ${invoiceId} - អតិថិជន: ${partnerName} - សរុប: $${grandTotal.toFixed(2)})`);
                     }
@@ -2071,7 +2070,7 @@
                     renderCartTable();
                     loadAppData();
                 } else {
-                    alert("❌ មានបញ្ហាក្នុងការបង្កើតកំណត់ត្រាជំពាក់!");
+                    alert(`❌ មានបញ្ហាក្នុងការបង្កើតកំណត់ត្រាជំពាក់: ${debtResult.error || 'Unknown error'}`);
                 }
 
             } catch (err) {
