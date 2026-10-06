@@ -550,4 +550,29 @@ app.get('/api/accounting/summary', async (req, res) => {
             }
         });
     } catch (err) {
-        res.status
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.delete('/api/accounting/transactions/:id', async (req, res) => {
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+        const { id } = req.params;
+
+        await client.query('DELETE FROM transactions WHERE id = $1', [id]);
+
+        await client.query('COMMIT');
+        res.json({ success: true, message: "Transaction deleted successfully!" });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        res.status(500).json({ success: false, error: err.message });
+    } finally {
+        client.release();
+    }
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Accounting API Server is running on port ${PORT}`);
+});
