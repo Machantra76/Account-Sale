@@ -2079,59 +2079,66 @@
             }
         }
 
-        function printCartInvoice(items, invoiceId = 'INV-NEW') {
-            let exchangeRate = parseFloat(document.getElementById('exchangeRateInput')?.value) || 4000;
-            let printWindow = window.open('', '_blank', 'height=700,width=450');
-            printWindow.document.write('<html><head><title>វិក្កយបត្រលក់ (Sales Invoice)</title>');
-            printWindow.document.write(`
-                <style>
-                    @media print {
-                        @page { size: 80mm auto; margin: 0; }
-                        body { width: 72mm; margin: 4mm; }
-                    }
-                    body { font-family: 'Kantumruy Pro', sans-serif; padding: 5px; color: #000; font-size: 11px; }
-                    h3, p { text-align: center; margin: 3px 0; }
-                    table { width: 100%; margin-top: 10px; border-collapse: collapse; }
-                    th, td { padding: 4px; border-bottom: 1px dashed #888; text-align: left; font-size: 10px; }
-                    th { border-bottom: 1px solid #000; }
-                    .text-right { text-align: right; }
-                </style>
-            `);
-            printWindow.document.write('</head><body>');
-            printWindow.document.write('<h3>វិក្កយបត្រលក់ទំនិញ</h3>');
-            printWindow.document.write(`<p><small>លេខ: ${invoiceId} | កាលបរិច្ឆេទ: ${new Date().toLocaleString()}</small></p><hr>`);
-            printWindow.document.write('<table>');
-            printWindow.document.write(`<tr><th>មុខទំនិញ</th><th>ចំនួន</th><th>តម្លៃ</th><th class="text-right">ទឹកប្រាក់</th></tr>`);
-            
-            let grandTotal = 0;
-            items.forEach(item => {
-                let total = item.quantity * item.unit_price;
-                grandTotal += total;
-                printWindow.document.write(`<tr>
-                    <td><b>${item.item_name}</b><br><small>(${item.category})</small></td>
-                    <td>${item.quantity} ${item.unit || 'ដុំ'}</td>
-                    <td>$${item.unit_price.toFixed(2)}</td>
-                    <td class="text-right">$${total.toFixed(2)}</td>
-                </tr>`);
-            });
-            
-            printWindow.document.write('</table>');
-            
-            let grandTotalRiel = grandTotal * exchangeRate;
-            printWindow.document.write(`<div style="margin-top: 15px; text-align: right;">`);
-            printWindow.document.write(`<h3 style="margin: 2px 0; font-size: 12px;">សរុបប្រាក់ ($): $${grandTotal.toFixed(2)}</h3>`);
-            printWindow.document.write(`<h3 style="margin: 2px 0; font-size: 12px;">សរុបប្រាក់ (រៀល): ${grandTotalRiel.toLocaleString()} រៀល</h3>`);
-            printWindow.document.write(`</div>`);
-            
-            printWindow.document.write('<p style="margin-top: 25px; text-align: center;"><small>អរគុណសម្រាប់ការគាំទ្រ!</small></p>');
-            printWindow.document.write('</body></html>');
-            printWindow.document.close();
-            printWindow.focus();
-            setTimeout(() => {
-                printWindow.print();
-                printWindow.close();
-            }, 500);
-        }
+       function printCartInvoice(items, invoiceId = 'INV-NEW') {
+    let exchangeRate = parseFloat(document.getElementById('exchangeRateInput')?.value) || 4000;
+    let printWindow = window.open('', '_blank', 'height=700,width=450');
+    
+    // 🟢 បន្ថែមលក្ខខណ្ឌការពារកុំឱ្យ Error ប្រសិនបើ Browser បិទ Popup Blocker
+    if (!printWindow || !printWindow.document) {
+        alert("⚠ សូមអនុញ្ញាត (Allow Popups) ឱ្យវេបសាយនេះសម្រាប់ព្រិន្ទវិក្កយបត្រ!");
+        return;
+    }
+
+    printWindow.document.write('<html><head><title>វិក្កយបត្រលក់ (Sales Invoice)</title>');
+    printWindow.document.write(`
+        <style>
+            @media print {
+                @page { size: 80mm auto; margin: 0; }
+                body { width: 72mm; margin: 4mm; }
+            }
+            body { font-family: 'Kantumruy Pro', sans-serif; padding: 5px; color: #000; font-size: 11px; }
+            h3, p { text-align: center; margin: 3px 0; }
+            table { width: 100%; margin-top: 10px; border-collapse: collapse; }
+            th, td { padding: 4px; border-bottom: 1px dashed #888; text-align: left; font-size: 10px; }
+            th { border-bottom: 1px solid #000; }
+            .text-right { text-align: right; }
+        </style>
+    `);
+    printWindow.document.write('</head><body>');
+    printWindow.document.write('<h3>វិក្កយបត្រលក់ទំនិញ</h3>');
+    printWindow.document.write(`<p><small>លេខ: ${invoiceId} | កាលបរិច្ឆេទ: ${new Date().toLocaleString()}</small></p><hr>`);
+    printWindow.document.write('<table>');
+    printWindow.document.write(`<tr><th>មុខទំនិញ</th><th>ចំនួន</th><th>តម្លៃ</th><th class="text-right">ទឹកប្រាក់</th></tr>`);
+    
+    let grandTotal = 0;
+    items.forEach(item => {
+        let total = item.quantity * item.unit_price;
+        grandTotal += total;
+        printWindow.document.write(`<tr>
+            <td><b>${item.item_name}</b><br><small>(${item.category})</small></td>
+            <td>${item.quantity} ${item.unit || 'ដុំ'}</td>
+            <td>$${item.unit_price.toFixed(2)}</td>
+            <td class="text-right">$${total.toFixed(2)}</td>
+        </tr>`);
+    });
+    
+    printWindow.document.write('</table>');
+    
+    let grandTotalRiel = grandTotal * exchangeRate;
+    printWindow.document.write(`<div style="margin-top: 15px; text-align: right;">`);
+    printWindow.document.write(`<h3 style="margin: 2px 0; font-size: 12px;">សរុបប្រាក់ ($): $${grandTotal.toFixed(2)}</h3>`);
+    printWindow.document.write(`<h3 style="margin: 2px 0; font-size: 12px;">សរុបប្រាក់ (រៀល): ${grandTotalRiel.toLocaleString()} រៀល</h3>`);
+    printWindow.document.write(`</div>`);
+    
+    printWindow.document.write('<p style="margin-top: 25px; text-align: center;"><small>អរគុណសម្រាប់ការគាំទ្រ!</small></p>');
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
+}
 
         async function renderInvoiceHistoryTable() {
             let tbody = document.getElementById('invoiceHistoryTableBody');
