@@ -140,7 +140,7 @@
                 <button onclick="openDebtReportModal()" class="btn btn-outline-warning btn-sm px-3 shadow-sm fw-semibold text-dark">
                     <i class="bi bi-journal-text me-1"></i> អតិថិជនជំពាក់ (Receivable)
                 </button>
-                <button onclick="openPayableReportModal()" class="btn btn-outline-danger btn-sm px-3 shadow-sm fw-semibold">
+                <button id="adminPayableBtn" onclick="openPayableReportModal()" class="btn btn-outline-danger btn-sm px-3 shadow-sm fw-semibold">
                     <i class="bi bi-journal-bookmark me-1"></i> យើងជំពាក់គេ (Payable)
                 </button>
                 <button id="adminReportBtn" onclick="openReportModal()" class="btn btn-primary btn-sm px-3 shadow-sm fw-semibold">
@@ -1192,6 +1192,14 @@
         }
 
         async function openPayableReportModal() {
+            let loggedUserStr = sessionStorage.getItem("loggedUserObj");
+            if (loggedUserStr) {
+                let userObj = JSON.parse(loggedUserStr);
+                if (userObj.role === 'staff') {
+                    alert("⚠ សូមអភ័យទោស! មុខងារ 'យើងជំពាក់គេ (Payable)' សម្រាប់តែ Admin ប៉ុណ្ណោះ។");
+                    return;
+                }
+            }
             await renderDebtTable('PAYABLE', 'payableTableBody');
             payableReportModal.show();
         }
@@ -1334,6 +1342,7 @@
                 let colAdminMasterListContainer = document.getElementById('colAdminMasterListContainer');
                 let colExpenseCard = document.getElementById('colExpenseCard');
                 let colAdminUserCard = document.getElementById('colAdminUserCard');
+                let adminPayableBtn = document.getElementById('adminPayableBtn');
 
                 if (userObj.role === 'staff') {
                     colMasterForm.style.display = 'none';
@@ -1352,6 +1361,8 @@
                     colExpenseCard.className = "col-lg-12";
                     colExpenseCard.style.display = 'none';
                     colAdminUserCard.style.display = 'none';
+
+                    if(adminPayableBtn) adminPayableBtn.style.display = 'none';
 
                     document.getElementById('adminReportBtn').style.display = 'none';
                     document.getElementById('adminActivityLogBtn').style.display = 'none';
@@ -1381,6 +1392,8 @@
                     colExpenseCard.className = "col-lg-8";
 
                     colAdminUserCard.style.display = 'none';
+
+                    if(adminPayableBtn) adminPayableBtn.style.display = 'inline-block';
 
                     document.getElementById('adminReportBtn').style.display = 'inline-block';
                     document.getElementById('adminActivityLogBtn').style.display = 'none';
@@ -1413,6 +1426,8 @@
 
                     colAdminUserCard.style.display = 'block';
                     colAdminUserCard.className = "col-lg-4";
+
+                    if(adminPayableBtn) adminPayableBtn.style.display = 'inline-block';
 
                     document.getElementById('adminReportBtn').style.display = 'inline-block';
                     document.getElementById('adminActivityLogBtn').style.display = 'inline-block';
