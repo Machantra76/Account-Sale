@@ -84,7 +84,7 @@ const initTables = async () => {
             reference_id VARCHAR(100),
             total_amount DECIMAL(10, 2) NOT NULL,
             paid_amount DECIMAL(10, 2) DEFAULT 0,
-            remaining_amount DECIMAL(10, 2) NOT NULL,
+            remaining_amount DECIMAL(10, 2) GENERATED ALWAYS AS (total_amount - paid_amount) STORED,
             status VARCHAR(50) DEFAULT 'UNPAID',
             due_date TIMESTAMP,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -448,10 +448,10 @@ app.post('/api/accounting/debts', async (req, res) => {
         const total = parseFloat(total_amount) || 0;
 
         const query = `
-            INSERT INTO debts (debt_type, partner_name, reference_id, total_amount, paid_amount, remaining_amount, status, due_date)
-            VALUES ($1, $2, $3, $4, 0, $5, 'UNPAID', $6) RETURNING *;
+            INSERT INTO debts (debt_type, partner_name, reference_id, total_amount, paid_amount, status, due_date)
+            VALUES ($1, $2, $3, $4, 0, 'UNPAID', $5) RETURNING *;
         `;
-        let result = await pool.query(query, [type, partner_name, reference_id || '', total, total, due_date || null]);
+        let result = await pool.query(query, [type, partner_name, reference_id || '', total, due_date || null]);
         
         res.status(201).json({ success: true, message: "Debt record created successfully!", data: result.rows[0] });
     } catch (err) {
@@ -475,11 +475,10 @@ app.post('/api/accounting/debts/:id/pay', async (req, res) => {
 
         let debt = debtRes.rows[0];
         let newPaidAmount = parseFloat(debt.paid_amount) + payAmount;
-        let newRemaining = parseFloat(debt.total_amount) - newPaidAmount;
+        let totalAmt = parseFloat(debt.total_amount);
         
         let newStatus = 'PARTIAL';
-        if (newRemaining <= 0) {
-            newRemaining = 0;
+        if (newPaidAmount >= totalAmt) {
             newStatus = 'PAID';
         }
 
@@ -489,8 +488,8 @@ app.post('/api/accounting/debts/:id/pay', async (req, res) => {
         );
 
         let updateRes = await client.query(
-            `UPDATE debts SET paid_amount = $1, remaining_amount = $2, status = $3 WHERE id = $4 RETURNING *;`,
-            [newPaidAmount, newRemaining, newStatus, id]
+            `UPDATE debts SET paid_amount = $1, status = $2 WHERE id = $3 RETURNING *;`,
+            [newPaidAmount, newStatus, id]
         );
 
         await client.query('COMMIT');
