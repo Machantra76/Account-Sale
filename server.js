@@ -118,6 +118,7 @@ const initTables = async () => {
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS retail_price DECIMAL(10, 2) DEFAULT 0;`);
         await pool.query(`ALTER TABLE master_items ADD COLUMN IF NOT EXISTS wholesale_price DECIMAL(10, 2) DEFAULT 0;`);
         await pool.query(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS item_id INT;`);
+        await pool.query(`ALTER TABLE debts ADD COLUMN IF NOT EXISTS due_date TIMESTAMP;`);
 
         await pool.query(`
             INSERT INTO users (username, password, role) 
@@ -192,7 +193,6 @@ app.post('/api/accounting/invoices', async (req, res) => {
     }
 });
 
-// 🟢 កែសម្រួល៖ លុប Invoice ចោលសុទ្ធសាធ ដោយមិនប៉ះពាល់ស្តុកក្នុងឃ្លាំង
 app.delete('/api/accounting/invoices/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -550,30 +550,4 @@ app.get('/api/accounting/summary', async (req, res) => {
             }
         });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
-
-// 🟢 កែសម្រួល៖ លុប Transaction ចោលសុទ្ធសាធ ដោយមិនបាច់យកទៅបូក/ដកស្តុកក្នុង master_items វិញទេ
-app.delete('/api/accounting/transactions/:id', async (req, res) => {
-    const client = await pool.connect();
-    try {
-        await client.query('BEGIN');
-        const { id } = req.params;
-
-        await client.query('DELETE FROM transactions WHERE id = $1', [id]);
-
-        await client.query('COMMIT');
-        res.json({ success: true, message: "Transaction deleted successfully!" });
-    } catch (err) {
-        await client.query('ROLLBACK');
-        res.status(500).json({ success: false, error: err.message });
-    } finally {
-        client.release();
-    }
-});
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Accounting API Server is running on port ${PORT}`);
-});
+        res.status
