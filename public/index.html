@@ -138,7 +138,10 @@
                     <i class="bi bi-receipt me-1"></i> ប្រវត្តិវិក្កយបត្រ
                 </button>
                 <button onclick="openDebtReportModal()" class="btn btn-outline-warning btn-sm px-3 shadow-sm fw-semibold text-dark">
-                    <i class="bi bi-journal-text me-1"></i> របាយការណ៍អតិថិជនជំពាក់
+                    <i class="bi bi-journal-text me-1"></i> អតិថិជនជំពាក់ (Receivable)
+                </button>
+                <button onclick="openPayableReportModal()" class="btn btn-outline-danger btn-sm px-3 shadow-sm fw-semibold">
+                    <i class="bi bi-journal-bookmark me-1"></i> យើងជំពាក់គេ (Payable)
                 </button>
                 <button id="adminReportBtn" onclick="openReportModal()" class="btn btn-primary btn-sm px-3 shadow-sm fw-semibold">
                     <i class="bi bi-graph-up-arrow me-1"></i> របាយការណ៍ (Reports)
@@ -402,7 +405,14 @@
                                 <input type="number" step="0.01" class="form-control" id="restockPrice" placeholder="0.00" required>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-outline-danger btn-sm w-100 shadow-sm py-2">បញ្ជាក់ការទិញស្តុកចូល (Restock)</button>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <button type="submit" class="btn btn-outline-danger btn-sm w-100 shadow-sm py-2">ទិញសាច់ប្រាក់ (Cash)</button>
+                            </div>
+                            <div class="col-6">
+                                <button type="button" class="btn btn-warning btn-sm w-100 shadow-sm py-2 text-dark fw-bold" onclick="restockAsCredit()">ទិញជំពាក់ (Credit)</button>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -663,7 +673,7 @@
         </div>
     </div>
 
-    <!-- DEBT REPORT MODAL -->
+    <!-- DEBT REPORT MODAL (RECEIVABLE - អតិថិជនជំពាក់យើង) -->
     <div class="modal fade" id="debtReportModal" tabindex="-1">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content border-0 shadow-lg rounded-4">
@@ -697,6 +707,40 @@
         </div>
     </div>
 
+    <!-- PAYABLE REPORT MODAL (PAYABLE - យើងជំពាក់គេ) -->
+    <div class="modal fade" id="payableReportModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-bold">📑 របាយការណ៍យើងជំពាក់ប្រាក់គេ / អ្នកផ្គត់ផ្គង់ (Accounts Payable Report)</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle mb-0">
+                            <thead class="table-danger">
+                                <tr>
+                                    <th>កាលបរិច្ឆេទ (Date)</th>
+                                    <th>ឈ្មោះអ្នកផ្គត់ផ្គង់ (Supplier Name)</th>
+                                    <th>លេខយោង (Ref ID)</th>
+                                    <th>ទឹកប្រាក់សរុប ($)</th>
+                                    <th>បានសងរួច ($)</th>
+                                    <th>នៅសល់ជំពាក់ ($)</th>
+                                    <th>ស្ថានភាព (Status)</th>
+                                    <th class="text-center">សកម្មភាព (Actions)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payableTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">បិទ (Close)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- PAY DEBT MODAL -->
     <div class="modal fade" id="payDebtModal" tabindex="-1">
         <div class="modal-dialog">
@@ -709,7 +753,7 @@
                     <form id="payDebtForm">
                         <input type="hidden" id="payDebtId">
                         <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">ឈ្មោះអតិថិជន</label>
+                            <label class="form-label small text-muted fw-bold">ឈ្មោះភាគីពាក់ព័ន្ធ (Partner Name)</label>
                             <input type="text" class="form-control bg-light" id="payDebtPartnerName" readonly>
                         </div>
                         <div class="mb-3">
@@ -976,6 +1020,7 @@
         let editTransactionModal;
         let activityLogModal;
         let debtReportModal;
+        let payableReportModal;
         let payDebtModal;
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -987,6 +1032,7 @@
             editTransactionModal = new bootstrap.Modal(document.getElementById('editTransactionModal'));
             activityLogModal = new bootstrap.Modal(document.getElementById('activityLogModal'));
             debtReportModal = new bootstrap.Modal(document.getElementById('debtReportModal'));
+            payableReportModal = new bootstrap.Modal(document.getElementById('payableReportModal'));
             payDebtModal = new bootstrap.Modal(document.getElementById('payDebtModal'));
             checkLoginState();
         });
@@ -1141,17 +1187,22 @@
         }
 
         async function openDebtReportModal() {
-            await renderDebtTable();
+            await renderDebtTable('RECEIVABLE', 'debtTableBody');
             debtReportModal.show();
         }
 
-        async function renderDebtTable() {
-            let tbody = document.getElementById('debtTableBody');
+        async function openPayableReportModal() {
+            await renderDebtTable('PAYABLE', 'payableTableBody');
+            payableReportModal.show();
+        }
+
+        async function renderDebtTable(debtType, tbodyId) {
+            let tbody = document.getElementById(tbodyId);
             if(!tbody) return;
             tbody.innerHTML = '';
 
             try {
-                let res = await fetch(`${API_URL}/debts?debt_type=RECEIVABLE`);
+                let res = await fetch(`${API_URL}/debts?debt_type=${debtType}`);
                 let result = await res.json();
 
                 if (result.success && result.data.length > 0) {
@@ -1165,8 +1216,9 @@
                             statusBadge = `<span class="badge bg-danger">មិនទាន់បង់ (UNPAID)</span>`;
                         }
 
+                        let remaining = parseFloat(debt.total_amount) - parseFloat(debt.paid_amount);
                         let payBtn = debt.status !== 'PAID' ? 
-                            `<button class="btn btn-sm btn-success py-0 px-2 fw-semibold" onclick="openPayDebtModal('${debt.id}', '${debt.partner_name}', ${debt.remaining_amount})">បង់ប្រាក់សង</button>` : 
+                            `<button class="btn btn-sm btn-success py-0 px-2 fw-semibold" onclick="openPayDebtModal('${debt.id}', '${debt.partner_name}', ${remaining}, '${debtType}')">បង់ប្រាក់សង</button>` : 
                             `<span class="text-muted small">រួចរាល់</span>`;
 
                         let tr = document.createElement('tr');
@@ -1176,14 +1228,15 @@
                             <td><code>${debt.reference_id || '-'}</code></td>
                             <td>$${parseFloat(debt.total_amount).toFixed(2)}</td>
                             <td class="text-success">$${parseFloat(debt.paid_amount).toFixed(2)}</td>
-                            <td class="text-danger fw-bold">$${parseFloat(debt.remaining_amount).toFixed(2)}</td>
+                            <td class="text-danger fw-bold">$${remaining.toFixed(2)}</td>
                             <td>${statusBadge}</td>
                             <td class="text-center">${payBtn}</td>
                         `;
                         tbody.appendChild(tr);
                     });
                 } else {
-                    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3">មិនមានទិន្នន័យអតិថិជនជំពាក់ប្រាក់ទេ</td></tr>`;
+                    let msg = debtType === 'RECEIVABLE' ? 'មិនមានទិន្នន័យអតិថិជនជំពាក់ប្រាក់ទេ' : 'មិនមានទិន្នន័យយើងជំពាក់គេទេ';
+                    tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-3">${msg}</td></tr>`;
                 }
             } catch (err) {
                 console.error("Error fetching debts:", err);
@@ -1191,14 +1244,18 @@
             }
         }
 
-        function openPayDebtModal(id, partnerName, remainingAmount) {
+        function openPayDebtModal(id, partnerName, remainingAmount, debtType) {
             document.getElementById('payDebtId').value = id;
             document.getElementById('payDebtPartnerName').value = partnerName;
             document.getElementById('payDebtRemainingDisplay').innerText = `$${parseFloat(remainingAmount).toFixed(2)}`;
             document.getElementById('payDebtAmountInput').value = '';
             document.getElementById('payDebtNoteInput').value = '';
             
-            debtReportModal.hide();
+            if (debtType === 'RECEIVABLE') {
+                debtReportModal.hide();
+            } else {
+                payableReportModal.hide();
+            }
             payDebtModal.show();
         }
 
@@ -1229,7 +1286,6 @@
 
                     alert("✅ បានកត់ត្រាការបង់ប្រាក់សងជំពាក់ដោយជោគជ័យ!");
                     payDebtModal.hide();
-                    openDebtReportModal();
                     loadAppData();
                 } else {
                     alert(`❌ ${result.error || 'កំហុសក្នុងការកត់ត្រាការបង់ប្រាក់!'}`);
@@ -2040,7 +2096,6 @@
 
                 await saveInvoiceToServer(invoiceObj);
 
-                // 🟢 កែតម្រូវ URL និងទម្រង់ទិន្នន័យឱ្យត្រូវទៅនឹង Backend `/debts`
                 let debtData = {
                     debt_type: 'RECEIVABLE',
                     partner_name: partnerName.trim(),
@@ -2079,66 +2134,136 @@
             }
         }
 
-       function printCartInvoice(items, invoiceId = 'INV-NEW') {
-    let exchangeRate = parseFloat(document.getElementById('exchangeRateInput')?.value) || 4000;
-    let printWindow = window.open('', '_blank', 'height=700,width=450');
-    
-    // 🟢 បន្ថែមលក្ខខណ្ឌការពារកុំឱ្យ Error ប្រសិនបើ Browser បិទ Popup Blocker
-    if (!printWindow || !printWindow.document) {
-        alert("⚠ សូមអនុញ្ញាត (Allow Popups) ឱ្យវេបសាយនេះសម្រាប់ព្រិន្ទវិក្កយបត្រ!");
-        return;
-    }
+        async function restockAsCredit() {
+            let selectedId = document.getElementById('restockSelectItem').value;
+            let foundItem = masterItemsList.find(i => i.id == selectedId);
+            let restockQty = parseInt(document.getElementById('restockQty').value) || 0;
+            let restockPrice = parseFloat(document.getElementById('restockPrice').value) || 0;
 
-    printWindow.document.write('<html><head><title>វិក្កយបត្រលក់ (Sales Invoice)</title>');
-    printWindow.document.write(`
-        <style>
-            @media print {
-                @page { size: 80mm auto; margin: 0; }
-                body { width: 72mm; margin: 4mm; }
+            if (!foundItem || restockQty <= 0) {
+                alert("⚠ សូមជ្រើសរើសទំនិញ និងចំនួនឱ្យបានត្រឹមត្រូវ!");
+                return;
             }
-            body { font-family: 'Kantumruy Pro', sans-serif; padding: 5px; color: #000; font-size: 11px; }
-            h3, p { text-align: center; margin: 3px 0; }
-            table { width: 100%; margin-top: 10px; border-collapse: collapse; }
-            th, td { padding: 4px; border-bottom: 1px dashed #888; text-align: left; font-size: 10px; }
-            th { border-bottom: 1px solid #000; }
-            .text-right { text-align: right; }
-        </style>
-    `);
-    printWindow.document.write('</head><body>');
-    printWindow.document.write('<h3>វិក្កយបត្រលក់ទំនិញ</h3>');
-    printWindow.document.write(`<p><small>លេខ: ${invoiceId} | កាលបរិច្ឆេទ: ${new Date().toLocaleString()}</small></p><hr>`);
-    printWindow.document.write('<table>');
-    printWindow.document.write(`<tr><th>មុខទំនិញ</th><th>ចំនួន</th><th>តម្លៃ</th><th class="text-right">ទឹកប្រាក់</th></tr>`);
-    
-    let grandTotal = 0;
-    items.forEach(item => {
-        let total = item.quantity * item.unit_price;
-        grandTotal += total;
-        printWindow.document.write(`<tr>
-            <td><b>${item.item_name}</b><br><small>(${item.category})</small></td>
-            <td>${item.quantity} ${item.unit || 'ដុំ'}</td>
-            <td>$${item.unit_price.toFixed(2)}</td>
-            <td class="text-right">$${total.toFixed(2)}</td>
-        </tr>`);
-    });
-    
-    printWindow.document.write('</table>');
-    
-    let grandTotalRiel = grandTotal * exchangeRate;
-    printWindow.document.write(`<div style="margin-top: 15px; text-align: right;">`);
-    printWindow.document.write(`<h3 style="margin: 2px 0; font-size: 12px;">សរុបប្រាក់ ($): $${grandTotal.toFixed(2)}</h3>`);
-    printWindow.document.write(`<h3 style="margin: 2px 0; font-size: 12px;">សរុបប្រាក់ (រៀល): ${grandTotalRiel.toLocaleString()} រៀល</h3>`);
-    printWindow.document.write(`</div>`);
-    
-    printWindow.document.write('<p style="margin-top: 25px; text-align: center;"><small>អរគុណសម្រាប់ការគាំទ្រ!</small></p>');
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-    }, 500);
-}
+
+            let supplierName = prompt("សូមបញ្ចូលឈ្មោះអ្នកផ្គត់ផ្គង់ (Supplier Name) ដែលយើងជំពាក់:");
+            if (!supplierName || supplierName.trim() === "") {
+                alert("⚠ សូមបញ្ជាក់ឈ្មោះអ្នកផ្គត់ផ្គង់!");
+                return;
+            }
+
+            let totalAmount = restockQty * restockPrice;
+            let refId = 'RESTOCK-CR-' + Date.now();
+
+            try {
+                let txData = {
+                    type: 'EXPENSE',
+                    item_id: foundItem.id,
+                    category: foundItem.category,
+                    item_name: foundItem.item_name,
+                    quantity: restockQty,
+                    unit_price: restockPrice,
+                    amount: totalAmount
+                };
+
+                await fetch(`${API_URL}/transactions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(txData)
+                });
+
+                let debtData = {
+                    debt_type: 'PAYABLE',
+                    partner_name: supplierName.trim(),
+                    reference_id: refId,
+                    total_amount: totalAmount,
+                    due_date: null
+                };
+
+                let debtRes = await fetch(`${API_URL}/debts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(debtData)
+                });
+
+                let result = await debtRes.json();
+                if (debtRes.ok && result.success) {
+                    let loggedUser = JSON.parse(sessionStorage.getItem("loggedUserObj") || "{}");
+                    if (loggedUser.username) {
+                        logActivity(loggedUser, `ទិញស្តុកជំពាក់ពី Supplier: ${supplierName} (${foundItem.item_name} - $${totalAmount.toFixed(2)})`);
+                    }
+
+                    alert(`✅ បានកត់ត្រាការទិញស្តុកជំពាក់ពី "${supplierName}" ដោយជោគជ័យ! ($${totalAmount.toFixed(2)})`);
+                    document.getElementById('restockForm').reset();
+                    loadAppData();
+                } else {
+                    alert(`❌ កំហុស៖ ${result.error || 'មិនអាចកត់ត្រាជំពាក់បានទេ'}`);
+                }
+
+            } catch (err) {
+                console.error("Error in credit restock:", err);
+                alert("❌ មានបញ្ហាក្នុងការភ្ជាប់ទៅកាន់ Server!");
+            }
+        }
+
+        function printCartInvoice(items, invoiceId = 'INV-NEW') {
+            let exchangeRate = parseFloat(document.getElementById('exchangeRateInput')?.value) || 4000;
+            let printWindow = window.open('', '_blank', 'height=700,width=450');
+            
+            if (!printWindow || !printWindow.document) {
+                alert("⚠ សូមអនុញ្ញាត (Allow Popups) ឱ្យវេបសាយនេះសម្រាប់ព្រិន្ទវិក្កយបត្រ!");
+                return;
+            }
+
+            printWindow.document.write('<html><head><title>វិក្កយបត្រលក់ (Sales Invoice)</title>');
+            printWindow.document.write(`
+                <style>
+                    @media print {
+                        @page { size: 80mm auto; margin: 0; }
+                        body { width: 72mm; margin: 4mm; }
+                    }
+                    body { font-family: 'Kantumruy Pro', sans-serif; padding: 5px; color: #000; font-size: 11px; }
+                    h3, p { text-align: center; margin: 3px 0; }
+                    table { width: 100%; margin-top: 10px; border-collapse: collapse; }
+                    th, td { padding: 4px; border-bottom: 1px dashed #888; text-align: left; font-size: 10px; }
+                    th { border-bottom: 1px solid #000; }
+                    .text-right { text-align: right; }
+                </style>
+            `);
+            printWindow.document.write('</head><body>');
+            printWindow.document.write('<h3>វិក្កយបត្រលក់ទំនិញ</h3>');
+            printWindow.document.write(`<p><small>លេខ: ${invoiceId} | កាលបរិច្ឆេទ: ${new Date().toLocaleString()}</small></p><hr>`);
+            printWindow.document.write('<table>');
+            printWindow.document.write(`<tr><th>មុខទំនិញ</th><th>ចំនួន</th><th>តម្លៃ</th><th class="text-right">ទឹកប្រាក់</th></tr>`);
+            
+            let grandTotal = 0;
+            items.forEach(item => {
+                let total = item.quantity * item.unit_price;
+                grandTotal += total;
+                printWindow.document.write(`<tr>
+                    <td><b>${item.item_name}</b><br><small>(${item.category})</small></td>
+                    <td>${item.quantity} ${item.unit || 'ដុំ'}</td>
+                    <td>$${item.unit_price.toFixed(2)}</td>
+                    <td class="text-right">$${total.toFixed(2)}</td>
+                </tr>`);
+            });
+            
+            printWindow.document.write('</table>');
+            
+            let grandTotalRiel = grandTotal * exchangeRate;
+            printWindow.document.write(`<div style="margin-top: 15px; text-align: right;">`);
+            printWindow.document.write(`<h3 style="margin: 2px 0; font-size: 12px;">សរុបប្រាក់ ($): $${grandTotal.toFixed(2)}</h3>`);
+            printWindow.document.write(`<h3 style="margin: 2px 0; font-size: 12px;">សរុបប្រាក់ (រៀល): ${grandTotalRiel.toLocaleString()} រៀល</h3>`);
+            printWindow.document.write(`</div>`);
+            
+            printWindow.document.write('<p style="margin-top: 25px; text-align: center;"><small>អរគុណសម្រាប់ការគាំទ្រ!</small></p>');
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => {
+                printWindow.print();
+                printWindow.close();
+            }, 500);
+        }
 
         async function renderInvoiceHistoryTable() {
             let tbody = document.getElementById('invoiceHistoryTableBody');
